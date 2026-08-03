@@ -35,7 +35,7 @@
       <main class="main-content">
         <header class="topbar">
           <div class="breadcrumb"><span>PROPOSAL</span><i>/</i><strong>AMERICAN FORK, UT</strong></div>
-          <div class="top-actions"><button class="icon-button" aria-label="Print proposal" onclick="window.print()">↗</button><span class="present-label"><span class="mode-dot"></span> PRESENTATION VIEW</span><button class="avatar">KL</button></div>
+          <div class="top-actions"><button class="icon-button" aria-label="Print proposal" onclick="window.print()">↗</button><span class="present-label"><span class="mode-dot"></span> PRESENTATION VIEW</span><button class="auth-button" id="authButton">Sign in with Google</button><button class="avatar">KL</button></div>
         </header>
         <div class="report-wrap">
           <section class="hero section-anchor" id="overview">
@@ -68,5 +68,6 @@
     </div>
     <div class="toast" id="toast">Proposal export ready — your PDF is being prepared.</div>
     <script src="app.js"></script>
+    <script type="module" src="firebase.js"></script>
   </body>
 </html>

@@ -11,4 +11,10 @@ Open `index.html` directly in a browser, or serve the folder with any static fil
 - View mode keeps the experience report-first and presentation-friendly.
 - Edit mode exposes realistic project inputs and lets you toggle proposal scopes on or off.
 - The left navigator jumps between the six report sections and tracks the section in view.
-- Proposal economics update from the utility spend input; Export proposal gives a ready-state confirmation.
+- Proposal economics update from the utility spend input; Share view-only link copies a presentation-safe URL.
+
+## Firebase persistence and Google login
+
+Firebase is the recommended free starting point for Bidwise because Google sign-in is supported directly by Firebase Authentication and Firestore has a no-cost daily quota on the Spark plan. Copy `firebase-config.example.js` to `firebase-config.js`, paste the Web app config from Firebase Console, enable Google under Authentication → Sign-in method, and create a Firestore database. The config file is ignored by git.
+
+Without a Firebase config, the app still works locally and image replacements remain in the browser’s local storage.

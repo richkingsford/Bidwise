@@ -7,11 +7,11 @@ $('#solarChart').innerHTML = bars.map(value => `<i style="height:${value}%"></i>
 
 const configSchemas = {
   overview: { title: 'Overview', fields: [['Customer / site name', 'text', 'Walmart Supercenter #5179'], ['Proposal date', 'date', '2024-08-17'], ['Savings headline', 'number', '26.4']] },
-  site: { title: 'Site snapshot', fields: [['Store footprint (sq ft)', 'number', '182400'], ['Annual utility spend', 'number', '312800'], ['Peak demand (kW)', 'number', '1240'], ['Map image replacement', 'url', '']] },
-  solar: { title: 'Solar array', fields: [['Array size (kW DC)', 'number', '410'], ['Annual production (MWh)', 'number', '1010'], ['Module count', 'number', '754'], ['Chart / image replacement', 'url', '']] },
+  site: { title: 'Site snapshot', fields: [['Store footprint (sq ft)', 'number', '182400'], ['Annual utility spend', 'number', '312800'], ['Peak demand (kW)', 'number', '1240'], ['Map replacement image', 'file', '']] },
+  solar: { title: 'Solar array', fields: [['Array size (kW DC)', 'number', '410'], ['Annual production (MWh)', 'number', '1010'], ['Module count', 'number', '754'], ['Chart replacement image', 'file', '']] },
   storage: { title: 'Battery storage', fields: [['Battery capacity (MWh)', 'number', '1.2'], ['Power rating (kW)', 'number', '600'], ['Peak shaving target (%)', 'number', '19'], ['Dispatch model', 'text', 'Peak shaving + resilience']] },
   ev: { title: 'EV charging', fields: [['DC fast chargers', 'number', '6'], ['Level 2 chargers', 'number', '8'], ['Year 1 utilization (%)', 'number', '31'], ['Revenue model', 'text', 'Net revenue + customer dwell']] },
-  bundles: { title: 'Bundled scopes', fields: [['Critter guard investment', 'number', '27500'], ['Permanent lighting investment', 'number', '41250'], ['HVAC investment', 'number', '93193'], ['Scope image replacement', 'url', '']] },
+  bundles: { title: 'Bundled scopes', fields: [['Critter guard investment', 'number', '27500'], ['Permanent lighting investment', 'number', '41250'], ['HVAC investment', 'number', '93193'], ['Scope image replacement', 'file', '']] },
   vpp: { title: 'Grid partnership', fields: [['Demand response value / year', 'number', '12000'], ['Reserve requirement (%)', 'number', '20'], ['Program status', 'text', 'Subject to utility approval']] },
   investment: { title: 'Investment', fields: [['Solar investment', 'number', '820000'], ['Battery investment', 'number', '235000'], ['EV investment', 'number', '125000'], ['Incentive assumption (%)', 'number', '30']] },
   economics: { title: 'Economics', fields: [['Energy savings escalation (%)', 'number', '3'], ['Analysis period (years)', 'number', '20'], ['Discount rate (%)', 'number', '8'], ['Calculation note', 'text', 'Conservative base case']] },
@@ -26,15 +26,52 @@ function openConfig(sectionId) {
   activeConfigSection = sectionId;
   const schema = configSchemas[sectionId] || configSchemas.overview;
   configTitle.textContent = schema.title;
-  configBody.innerHTML = schema.fields.map(([label, type, value]) => `<label class="config-field"><span>${label}</span><input type="${type}" value="${value}" /></label>`).join('') + '<div class="config-help"><span>⌁</span><p>Change these inputs to re-size the story, replace an image, or update the assumptions behind the section’s visual model.</p></div>';
+  if (sectionId === 'solar') {
+    configBody.innerHTML = `<div class="config-tabs"><button class="config-tab active" data-tab="simple">Simple</button><button class="config-tab" data-tab="advanced">Advanced</button></div><div class="config-view active" data-view="simple"><label class="config-field"><span>High value</span><input id="chartHigh" type="number" value="96" /></label><label class="config-field"><span>Low value</span><input id="chartLow" type="number" value="48" /></label><div class="config-two"><label class="config-field"><span>Start month</span><input id="chartStart" type="text" value="JAN" maxlength="3" /></label><label class="config-field"><span>End month</span><input id="chartEnd" type="text" value="DEC" maxlength="3" /></label></div><label class="config-field"><span>Standard deviation</span><input id="chartStd" type="number" value="18" /></label><label class="config-field"><span>Middle shape</span><select id="chartShape"><option>Normal bell curve</option><option>Two humps</option><option>Flat summer peak</option><option>Custom seasonal</option></select></label></div><div class="config-view" data-view="advanced"><label class="config-field"><span>Paste data table</span><textarea id="chartTable" rows="9" placeholder="Month,Value\nJAN,48\nFEB,55\nMAR,61"></textarea></label><small class="format-hint">Use CSV or tab-separated rows with a header and two columns: Month, Value. Values must be numeric.</small></div><div class="config-help"><span>⌁</span><p>Simple mode generates a seasonal curve. Advanced mode lets you paste the exact chart data.</p></div>`;
+    $$('.config-tab').forEach(tab => tab.addEventListener('click', () => { $$('.config-tab').forEach(item => item.classList.toggle('active', item === tab)); $$('.config-view').forEach(view => view.classList.toggle('active', view.dataset.view === tab.dataset.tab)); }));
+  } else {
+    configBody.innerHTML = schema.fields.map(([label, type, value]) => type === 'file' ? `<label class="config-field"><span>${label}</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" data-label="${label}" /></label>` : `<label class="config-field"><span>${label}</span><input type="${type}" value="${value}" /></label>`).join('') + '<div class="config-help"><span>⌁</span><p>Change these inputs to re-size the story, replace an image, or update the assumptions behind the section’s visual model.</p></div>';
+    $$('.config-file').forEach(input => input.addEventListener('change', event => handleImageUpload(event.target.files[0], sectionId)));
+  }
   configPanel.classList.add('open');
   configBackdrop.classList.add('open');
 }
+function handleImageUpload(file, sectionId) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const imageUrl = reader.result;
+    localStorage.setItem(`bidwise-image-${sectionId}`, imageUrl);
+    const target = sectionId === 'site' ? $('.map-card') : sectionId === 'solar' ? $('.chart-panel') : $(`#${sectionId} .bundle-card`);
+    if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; }
+  };
+  reader.readAsDataURL(file);
+}
+['site', 'solar', 'bundles'].forEach(sectionId => {
+  const imageUrl = localStorage.getItem(`bidwise-image-${sectionId}`);
+  if (imageUrl) {
+    const target = sectionId === 'site' ? $('.map-card') : sectionId === 'solar' ? $('.chart-panel') : $(`#${sectionId} .bundle-card`);
+    if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; }
+  }
+});
 function closeConfig() { configPanel.classList.remove('open'); configBackdrop.classList.remove('open'); }
 $('#closeConfig').addEventListener('click', closeConfig);
 configBackdrop.addEventListener('click', closeConfig);
 $('#applyConfig').addEventListener('click', () => {
-  const values = [...configBody.querySelectorAll('input')].map(input => input.value);
+  if (activeConfigSection === 'solar') {
+    const advanced = $('[data-view="advanced"]')?.classList.contains('active');
+    if (advanced) {
+      const parsed = ($('#chartTable').value || '').trim().split(/\n/).slice(1).map(row => row.split(/[,\t]/).map(item => item.trim())).filter(row => row.length >= 2 && row[0] && Number.isFinite(Number(row[1])));
+      if (parsed.length < 2) { $('#chartTable').classList.add('invalid'); return; }
+      $('#solarChart').innerHTML = parsed.map(row => `<i style="height:${Math.max(8, Math.min(100, Number(row[1])))}%" title="${row[0]} ${row[1]}"></i>`).join('');
+    } else {
+      const high = Number($('#chartHigh').value) || 96; const low = Number($('#chartLow').value) || 48; const shape = $('#chartShape').value;
+      const generated = shape === 'Two humps' ? [low, high - 14, high, high - 12, low + 10, low + 17, low + 8, high, high - 8, low + 14, low, low] : bars.map((_, index) => low + ((high - low) * Math.sin((index / 11) * Math.PI)));
+      $('#solarChart').innerHTML = generated.map(value => `<i style="height:${Math.max(8, Math.min(100, value))}%"></i>`).join('');
+    }
+  }
+  const values = [...configBody.querySelectorAll('input:not([type="file"]), select')].map(input => input.value);
   if (activeConfigSection === 'site' && values[1]) $('#yearSavings').textContent = `$${((Number(values[1]) * 0.264) / 1000).toFixed(1)}K`;
   if (activeConfigSection === 'solar' && values[0]) {
     const detail = $('#solar .solar-detail h3');
