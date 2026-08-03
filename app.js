@@ -6,15 +6,15 @@ const bars = [48, 55, 61, 68, 78, 88, 96, 93, 83, 71, 57, 49];
 $('#solarChart').innerHTML = bars.map(value => `<i style="height:${value}%"></i>`).join('');
 
 const configSchemas = {
-  overview: { title: 'Overview', fields: [['Customer / site name', 'text', 'Walmart Supercenter #5179'], ['Proposal date', 'date', '2024-08-17'], ['Savings headline', 'number', '26.4']] },
+  overview: { title: 'Overview', fields: [['Customer / site name', 'text', 'Walmart Supercenter #5179'], ['Proposal date', 'date', '2024-08-17'], ['Savings headline', 'number', '26.4'], ['Hero replacement image', 'file', '']] },
   site: { title: 'Site snapshot', fields: [['Store footprint (sq ft)', 'number', '182400'], ['Annual utility spend', 'number', '312800'], ['Peak demand (kW)', 'number', '1240'], ['Map replacement image', 'file', '']] },
   solar: { title: 'Solar array', fields: [['Array size (kW DC)', 'number', '410'], ['Annual production (MWh)', 'number', '1010'], ['Module count', 'number', '754'], ['Chart replacement image', 'file', '']] },
-  storage: { title: 'Battery storage', fields: [['Battery capacity (MWh)', 'number', '1.2'], ['Power rating (kW)', 'number', '600'], ['Peak shaving target (%)', 'number', '19'], ['Dispatch model', 'text', 'Peak shaving + resilience']] },
-  ev: { title: 'EV charging', fields: [['DC fast chargers', 'number', '6'], ['Level 2 chargers', 'number', '8'], ['Year 1 utilization (%)', 'number', '31'], ['Revenue model', 'text', 'Net revenue + customer dwell']] },
+  storage: { title: 'Battery storage', fields: [['Battery capacity (MWh)', 'number', '1.2'], ['Power rating (kW)', 'number', '600'], ['Peak shaving target (%)', 'number', '19'], ['Dispatch model', 'text', 'Peak shaving + resilience'], ['Battery visual replacement', 'file', '']] },
+  ev: { title: 'EV charging', fields: [['DC fast chargers', 'number', '6'], ['Level 2 chargers', 'number', '8'], ['Year 1 utilization (%)', 'number', '31'], ['Revenue model', 'text', 'Net revenue + customer dwell'], ['Charging visual replacement', 'file', '']] },
   bundles: { title: 'Bundled scopes', fields: [['Critter guard investment', 'number', '27500'], ['Permanent lighting investment', 'number', '41250'], ['HVAC investment', 'number', '93193'], ['Scope image replacement', 'file', '']] },
-  vpp: { title: 'Grid partnership', fields: [['Demand response value / year', 'number', '12000'], ['Reserve requirement (%)', 'number', '20'], ['Program status', 'text', 'Subject to utility approval']] },
-  investment: { title: 'Investment', fields: [['Solar investment', 'number', '820000'], ['Battery investment', 'number', '235000'], ['EV investment', 'number', '125000'], ['Incentive assumption (%)', 'number', '30']] },
-  economics: { title: 'Economics', fields: [['Energy savings escalation (%)', 'number', '3'], ['Analysis period (years)', 'number', '20'], ['Discount rate (%)', 'number', '8'], ['Calculation note', 'text', 'Conservative base case']] },
+  vpp: { title: 'Grid partnership', fields: [['Demand response value / year', 'number', '12000'], ['Reserve requirement (%)', 'number', '20'], ['Program status', 'text', 'Subject to utility approval'], ['Grid partnership visual replacement', 'file', '']] },
+  investment: { title: 'Investment', fields: [['Solar investment', 'number', '820000'], ['Battery investment', 'number', '235000'], ['EV investment', 'number', '125000'], ['Incentive assumption (%)', 'number', '30'], ['Investment visual replacement', 'file', '']] },
+  economics: { title: 'Economics', fields: [['Energy savings escalation (%)', 'number', '3'], ['Analysis period (years)', 'number', '20'], ['Discount rate (%)', 'number', '8'], ['Calculation note', 'text', 'Conservative base case'], ['Economics visual replacement', 'file', '']] },
 };
 
 const configPanel = $('#configPanel');
@@ -43,15 +43,18 @@ function handleImageUpload(file, sectionId) {
   reader.onload = () => {
     const imageUrl = reader.result;
     localStorage.setItem(`bidwise-image-${sectionId}`, imageUrl);
-    const target = sectionId === 'site' ? $('.map-card') : sectionId === 'solar' ? $('.chart-panel') : $(`#${sectionId} .bundle-card`);
+    const target = visualTarget(sectionId);
     if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; }
   };
   reader.readAsDataURL(file);
 }
-['site', 'solar', 'bundles'].forEach(sectionId => {
+function visualTarget(sectionId) {
+  return { overview: $('.hero-art'), site: $('.map-card'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId];
+}
+['overview', 'site', 'solar', 'storage', 'ev', 'bundles', 'vpp', 'investment', 'economics'].forEach(sectionId => {
   const imageUrl = localStorage.getItem(`bidwise-image-${sectionId}`);
   if (imageUrl) {
-    const target = sectionId === 'site' ? $('.map-card') : sectionId === 'solar' ? $('.chart-panel') : $(`#${sectionId} .bundle-card`);
+    const target = visualTarget(sectionId);
     if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; }
   }
 });
