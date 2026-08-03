@@ -17,4 +17,6 @@ Open `index.html` directly in a browser, or serve the folder with any static fil
 
 Firebase is the recommended free starting point for Bidwise because Google sign-in is supported directly by Firebase Authentication and Firestore has a no-cost daily quota on the Spark plan. Copy `firebase-config.example.js` to `firebase-config.js`, paste the Web app config from Firebase Console, enable Google under Authentication → Sign-in method, and create a Firestore database. The config file is ignored by git.
 
+The connected Firebase project is `bidwise-6683d`, using Google sign-in and a production Firestore database in `nam5`. Firestore rules are mirrored in `firestore.rules`.
+
 Without a Firebase config, the app still works locally and image replacements remain in the browser’s local storage.
