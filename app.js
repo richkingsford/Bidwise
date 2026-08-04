@@ -5,17 +5,18 @@ if (window.location.hash.startsWith('#view=')) document.body.classList.add('view
 
 const defaults = {
   overview: { siteName: 'Walmart Supercenter #5179', location: 'American Fork, Utah', proposalDate: '2024-08-17', savingsRate: 26.4, co2Factor: 0.72 },
-  site: { footprint: 182400, utilitySpend: 312800, annualKwh: 2085333, peakDemand: 1240, openHours: 17, selfConsumption: 92 },
-  solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
-  storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, demandRate: 4.35, dispatchHours: 4, batteryEfficiency: 90 },
-  ev: { dcFast: 6, level2: 8, utilization: 31, sessionsPerPortYear: 4200, avgKwh: 18, price: 0.45, networkFee: 0.10, powerCost: 0.16, managementFee: 0.02, co2PerSession: 0.0069 },
+  site: { footprint: 182400, utilitySpend: 312800, annualKwh: 2085333, peakDemand: 1240, openHours: 17, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35 },
+  solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
+  storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2 },
+  ev: { dcFast: 6, level2: 8, utilization: 31, sessionsPerPortYear: 4200, avgKwh: 18, price: 0.45, networkFee: 0.10, powerCost: 0.16, managementFee: 0.02, co2PerSession: 0.0069, compatibility: 'NACS + CCS1', layout: '4 roadside + 4 drive-through', contribution: 125000, profitShare: 100, avgStoreSpend: 15.50, conversion: 50 },
   bundles: { critterGuard: 27500, lighting: 41250, hvac: 93193.39, hvacBase: 71687.22, coordination: 0 },
   vpp: { demandResponse: 12000, reservePct: 20, status: 'Subject to utility approval' },
-  investment: { solar: 820000, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30 },
+  investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
   economics: { escalation: 3, period: 20, discountRate: 8, annualOpex: 18000, taxBenefitPct: 30 }
 };
 
-const state = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'null') || structuredClone(defaults);
+const savedState = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'null');
+const state = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(savedState?.[section] || {}) }]));
 const saveState = () => localStorage.setItem('bidwise-assumptions', JSON.stringify(state));
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
@@ -29,7 +30,7 @@ const calc = {
   modules: () => Math.ceil(state.solar.arrayKw * 1000 / state.solar.moduleW),
   solarSavings: () => state.site.utilitySpend * state.overview.savingsRate / 100,
   postPeak: () => state.site.peakDemand * (1 - state.storage.shavePct / 100),
-  demandSavings: () => (state.site.peakDemand - calc.postPeak()) * state.storage.demandRate * 12,
+  demandSavings: () => (state.site.peakDemand - calc.postPeak()) * state.site.demandRate * 12,
   evPorts: () => state.ev.dcFast + state.ev.level2,
   sessions: () => calc.evPorts() * state.ev.utilization / 100 * state.ev.sessionsPerPortYear,
   netKwhMargin: () => state.ev.price - state.ev.networkFee - state.ev.powerCost - state.ev.managementFee,
@@ -39,6 +40,7 @@ const calc = {
   netInvestment: () => calc.totalInvestment() * (1 - state.economics.taxBenefitPct / 100),
   cumulativeBenefit: () => Array.from({ length: Math.max(1, Math.round(state.economics.period)) }, (_, i) => calc.year1Benefit() * Math.pow(1 + state.economics.escalation / 100, i) - state.economics.annualOpex).reduce((a, b) => a + b, 0),
   netValue: () => calc.cumulativeBenefit() - calc.netInvestment(),
+  npv: () => Array.from({ length: Math.max(1, Math.round(state.economics.period)) }, (_, i) => (calc.year1Benefit() * Math.pow(1 + state.economics.escalation / 100, i) - state.economics.annualOpex) / Math.pow(1 + state.economics.discountRate / 100, i + 1)).reduce((a, b) => a + b, 0) - calc.netInvestment(),
   payback: () => calc.netInvestment() / Math.max(1, calc.year1Benefit() - state.economics.annualOpex),
   roi: () => (calc.netValue() / Math.max(1, calc.netInvestment())) * 100
 };
@@ -54,13 +56,13 @@ const configSchemas = {
   ] },
   site: { title: 'Site snapshot', fields: [
     ['footprint', 'Store footprint (sq ft)', 'number'], ['utilitySpend', 'Annual utility spend ($)', 'number'], ['annualKwh', 'Annual consumption (kWh)', 'number'],
-    ['peakDemand', 'Peak demand (kW)', 'number'], ['openHours', 'Open hours per day', 'number'], ['selfConsumption', 'Solar self-consumption (%)', 'number']
+    ['peakDemand', 'Peak demand (kW)', 'number'], ['openHours', 'Open hours per day', 'number'], ['selfConsumption', 'Solar self-consumption (%)', 'number'], ['provider', 'Utility provider', 'text'], ['tariff', 'Tariff / rate schedule', 'text'], ['energyRate', 'Energy charge ($/kWh)', 'number'], ['demandRate', 'Demand charge ($/kW-month)', 'number']
   ], formulas: [
     ['Monthly utility bill', 'Annual utility spend ÷ 12', () => money(state.site.utilitySpend / 12)],
-    ['Solar consumed behind meter', 'Solar production × self-consumption', () => `${number(calc.solarMwh() * state.site.selfConsumption / 100, 0)} MWh / yr`]
+    ['Solar consumed behind meter', 'Solar production × self-consumption', () => `${number(calc.solarMwh() * state.site.selfConsumption / 100, 0)} MWh / yr`], ['Annual energy charges', 'Annual consumption × energy charge', () => money(state.site.annualKwh * state.site.energyRate)]
   ] },
   solar: { title: 'Solar array', fields: [
-    ['arrayKw', 'Array size (kW DC)', 'number'], ['productionRatio', 'Production ratio (kWh/kW-year)', 'number'], ['moduleW', 'Module rating (W)', 'number'], ['warranty', 'Module warranty (years)', 'number'],
+    ['arrayKw', 'Array size (kW DC)', 'number'], ['productionRatio', 'Production ratio (kWh/kW-year)', 'number'], ['moduleW', 'Module rating (W)', 'number'], ['warranty', 'Module warranty (years)', 'number'], ['manufacturer', 'Module manufacturer', 'text'], ['model', 'Module model', 'text'], ['installation', 'Installation type', 'text'],
     ['chartHigh', 'Chart high (%)', 'number'], ['chartLow', 'Chart low (%)', 'number'], ['chartStd', 'Standard deviation', 'number'], ['chartShape', 'Seasonal shape', 'select', ['Normal bell curve', 'Two humps', 'Flat summer peak']], ['dataTable', 'Advanced chart data (CSV)', 'textarea']
   ], formulas: [
     ['Annual production', 'Array kW × production ratio ÷ 1,000', () => `${number(calc.solarMwh(), 0)} MWh / yr`],
@@ -69,20 +71,20 @@ const configSchemas = {
   ] },
   storage: { title: 'Battery storage', fields: [
     ['capacityMwh', 'Battery capacity (MWh)', 'number'], ['powerKw', 'Power rating (kW)', 'number'], ['shavePct', 'Peak shaving target (%)', 'number'],
-    ['demandRate', 'Demand charge ($/kW-month)', 'number'], ['dispatchHours', 'Dispatch duration (hours)', 'number'], ['batteryEfficiency', 'Round-trip efficiency (%)', 'number']
+    ['dispatchHours', 'Dispatch duration (hours)', 'number'], ['batteryEfficiency', 'Round-trip efficiency (%)', 'number'], ['manufacturer', 'Battery manufacturer', 'text'], ['model', 'Battery model', 'text'], ['ratedCapacity', 'Rated capacity (MWh)', 'number']
   ], formulas: [
     ['Post-battery peak', 'Peak demand × (1 − shaving target)', () => `${number(calc.postPeak())} kW`],
-    ['Annual demand-charge savings', '(Peak demand − post-battery peak) × demand rate × 12', () => money(calc.demandSavings())],
+    ['Annual demand-charge savings', '(Peak demand − post-battery peak) × site demand rate × 12', () => money(calc.demandSavings())],
     ['Usable storage', 'Capacity × round-trip efficiency', () => `${number(state.storage.capacityMwh * state.storage.batteryEfficiency / 100, 2)} MWh`]
   ] },
   ev: { title: 'EV charging', fields: [
     ['dcFast', 'DC fast chargers', 'number'], ['level2', 'Level 2 chargers', 'number'], ['utilization', 'Year 1 utilization (%)', 'number'], ['sessionsPerPortYear', 'Sessions per port at 100% utilization', 'number'],
-    ['avgKwh', 'Average energy per session (kWh)', 'number'], ['price', 'Customer charging price ($/kWh)', 'number'], ['networkFee', 'Network fee ($/kWh)', 'number'], ['powerCost', 'Utility power cost ($/kWh)', 'number'], ['managementFee', 'Management fee ($/kWh)', 'number'], ['co2PerSession', 'CO2 avoided per session (t)', 'number']
+    ['avgKwh', 'Average energy per session (kWh)', 'number'], ['price', 'Customer charging price ($/kWh)', 'number'], ['networkFee', 'Network fee ($/kWh)', 'number'], ['powerCost', 'Utility power cost ($/kWh)', 'number'], ['managementFee', 'Management fee ($/kWh)', 'number'], ['co2PerSession', 'CO2 avoided per session (t)', 'number'], ['compatibility', 'Connector compatibility', 'text'], ['layout', 'Site layout', 'text'], ['contribution', 'Project contribution ($)', 'number'], ['profitShare', 'Customer profit share (%)', 'number'], ['avgStoreSpend', 'Average in-store spend ($)', 'number'], ['conversion', 'Charging-to-store conversion (%)', 'number']
   ], formulas: [
     ['Annual sessions', 'DC + L2 ports × utilization × sessions per port', () => number(calc.sessions())],
     ['Net margin / kWh', 'Price − network fee − power cost − management fee', () => money(calc.netKwhMargin(), 2)],
     ['Annual charging revenue', 'Sessions × average kWh × net margin', () => money(calc.evRevenue())],
-    ['CO2 avoided', 'Annual sessions × CO2 per session', () => `${number(calc.evCo2(), 0)} t / yr`]
+    ['CO2 avoided', 'Annual sessions × CO2 per session', () => `${number(calc.evCo2(), 0)} t / yr`], ['In-store revenue opportunity', 'Sessions × conversion × average in-store spend', () => money(calc.sessions() * state.ev.conversion / 100 * state.ev.avgStoreSpend)]
   ] },
   bundles: { title: 'Bundled scopes', fields: [
     ['critterGuard', 'Critter guard investment ($)', 'number'], ['lighting', 'Permanent lighting investment ($)', 'number'], ['hvac', 'HVAC investment ($)', 'number'], ['hvacBase', 'HVAC contractor base cost ($)', 'number'], ['coordination', 'Project coordination ($)', 'number']
@@ -91,8 +93,8 @@ const configSchemas = {
     ['Bundled site improvements', 'Critter guard + lighting + HVAC + coordination', () => money(state.bundles.critterGuard + state.bundles.lighting + state.bundles.hvac + state.bundles.coordination)]
   ] },
   vpp: { title: 'Grid partnership', fields: [['demandResponse', 'Demand response value / year ($)', 'number'], ['reservePct', 'Reserve requirement (%)', 'number'], ['status', 'Program status', 'text']], formulas: [['Available dispatch reserve', 'Battery power × (1 − reserve requirement)', () => `${number(state.storage.powerKw * (1 - state.vpp.reservePct / 100))} kW`]] },
-  investment: { title: 'Investment', fields: [['solar', 'Solar investment ($)', 'number'], ['battery', 'Battery investment ($)', 'number'], ['ev', 'EV investment ($)', 'number'], ['siteImprovements', 'Site improvements ($)', 'number'], ['incentivePct', 'Illustrative incentive (%)', 'number']], formulas: [['Gross investment', 'Solar + battery + EV + site improvements', () => money(calc.totalInvestment())], ['Potential incentive', 'Gross investment × incentive rate', () => money(calc.totalInvestment() * state.investment.incentivePct / 100)], ['Illustrative net cost', 'Gross investment − potential incentive', () => money(calc.totalInvestment() * (1 - state.investment.incentivePct / 100))]] },
-  economics: { title: 'Economics', fields: [['escalation', 'Annual savings escalation (%)', 'number'], ['period', 'Analysis period (years)', 'number'], ['discountRate', 'Discount rate (%)', 'number'], ['annualOpex', 'Annual operating cost ($)', 'number'], ['taxBenefitPct', 'Tax / incentive assumption (%)', 'number']], formulas: [['Year 1 benefit', 'Solar savings + demand savings + EV revenue + VPP value', () => money(calc.year1Benefit())], ['Cumulative benefit', 'SUM(year 1 benefit × (1 + escalation)^year) − annual operating costs', () => money(calc.cumulativeBenefit())], ['Net value', 'Cumulative benefit − illustrative net investment', () => money(calc.netValue())], ['Simple payback', 'Illustrative net investment ÷ annual benefit after OPEX', () => `${number(calc.payback(), 1)} years`], ['ROI', 'Net value ÷ illustrative net investment', () => `${number(calc.roi(), 1)}%`]] }
+  investment: { title: 'Investment', fields: [['solar', 'Solar investment ($)', 'number'], ['solarModules', 'Solar modules ($)', 'number'], ['solarInverters', 'Inverters + monitoring ($)', 'number'], ['solarRacking', 'Commercial racking ($)', 'number'], ['solarBos', 'Electrical balance of system ($)', 'number'], ['solarLabor', 'Installation labor + equipment ($)', 'number'], ['solarEngineering', 'Engineering + approvals ($)', 'number'], ['solarCommissioning', 'Delivery + commissioning ($)', 'number'], ['battery', 'Battery investment ($)', 'number'], ['ev', 'EV investment ($)', 'number'], ['siteImprovements', 'Site improvements ($)', 'number'], ['incentivePct', 'Illustrative incentive (%)', 'number'], ['ownership', 'Ownership structure', 'text'], ['placedInService', 'Placed-in-service timing', 'text'], ['taxAdvisor', 'Tax review owner', 'text']], formulas: [['Solar turnkey breakdown', 'Modules + inverters + racking + BOS + labor + engineering + commissioning', () => money(state.investment.solarModules + state.investment.solarInverters + state.investment.solarRacking + state.investment.solarBos + state.investment.solarLabor + state.investment.solarEngineering + state.investment.solarCommissioning)], ['Gross investment', 'Solar + battery + EV + site improvements', () => money(calc.totalInvestment())], ['Potential incentive', 'Gross investment × incentive rate', () => money(calc.totalInvestment() * state.investment.incentivePct / 100)], ['Illustrative net cost', 'Gross investment − potential incentive', () => money(calc.totalInvestment() * (1 - state.investment.incentivePct / 100))]] },
+  economics: { title: 'Economics', fields: [['escalation', 'Annual savings escalation (%)', 'number'], ['period', 'Analysis period (years)', 'number'], ['discountRate', 'Discount rate (%)', 'number'], ['annualOpex', 'Annual operating cost ($)', 'number'], ['taxBenefitPct', 'Tax / incentive assumption (%)', 'number']], formulas: [['Year 1 benefit', 'Solar savings + demand savings + EV revenue + VPP value', () => money(calc.year1Benefit())], ['Cumulative benefit', 'SUM(year 1 benefit × (1 + escalation)^year) − annual operating costs', () => money(calc.cumulativeBenefit())], ['Net value', 'Cumulative benefit − illustrative net investment', () => money(calc.netValue())], ['NPV', 'SUM(discounted annual benefits) − illustrative net investment', () => money(calc.npv())], ['Simple payback', 'Illustrative net investment ÷ annual benefit after OPEX', () => `${number(calc.payback(), 1)} years`], ['ROI', 'Net value ÷ illustrative net investment', () => `${number(calc.roi(), 1)}%`]] }
 };
 
 function formulaMarkup(schema) {
@@ -157,17 +159,34 @@ function renderReport() {
   const bundleValues = [state.bundles.critterGuard, state.bundles.lighting, state.bundles.hvac]; bundleValues.forEach((value, i) => setText(`#bundles .bundle-card:nth-child(${i + 1}) strong`, money(value)));
   setText('#investment .investment-row:nth-child(2) strong', money(state.investment.solar)); setText('#investment .investment-row:nth-child(3) strong', money(state.investment.battery)); setText('#investment .investment-row:nth-child(4) strong', money(state.investment.ev)); setText('#investment .investment-row:nth-child(5) strong', money(state.investment.siteImprovements)); setText('#investment .investment-row.total strong', money(calc.totalInvestment())); setText('#investment .incentive-card>strong', `Up to ${number(state.investment.incentivePct)}%`); const incentive = $('#investment .incentive-bar i'); if (incentive) incentive.style.width = `${Math.min(100, state.investment.incentivePct)}%`;
   setText('#economics .economics-summary strong', compactMoney(calc.netValue())); setText('#economics .roi-chip', `${number(calc.roi(), 1)}% ROI`);
-  renderAuditBlocks(); saveState();
+  renderAuditBlocks(); renderReferenceComponents(); saveState();
 }
 
 function renderAuditBlocks() {
   const blocks = {
     site: `<div class="audit-grid"><div><b>Utility baseline</b><span>${money(state.site.utilitySpend / 12)} / month · ${number(state.site.annualKwh)} kWh / year</span></div><div><b>Cost of doing nothing</b><span>${money(state.site.utilitySpend)} annual utility spend at current rates</span></div><div><b>Solar offset</b><span>${number(calc.solarMwh() * 1000 / Math.max(1, state.site.annualKwh) * 100, 1)}% of annual consumption</span></div></div>`,
-    storage: `<div class="audit-grid"><div><b>Demand-charge value</b><span>${money(state.storage.demandRate)} / kW-month × 12 months</span></div><div><b>Load result</b><span>${number(state.site.peakDemand)} kW → ${number(calc.postPeak())} kW modeled peak</span></div><div><b>Battery reserve</b><span>${number(state.vpp.reservePct)}% held for resilience / VPP requirements</span></div></div>`,
+    storage: `<div class="audit-grid"><div><b>Demand-charge value</b><span>${money(state.site.demandRate)} / kW-month × 12 months</span></div><div><b>Load result</b><span>${number(state.site.peakDemand)} kW → ${number(calc.postPeak())} kW modeled peak</span></div><div><b>Battery reserve</b><span>${number(state.vpp.reservePct)}% held for resilience / VPP requirements</span></div></div>`,
     ev: `<div class="audit-grid"><div><b>Charging scenarios</b><span>Conservative ${number(calc.sessions() * .7)} · Base ${number(calc.sessions())} · Strong ${number(calc.sessions() * 1.3)}</span></div><div><b>Per-session economics</b><span>${number(state.ev.avgKwh)} kWh × ${money(calc.netKwhMargin(), 2)} net margin</span></div><div><b>Retail opportunity</b><span>Use this section's annual sessions as the foot-traffic driver</span></div></div>`,
     economics: `<div class="audit-grid"><div><b>Year 1 benefit</b><span>${money(calc.year1Benefit())} before operating costs</span></div><div><b>Illustrative net cost</b><span>${money(calc.netInvestment())} after ${number(state.economics.taxBenefitPct)}% incentive assumption</span></div><div><b>20-year cumulative benefit</b><span>${money(calc.cumulativeBenefit())} before net-cost subtraction</span></div></div>`
   };
   Object.entries(blocks).forEach(([id, html]) => { const section = $(`#${id}`); if (!section) return; let node = section.querySelector('.audit-grid'); if (!node) { const wrapper = document.createElement('div'); wrapper.innerHTML = html; section.appendChild(wrapper.firstElementChild); } else node.outerHTML = html; });
+}
+
+function upsertDetail(sectionId, className, html) {
+  const section = $(`#${sectionId}`); if (!section) return;
+  let node = section.querySelector(`.${className}`);
+  if (!node) { node = document.createElement('div'); node.className = className; section.appendChild(node); }
+  node.innerHTML = html;
+}
+function renderReferenceComponents() {
+  upsertDetail('site', 'reference-components', `<div class="reference-card"><div class="reference-title">UTILITY BASELINE</div><div class="reference-list"><span><b>Provider</b>${esc(state.site.provider)}</span><span><b>Tariff</b>${esc(state.site.tariff)}</span><span><b>Energy charge</b>${money(state.site.energyRate, 2)} / kWh</span><span><b>Demand charge</b>${money(state.site.demandRate, 2)} / kW-month</span><span><b>Current annual bill</b>${money(state.site.utilitySpend)}</span><span><b>Current monthly bill</b>${money(state.site.utilitySpend / 12)}</span></div><div class="reference-foot">Baseline uses current utility assumptions until bills and interval data are supplied.</div></div>`);
+  upsertDetail('solar', 'reference-components', `<div class="reference-card"><div class="reference-title">PHASE 1 → PHASE 2 ROADMAP</div><div class="roadmap"><span><b>01</b>Build the approved ${number(state.solar.arrayKw)} kW foundation</span><span><b>02</b>Measure 12 months of utility and interval data</span><span><b>03</b>Evaluate additional panels, storage, controls, and VPP enrollment</span></div><div class="reference-foot">System design: ${esc(state.solar.installation)} · ${esc(state.solar.manufacturer)} ${esc(state.solar.model)} · ${number(state.solar.productionRatio)} kWh/kW-year.</div></div>`);
+  upsertDetail('storage', 'reference-components', `<div class="reference-card"><div class="reference-title">BATTERY VALUE STACK + LOAD ANALYSIS</div><div class="reference-list"><span><b>Equipment</b>${number(state.storage.capacityMwh, 1)} MWh rated · ${number(state.storage.capacityMwh * state.storage.batteryEfficiency / 100, 2)} MWh usable</span><span><b>Manufacturer / model</b>${esc(state.storage.manufacturer)} · ${esc(state.storage.model)}</span><span><b>Energy shifting</b>Solar surplus stored for later store load</span><span><b>Demand reduction</b>${money(calc.demandSavings())} modeled annual demand-charge savings</span><span><b>Resilience</b>${number(state.storage.dispatchHours)}-hour dispatch duration with ${number(state.vpp.reservePct)}% reserve</span></div><div class="load-series"><span>Solar serves load</span><span>Storage charges</span><span>Storage discharges</span><span>Grid imports / exports</span></div></div>`);
+  const scenario = (factor, label) => { const sessions = calc.sessions() * factor; return `<tr><td>${label}</td><td>${number(sessions)}</td><td>${money(sessions * state.ev.avgKwh * calc.netKwhMargin())}</td><td>${money(sessions * state.ev.conversion / 100 * state.ev.avgStoreSpend)}</td></tr>`; };
+  upsertDetail('ev', 'reference-components', `<div class="reference-card"><div class="reference-title">CHARGING LAYOUT + REVENUE SCENARIOS</div><div class="ev-layout-detail"><span><b>Hardware</b>${number(state.ev.dcFast)} DC fast + ${number(state.ev.level2)} L2 · ${esc(state.ev.compatibility)}</span><span><b>Layout</b>${esc(state.ev.layout)}</span><span><b>Contribution</b>${money(state.ev.contribution)} · ${number(state.ev.profitShare)}% customer profit share</span></div><table class="scenario-table"><thead><tr><th>Case</th><th>Sessions / year</th><th>Charging revenue</th><th>In-store revenue</th></tr></thead><tbody>${scenario(.7, 'Conservative')}${scenario(1, 'Base')}${scenario(1.3, 'Strong')}</tbody></table><div class="reference-foot">Revenue is illustrative and depends on utilization, charging terms, customer behavior, store conversion, product mix, and layout.</div></div>`);
+  upsertDetail('investment', 'reference-components', `<div class="reference-card"><div class="reference-title">SOLAR TURNKEY BREAKDOWN + TAX STRATEGY</div><div class="reference-list"><span><b>Modules</b>${money(state.investment.solarModules)}</span><span><b>Inverters + monitoring</b>${money(state.investment.solarInverters)}</span><span><b>Commercial racking</b>${money(state.investment.solarRacking)}</span><span><b>Electrical BOS</b>${money(state.investment.solarBos)}</span><span><b>Installation labor</b>${money(state.investment.solarLabor)}</span><span><b>Engineering / approvals</b>${money(state.investment.solarEngineering)}</span><span><b>Delivery / commissioning</b>${money(state.investment.solarCommissioning)}</span></div><div class="tax-grid"><span><b>Credits / incentives</b>Federal clean-energy credit potential, grants, rebates, and stacking review</span><span><b>Depreciation</b>MACRS, bonus depreciation, and Section 179 if applicable</span><span><b>Structure</b>${esc(state.investment.ownership)} · placed in service ${esc(state.investment.placedInService)}</span><span><b>Documentation</b>Basis, invoices, ownership, timing, and tax-professional review</span></div><div class="comparison-strip"><span>Gross bundled project<strong>${money(calc.totalInvestment())}</strong></span><span>Potential incentive<strong>− ${money(calc.totalInvestment() * state.investment.incentivePct / 100)}</strong></span><span>Illustrative net cost<strong>${money(calc.netInvestment())}</strong></span></div><div class="reference-foot">${number(state.investment.incentivePct)}% is an illustrative working assumption, not a guarantee of eligibility or tax outcome.</div></div>`);
+  const rows = Array.from({ length: Math.max(1, Math.round(state.economics.period)) }, (_, i) => { const year = i + 1; const benefit = calc.year1Benefit() * Math.pow(1 + state.economics.escalation / 100, i) - state.economics.annualOpex; return `<tr><td>${year}</td><td>${money(benefit)}</td><td>${money(benefit / Math.pow(1 + state.economics.discountRate / 100, year))}</td></tr>`; }).join('');
+  upsertDetail('economics', 'reference-components', `<div class="reference-card"><div class="reference-title">ILLUSTRATIVE ${number(state.economics.period)}-YEAR ROI MODEL</div><table class="roi-table"><thead><tr><th>Year</th><th>Net annual benefit</th><th>Discounted benefit</th></tr></thead><tbody>${rows}</tbody></table><div class="assumption-row"><span><b>Model inputs</b>${number(state.economics.escalation)}% annual escalation · ${number(state.economics.discountRate)}% discount rate · ${money(state.economics.annualOpex)} annual OPEX</span><span><b>Sources / validation</b>Utility bills, interval data, tariff, final equipment quotes, tax review, and executed VPP / charging agreements</span></div><div class="reference-foot">All incentives, VPP revenue, utilization, energy savings, and retail revenue are illustrative until validated by project documents and operating data.</div></div>`);
 }
 
 $('#applyConfig').addEventListener('click', () => { renderReport(); closeConfig(); });
