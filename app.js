@@ -176,7 +176,7 @@ function mountInteractiveDemandMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.62 }).addTo(map);
     L.circleMarker([state.site.latitude, state.site.longitude], { radius: 9, color: '#ffffff', weight: 3, fillColor: '#d8ed4f', fillOpacity: 1 }).addTo(map).bindPopup(`<b>${esc(state.overview.siteName)}</b><br>${esc(state.overview.location)}<br><small>Proposal site</small>`);
     demandStations.forEach(station => L.circleMarker([station.lat, station.lon], { radius: Math.max(4, Math.min(9, 4 + Math.log10(station.charges + 1))), color: '#ffffff', weight: 1.5, fillColor: '#ff4f69', fillOpacity: 0.9 }).addTo(map).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)}<br>${number(station.ports)} ports · ${number(station.charges)} observed charges`));
-    window.bidwiseDemandMap = map; mapCard.dataset.leafletReady = 'true'; setTimeout(() => map.invalidateSize(), 250);
+    window.bidwiseDemandMap = map; mapCard.dataset.leafletReady = 'true'; const fallbackDots = mapCard.querySelector('.demand-map'); if (fallbackDots) fallbackDots.hidden = true; setTimeout(() => map.invalidateSize(), 250);
   }).catch(() => { /* The red-dot fallback remains visible if the map tile library is unavailable. */ });
 }
 function renderDemandMap() {
