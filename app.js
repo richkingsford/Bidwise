@@ -14,7 +14,8 @@ const defaults = {
   bundles: { critterGuard: 27500, lighting: 41250, hvac: 93193.39, hvacBase: 71687.22, coordination: 0 },
   vpp: { demandResponse: 12000, reservePct: 20, status: 'Subject to utility approval', controls: 'Secure dispatch + monitoring', customerValue: 'Peak management, resilience, bill control', utilityValue: 'Local capacity and summer peak support', workPlan: 'Metering → cybersecurity → dispatch testing → agreement' },
   investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
-  economics: { escalation: 3, period: 20, discountRate: 8, annualOpex: 18000, taxBenefitPct: 30 }
+  economics: { escalation: 3, period: 20, discountRate: 8, annualOpex: 18000, taxBenefitPct: 30 },
+  layout: { mapZoom: 19, defaultLineColor: '#ff5b68', designNote: 'Verify stall dimensions, ADA clearances, utility locate, and final trench depth in construction documents.' }
 };
 
 const savedState = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'null');
@@ -121,7 +122,8 @@ const configSchemas = {
   ] },
   vpp: { title: 'Grid partnership', fields: [['demandResponse', 'Demand response value / year ($)', 'number'], ['reservePct', 'Reserve requirement (%)', 'number'], ['status', 'Program status', 'text'], ['controls', 'Controls / monitoring', 'text'], ['customerValue', 'Customer value case', 'text'], ['utilityValue', 'Utility value case', 'text'], ['workPlan', 'Approval work plan', 'text']], formulas: [['Available dispatch reserve', 'Battery power × (1 − reserve requirement)', () => `${number(state.storage.powerKw * (1 - state.vpp.reservePct / 100))} kW`]] },
   investment: { title: 'Investment', fields: [['solar', 'Solar investment ($)', 'number'], ['solarModules', 'Solar modules ($)', 'number'], ['solarInverters', 'Inverters + monitoring ($)', 'number'], ['solarRacking', 'Commercial racking ($)', 'number'], ['solarBos', 'Electrical balance of system ($)', 'number'], ['solarLabor', 'Installation labor + equipment ($)', 'number'], ['solarEngineering', 'Engineering + approvals ($)', 'number'], ['solarCommissioning', 'Delivery + commissioning ($)', 'number'], ['battery', 'Battery investment ($)', 'number'], ['ev', 'EV investment ($)', 'number'], ['siteImprovements', 'Site improvements ($)', 'number'], ['incentivePct', 'Illustrative incentive (%)', 'number'], ['ownership', 'Ownership structure', 'text'], ['placedInService', 'Placed-in-service timing', 'text'], ['taxAdvisor', 'Tax review owner', 'text']], formulas: [['Solar turnkey breakdown', 'Modules + inverters + racking + BOS + labor + engineering + commissioning', () => money(state.investment.solarModules + state.investment.solarInverters + state.investment.solarRacking + state.investment.solarBos + state.investment.solarLabor + state.investment.solarEngineering + state.investment.solarCommissioning)], ['Gross investment', 'Solar + battery + EV + site improvements', () => money(calc.totalInvestment())], ['Potential incentive', 'Gross investment × incentive rate', () => money(calc.totalInvestment() * state.investment.incentivePct / 100)], ['Illustrative net cost', 'Gross investment − potential incentive', () => money(calc.totalInvestment() * (1 - state.investment.incentivePct / 100))]] },
-  economics: { title: 'Economics', fields: [['escalation', 'Annual savings escalation (%)', 'number'], ['period', 'Analysis period (years)', 'number'], ['discountRate', 'Discount rate (%)', 'number'], ['annualOpex', 'Annual operating cost ($)', 'number'], ['taxBenefitPct', 'Tax / incentive assumption (%)', 'number']], formulas: [['Year 1 benefit', 'Solar savings + demand savings + EV revenue + VPP value', () => money(calc.year1Benefit())], ['Cumulative benefit', 'SUM(year 1 benefit × (1 + escalation)^year) − annual operating costs', () => money(calc.cumulativeBenefit())], ['Net value', 'Cumulative benefit − illustrative net investment', () => money(calc.netValue())], ['NPV', 'SUM(discounted annual benefits) − illustrative net investment', () => money(calc.npv())], ['Simple payback', 'Illustrative net investment ÷ annual benefit after OPEX', () => `${number(calc.payback(), 1)} years`], ['ROI', 'Net value ÷ illustrative net investment', () => `${number(calc.roi(), 1)}%`]] }
+  economics: { title: 'Economics', fields: [['escalation', 'Annual savings escalation (%)', 'number'], ['period', 'Analysis period (years)', 'number'], ['discountRate', 'Discount rate (%)', 'number'], ['annualOpex', 'Annual operating cost ($)', 'number'], ['taxBenefitPct', 'Tax / incentive assumption (%)', 'number']], formulas: [['Year 1 benefit', 'Solar savings + demand savings + EV revenue + VPP value', () => money(calc.year1Benefit())], ['Cumulative benefit', 'SUM(year 1 benefit × (1 + escalation)^year) − annual operating costs', () => money(calc.cumulativeBenefit())], ['Net value', 'Cumulative benefit − illustrative net investment', () => money(calc.netValue())], ['NPV', 'SUM(discounted annual benefits) − illustrative net investment', () => money(calc.npv())], ['Simple payback', 'Illustrative net investment ÷ annual benefit after OPEX', () => `${number(calc.payback(), 1)} years`], ['ROI', 'Net value ÷ illustrative net investment', () => `${number(calc.roi(), 1)}%`]] },
+  layout: { title: 'Charger layout', fields: [['mapZoom', 'Satellite zoom level', 'number'], ['defaultLineColor', 'Default line color', 'text'], ['designNote', 'Construction note', 'textarea']], formulas: [['Placed objects', 'COUNT(objects on plan)', () => `${layoutObjects.length} objects`], ['Drawn linework', 'COUNT(lines on plan)', () => `${layoutLines.length} lines`]] }
 };
 
 function formulaMarkup(schema) {
@@ -156,7 +158,7 @@ function handleImageUpload(file, sectionId) {
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader(); reader.onload = () => { localStorage.setItem(`bidwise-image-${sectionId}`, reader.result); applyImage(sectionId, reader.result); }; reader.readAsDataURL(file);
 }
-function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
+function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), layout: $('#layoutMap'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
 let leafletPromise;
 function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L);
@@ -178,6 +180,42 @@ function mountInteractiveDemandMap() {
     demandStations.forEach(station => L.circleMarker([station.lat, station.lon], { radius: Math.max(4, Math.min(9, 4 + Math.log10(station.charges + 1))), color: '#ffffff', weight: 1.5, fillColor: '#ff4f69', fillOpacity: 0.9 }).addTo(map).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)}<br>${number(station.ports)} ports · ${number(station.charges)} observed charges`));
     window.bidwiseDemandMap = map; mapCard.dataset.leafletReady = 'true'; const fallbackDots = mapCard.querySelector('.demand-map'); if (fallbackDots) fallbackDots.hidden = true; setTimeout(() => map.invalidateSize(), 250);
   }).catch(() => { /* The red-dot fallback remains visible if the map tile library is unavailable. */ });
+}
+let layoutMap;
+const layoutObjects = [];
+const layoutLines = [];
+let layoutLineActive = false;
+let layoutLinePoints = [];
+const layoutObjectClass = type => type.toLowerCase().replace(/[^a-z]+/g, '-');
+function refreshLayoutSummary() {
+  const list = $('#layoutPlanSummary'); const count = $('#layoutPlanCount'); if (!list || !count) return;
+  count.textContent = `${layoutObjects.length} objects · ${layoutLines.length} lines`;
+  list.innerHTML = layoutObjects.length || layoutLines.length ? [...layoutObjects.map(item => `<li><b>${esc(item.type)}</b><small>${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}</small></li>`), ...layoutLines.map(item => `<li><b>${esc(item.label)}</b><small>${number(item.feet)} ft</small></li>`)].join('') : '<li class="layout-empty">Your placed equipment will appear here.</li>';
+}
+function setLayoutStatus(text) { const status = $('#layoutMapStatus'); if (status) status.textContent = text; }
+function addLayoutObject(type, latlng) {
+  if (!layoutMap || !window.L) return;
+  const marker = L.marker(latlng, { draggable: true, icon: L.divIcon({ className: `layout-marker ${layoutObjectClass(type)}`, html: `<span>${type === 'DC fast charger' ? 'DC' : type === 'Level 2 charger' ? 'L2' : type === 'Power cabinet' ? '▦' : type === 'Accessible stall' ? 'P' : '●'}</span>`, iconSize: [36, 36], iconAnchor: [18, 18] }) }).addTo(layoutMap);
+  const item = { type, lat: latlng.lat, lng: latlng.lng, marker };
+  layoutObjects.push(item); marker.bindTooltip(type, { direction: 'top', offset: [0, -16] }); marker.on('dragend', () => { const pos = marker.getLatLng(); item.lat = pos.lat; item.lng = pos.lng; refreshLayoutSummary(); }); refreshLayoutSummary(); setLayoutStatus(`${type} placed · drag it to refine the location`);
+}
+function finishLayoutLine(a, b, color) {
+  const line = L.polyline([a, b], { color, weight: 4, opacity: .95, lineCap: 'round' }).addTo(layoutMap);
+  const feet = Math.round(layoutMap.distance(a, b) * 3.28084); const label = Object.entries({ '#ff5b68': 'Trench', '#ffd166': 'Conduit', '#62a8ff': 'Striping', '#75d58a': 'Access' }).find(([key]) => key === color)?.[1] || 'Line'; layoutLines.push({ label, feet, line }); line.bindTooltip(`${label} · ${feet} ft`, { sticky: true }); refreshLayoutSummary(); setLayoutStatus(`${label} line drawn · click two more points for another segment`);
+}
+function mountLayoutMap() {
+  const mapElement = $('#layoutMap'); if (!mapElement) return;
+  if (layoutMap) { setTimeout(() => layoutMap.invalidateSize(), 120); return; }
+  loadLeaflet().then(L => {
+    layoutMap = L.map(mapElement, { zoomControl: true, attributionControl: true, doubleClickZoom: false }).setView([state.site.latitude, state.site.longitude], Number(state.layout.mapZoom) || 19);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 23, attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics' }).addTo(layoutMap);
+    L.marker([state.site.latitude, state.site.longitude], { icon: L.divIcon({ className: 'layout-site-pin', html: '<span>Site</span>', iconSize: [58, 26], iconAnchor: [29, 13] }) }).addTo(layoutMap).bindPopup(`<b>${esc(state.overview.siteName)}</b><br>${esc(state.overview.location)}<br><small>Site center</small>`).openPopup();
+    mapElement.addEventListener('dragover', event => event.preventDefault()); mapElement.addEventListener('drop', event => { event.preventDefault(); const type = event.dataTransfer.getData('text/plain'); if (!type) return; const rect = mapElement.getBoundingClientRect(); addLayoutObject(type, layoutMap.containerPointToLatLng(L.point(event.clientX - rect.left, event.clientY - rect.top))); });
+    $$('.layout-object').forEach(button => { button.addEventListener('dragstart', event => event.dataTransfer.setData('text/plain', button.dataset.object)); button.addEventListener('click', () => { layoutMap.once('click', event => addLayoutObject(button.dataset.object, event.latlng)); setLayoutStatus(`Click the map to place ${button.dataset.object}`); }); });
+    const lineButton = $('#layoutLineTool'); const colorSelect = $('#layoutLineColor'); lineButton?.addEventListener('click', () => { layoutLineActive = !layoutLineActive; lineButton.classList.toggle('active', layoutLineActive); lineButton.textContent = layoutLineActive ? '✓ Drawing line' : '＋ Line'; layoutLinePoints = []; setLayoutStatus(layoutLineActive ? 'Line tool active · click the first point' : 'Drag objects onto the map · click Line to draw'); });
+    layoutMap.on('click', event => { if (!layoutLineActive) return; layoutLinePoints.push(event.latlng); if (layoutLinePoints.length === 1) setLayoutStatus('First point set · click the second point'); if (layoutLinePoints.length === 2) { finishLayoutLine(layoutLinePoints[0], layoutLinePoints[1], colorSelect?.value || state.layout.defaultLineColor); layoutLinePoints = []; } });
+    window.bidwiseLayoutMap = layoutMap; setTimeout(() => layoutMap.invalidateSize(), 250);
+  }).catch(() => setLayoutStatus('Satellite imagery unavailable · check the map connection and try again'));
 }
 function renderDemandMap() {
   const map = $('.map-card'); if (!map) return;
@@ -206,7 +244,7 @@ function renderSolarChart() { const data = seasonalBars(); $('#solarChart').inne
 
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
 function renderReport() {
-  renderSolarChart(); renderDemandMap();
+  renderSolarChart(); renderDemandMap(); mountLayoutMap();
   setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroDate = $('.hero .eyebrow'); if (heroDate) heroDate.innerHTML = `COMMERCIAL ENERGY PROPOSAL <span>•</span> ${state.overview.proposalDate}`; const heroLocation = $('.hero .hero-meta span:last-child'); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N · ${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); setText('.breadcrumb strong', 'OREM, UT'); setText('#yearSavings', compactMoney(calc.solarSavings())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); setText('#payback', `${number(calc.payback(), 1)} yrs`); const co2Metric = $('#overview .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
   const footprint = $('#site .fact-row:nth-child(1) strong'); if (footprint) footprint.innerHTML = `${number(state.site.footprint)} <small>sq ft</small>`;
   const spend = $('#site .fact-row:nth-child(2) strong'); if (spend) spend.innerHTML = `${money(state.site.utilitySpend)} <small>/ yr</small>`;
@@ -276,7 +314,7 @@ function updateScopeUI() {
   scopeControls.forEach(control => { control.checked = activeScopes.has(control.dataset.scope); });
   ['solar', 'storage', 'ev'].forEach(scope => { const section = document.getElementById(scope); const nav = $(`.nav-item[data-target="${scope}"]`); if (section) section.classList.toggle('scope-off', !activeScopes.has(scope)); if (nav) nav.classList.toggle('scope-off', !activeScopes.has(scope)); });
   let number = 2;
-  $$('.content-section').forEach(section => { if (section.classList.contains('scope-off')) return; const kicker = section.querySelector('.section-kicker'); if (kicker) kicker.textContent = kicker.textContent.replace(/^\d+\s*\/\s*/, `${String(number).padStart(2, '0')} / `); const nav = $(`.nav-item[data-target="${section.id}"]`); if (nav) nav.querySelector('span').textContent = String(number).padStart(2, '0'); number += 1; });
+  ['site', 'layout', 'solar', 'storage', 'ev', 'bundles', 'vpp', 'investment', 'economics'].forEach(sectionId => { const section = document.getElementById(sectionId); const nav = $(`.nav-item[data-target="${sectionId}"]`); if (!section || section.classList.contains('scope-off')) { if (nav) nav.classList.toggle('scope-off', !section || section.classList.contains('scope-off')); return; } const label = String(number).padStart(2, '0'); const kicker = section.querySelector('.section-kicker'); if (kicker) kicker.textContent = kicker.textContent.replace(/^\d+\s*\/\s*/, `${label} / `); if (nav) nav.querySelector('span').textContent = label; number += 1; });
   const count = $('#scopeCount'); if (count) count.textContent = `${activeScopes.size} of 3`; const overviewNav = $('.nav-item[data-target="overview"]'); if (overviewNav) overviewNav.querySelector('span').textContent = '01';
 }
 $$('.scope-toggle, .top-scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { $$('.scope-toggle, .top-scope-toggle').filter(control => control.dataset.scope === toggle.dataset.scope).forEach(control => { control.checked = toggle.checked; }); updateScopeUI(); }));
