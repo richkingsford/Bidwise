@@ -202,7 +202,7 @@ function seasonalBars() {
   }
   return Array.from({ length: 12 }, (_, i) => { const angle = (i / 11) * Math.PI; let value = low + (high - low) * Math.sin(angle); if (state.solar.chartShape === 'Two humps') value = low + (high - low) * (0.5 + 0.5 * Math.pow(Math.sin(angle * 2), 2)); if (state.solar.chartShape === 'Flat summer peak') value = i >= 4 && i <= 8 ? high : mid; return { label: ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][i], value }; });
 }
-function renderSolarChart() { const data = seasonalBars(); $('#solarChart').innerHTML = data.map((row, index) => { const load = 64 + ((index % 4) * 4); return `<i style="height:${Math.max(8, Math.min(100, row.value))}%;--load:${load}%" title="${esc(row.label)} solar ${number(row.value, 1)} / store load ${load}"></i>`; }).join(''); }
+function renderSolarChart() { const data = seasonalBars(); $('#solarChart').innerHTML = data.map((row, index) => { const load = 64 + ((index % 4) * 4); const solar = Math.max(8, Math.min(load, row.value)); const grid = Math.max(0, load - solar); return `<i title="${esc(row.label)}: ${number(solar, 1)}% solar served + ${number(grid, 1)}% grid supplied" aria-label="${esc(row.label)}: ${number(solar, 1)} percent solar served and ${number(grid, 1)} percent grid supplied"><span class="bar-segment grid-segment" style="height:${grid}%"></span><span class="bar-segment solar-segment" style="height:${solar}%"></span></i>`; }).join(''); }
 
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
 function renderReport() {
