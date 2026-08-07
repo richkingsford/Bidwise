@@ -157,6 +157,28 @@ function handleImageUpload(file, sectionId) {
   const reader = new FileReader(); reader.onload = () => { localStorage.setItem(`bidwise-image-${sectionId}`, reader.result); applyImage(sectionId, reader.result); }; reader.readAsDataURL(file);
 }
 function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
+let leafletPromise;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
+    const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(link);
+    const script = document.createElement('script'); script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; script.onload = () => resolve(window.L); script.onerror = reject; document.head.appendChild(script);
+  });
+  return leafletPromise;
+}
+function mountInteractiveDemandMap() {
+  const mapCard = $('.map-card'); if (!mapCard) return;
+  let canvas = $('#demandMap'); if (!canvas) { canvas = document.createElement('div'); canvas.id = 'demandMap'; canvas.className = 'demand-map-canvas'; mapCard.prepend(canvas); }
+  if (mapCard.dataset.leafletReady === 'true') { if (window.bidwiseDemandMap) window.bidwiseDemandMap.invalidateSize(); return; }
+  loadLeaflet().then(L => {
+    const map = L.map(canvas, { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView([state.site.latitude, state.site.longitude], 12.8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.62 }).addTo(map);
+    L.circleMarker([state.site.latitude, state.site.longitude], { radius: 9, color: '#ffffff', weight: 3, fillColor: '#d8ed4f', fillOpacity: 1 }).addTo(map).bindPopup(`<b>${esc(state.overview.siteName)}</b><br>${esc(state.overview.location)}<br><small>Proposal site</small>`);
+    demandStations.forEach(station => L.circleMarker([station.lat, station.lon], { radius: Math.max(4, Math.min(9, 4 + Math.log10(station.charges + 1))), color: '#ffffff', weight: 1.5, fillColor: '#ff4f69', fillOpacity: 0.9 }).addTo(map).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)}<br>${number(station.ports)} ports · ${number(station.charges)} observed charges`));
+    window.bidwiseDemandMap = map; mapCard.dataset.leafletReady = 'true'; setTimeout(() => map.invalidateSize(), 250);
+  }).catch(() => { /* The red-dot fallback remains visible if the map tile library is unavailable. */ });
+}
 function renderDemandMap() {
   const map = $('.map-card'); if (!map) return;
   const minLat = Math.min(...demandStations.map(station => station.lat)); const maxLat = Math.max(...demandStations.map(station => station.lat));
@@ -165,6 +187,7 @@ function renderDemandMap() {
   layer.innerHTML = demandStations.map(station => { const left = ((station.lon - minLon) / (maxLon - minLon)) * 86 + 7; const top = (1 - ((station.lat - minLat) / (maxLat - minLat))) * 76 + 12; const intensity = Math.min(12, 5 + Math.log10(station.charges + 1) * 1.5); return `<span class="demand-dot" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--dot-size:${intensity.toFixed(1)}px" title="${esc(station.name)} · ${esc(station.network)} · ${number(station.charges)} observed charges"></span>`; }).join('');
   let legend = map.querySelector('.demand-map-label'); if (!legend) { legend = document.createElement('div'); legend.className = 'demand-map-label'; map.appendChild(legend); }
   legend.innerHTML = `<b>NEARBY EV DEMAND</b><span>${number(demandStations.length)} locations · ${number(state.ev.observedPorts)} ports · ${number(state.ev.observedCharges3m)} charges / 3 mo</span>`;
+  mountInteractiveDemandMap();
 }
 function applyImage(sectionId, imageUrl) { const target = visualTarget(sectionId); if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; } }
 Object.keys(configSchemas).forEach(sectionId => { const imageUrl = localStorage.getItem(`bidwise-image-${sectionId}`); if (imageUrl) applyImage(sectionId, imageUrl); });
