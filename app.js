@@ -270,8 +270,18 @@ $$('.section-anchor').forEach(section => observer.observe(section));
 
 const siteInput = $('#siteInput'); if (siteInput) { siteInput.value = state.overview.siteName; siteInput.addEventListener('input', event => { state.overview.siteName = event.target.value; renderReport(); }); }
 const utilityInput = $('#utilityInput'); if (utilityInput) { utilityInput.value = state.site.utilitySpend; utilityInput.addEventListener('input', event => { state.site.utilitySpend = Number(event.target.value.replace(/[^0-9]/g, '')) || 0; renderReport(); }); }
-$$('.scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { const section = document.getElementById(toggle.dataset.scope); const nav = $(`.nav-item[data-target="${toggle.dataset.scope}"]`); if (section) section.classList.toggle('scope-off', !toggle.checked); if (nav) nav.classList.toggle('scope-off', !toggle.checked); }));
+function updateScopeUI() {
+  const scopeControls = $$('.scope-toggle, .top-scope-toggle');
+  const activeScopes = new Set(scopeControls.filter(control => control.checked).map(control => control.dataset.scope));
+  scopeControls.forEach(control => { control.checked = activeScopes.has(control.dataset.scope); });
+  ['solar', 'storage', 'ev'].forEach(scope => { const section = document.getElementById(scope); const nav = $(`.nav-item[data-target="${scope}"]`); if (section) section.classList.toggle('scope-off', !activeScopes.has(scope)); if (nav) nav.classList.toggle('scope-off', !activeScopes.has(scope)); });
+  let number = 2;
+  $$('.content-section').forEach(section => { if (section.classList.contains('scope-off')) return; const kicker = section.querySelector('.section-kicker'); if (kicker) kicker.textContent = kicker.textContent.replace(/^\d+\s*\/\s*/, `${String(number).padStart(2, '0')} / `); const nav = $(`.nav-item[data-target="${section.id}"]`); if (nav) nav.querySelector('span').textContent = String(number).padStart(2, '0'); number += 1; });
+  const count = $('#scopeCount'); if (count) count.textContent = `${activeScopes.size} of 3`; const overviewNav = $('.nav-item[data-target="overview"]'); if (overviewNav) overviewNav.querySelector('span').textContent = '01';
+}
+$$('.scope-toggle, .top-scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { $$('.scope-toggle, .top-scope-toggle').filter(control => control.dataset.scope === toggle.dataset.scope).forEach(control => { control.checked = toggle.checked; }); updateScopeUI(); }));
 $$('.segmented button').forEach(button => button.addEventListener('click', () => { $$('.segmented button').forEach(item => item.classList.remove('selected')); button.classList.add('selected'); }));
 $('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; try { await navigator.clipboard.writeText(shareUrl); } catch { const fallback = document.createElement('textarea'); fallback.value = shareUrl; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } const toast = $('#toast'); toast.textContent = 'View-only link copied to clipboard.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); });
 
+updateScopeUI();
 renderReport();
