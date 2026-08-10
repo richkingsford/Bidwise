@@ -1,12 +1,12 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=contrast-20260807'; document.head.appendChild(themeLink);
+const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=homepage-20260810c'; document.head.appendChild(themeLink);
 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
 
 const defaults = {
-  overview: { siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', savingsRate: 26.4, co2Factor: 0.72 },
+  overview: { siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 26.4, co2Factor: 0.72 },
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
@@ -83,7 +83,7 @@ const regionalEvBenchmark = { location: 'St. George, UT', ports: 53, stations: 9
 
 const configSchemas = {
   overview: { title: 'Overview', fields: [
-    ['siteName', 'Customer / site name', 'text'], ['location', 'Location', 'text'], ['proposalDate', 'Proposal date', 'date'],
+    ['siteName', 'Customer / site name', 'text'], ['location', 'Location', 'text'], ['proposalDate', 'Proposal date', 'date'], ['status', 'Proposal status', 'text'],
     ['savingsRate', 'Utility savings assumption (%)', 'number'], ['co2Factor', 'CO2 factor (t/MWh)', 'number']
   ], formulas: [
     ['Year 1 utility savings', 'Annual utility spend × savings rate', () => money(calc.solarSavings())],
@@ -258,7 +258,7 @@ function renderSolarChart() { const data = seasonalBars(); $('#solarChart').inne
 
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
 function renderReport() {
-  renderSolarChart(); renderDemandMap(); mountLayoutMap();
+  renderSolarChart(); renderDemandMap(); mountLayoutMap(); setText('.status-pill', state.overview.status);
   setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroDate = $('.hero .eyebrow'); if (heroDate) heroDate.innerHTML = `COMMERCIAL ENERGY PROPOSAL <span>•</span> ${state.overview.proposalDate}`; const heroLocation = $('.hero .hero-meta span:last-child'); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N · ${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); setText('.breadcrumb strong', 'OREM, UT'); setText('#yearSavings', compactMoney(calc.solarSavings())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); setText('#payback', `${number(calc.payback(), 1)} yrs`); const co2Metric = $('#overview .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
   const footprint = $('#site .fact-row:nth-child(1) strong'); if (footprint) footprint.innerHTML = `${number(state.site.footprint)} <small>sq ft</small>`;
   const spend = $('#site .fact-row:nth-child(2) strong'); if (spend) spend.innerHTML = `${money(state.site.utilitySpend)} <small>/ yr</small>`;
@@ -335,7 +335,7 @@ function updateScopeUI() {
 $$('.scope-toggle, .top-scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { $$('.scope-toggle, .top-scope-toggle').filter(control => control.dataset.scope === toggle.dataset.scope).forEach(control => { control.checked = toggle.checked; }); updateScopeUI(); }));
 $$('.segmented button').forEach(button => button.addEventListener('click', () => { $$('.segmented button').forEach(item => item.classList.remove('selected')); button.classList.add('selected'); }));
 $$('.scope-toggle, .top-scope-toggle').forEach(control => { control.checked = activeBid.scopes[control.dataset.scope] !== false; });
-$$('.bid-card').forEach(card => card.querySelector('.bid-open')?.addEventListener('click', () => { window.location.href = `?bid=${encodeURIComponent(card.dataset.bid)}`; }));
+$$('.bid-card').forEach(card => { card.tabIndex = 0; card.setAttribute('role', 'link'); const open = () => { window.location.href = `?bid=${encodeURIComponent(card.dataset.bid)}`; }; card.addEventListener('click', open); card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } }); });
 $('#backHome')?.addEventListener('click', () => { window.location.href = './'; });
 $('#newBidButton')?.addEventListener('click', () => { const toast = $('#toast'); if (toast) { toast.textContent = 'New bid workspace coming next — choose an existing bid to begin.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); } });
 $('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; try { await navigator.clipboard.writeText(shareUrl); } catch { const fallback = document.createElement('textarea'); fallback.value = shareUrl; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } const toast = $('#toast'); toast.textContent = 'View-only link copied to clipboard.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); });
