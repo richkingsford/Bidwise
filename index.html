@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="styles.css?v=contrast-20260807" />
   </head>
   <body>
+    <section class="home-view" id="homeView" aria-labelledby="homeTitle">
+      <div class="home-topbar"><div class="home-brand"><span class="brand-mark">B</span><span>bidwise</span><span class="brand-dot">•</span></div><span class="home-user"><span class="live-dot"></span> Sales workspace · Kim Lawson</span></div>
+      <main class="home-main"><div class="home-kicker">BIDWISE SALES WORKSPACE</div><div class="home-heading"><div><h1 id="homeTitle">Your active bids.</h1><p>Pick a proposal to present, refine, or share with a buyer.</p></div><button class="primary-button home-new-bid" type="button" id="newBidButton">＋ New bid</button></div><div class="bid-grid">
+        <article class="bid-card featured" data-bid="kneaders-orem"><div class="bid-card-top"><span class="bid-status ready">READY TO PRESENT</span><span class="bid-date">UPDATED TODAY</span></div><div class="bid-card-title"><span class="store-avatar kneaders-mark">K</span><div><h2>Kneaders Bakery &amp; Cafe</h2><p>Orem, Utah · 1960 State Street</p></div></div><div class="bid-scope"><span>Solar</span><span>Battery</span><span>EV charging</span></div><div class="bid-metrics"><div><small>PROJECTED SAVINGS</small><strong>26.4%</strong></div><div><small>PROJECT VALUE</small><strong>$1.2M</strong></div><div><small>STATUS</small><strong>Present</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
+        <article class="bid-card" data-bid="maverick-lehi-solar"><div class="bid-card-top"><span class="bid-status draft">DRAFT</span><span class="bid-date">CREATED TODAY</span></div><div class="bid-card-title"><span class="store-avatar maverick-mark">M</span><div><h2>Maverik</h2><p>Lehi, Utah · 760 E Main Street</p></div></div><div class="bid-scope"><span>Solar</span></div><div class="bid-metrics"><div><small>ARRAY SIZE</small><strong>185 kW</strong></div><div><small>ANNUAL PRODUCTION</small><strong>456 MWh</strong></div><div><small>STATUS</small><strong>Draft</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
+        <article class="bid-card" data-bid="maverick-lehi-solar-battery"><div class="bid-card-top"><span class="bid-status review">IN REVIEW</span><span class="bid-date">CREATED TODAY</span></div><div class="bid-card-title"><span class="store-avatar maverick-mark">M</span><div><h2>Maverik + storage</h2><p>Lehi, Utah · 760 E Main Street</p></div></div><div class="bid-scope"><span>Solar</span><span>Battery</span></div><div class="bid-metrics"><div><small>ARRAY SIZE</small><strong>185 kW</strong></div><div><small>BATTERY</small><strong>400 kW</strong></div><div><small>STATUS</small><strong>Review</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
+      </div><div class="home-footer"><span><i class="live-dot"></i> Three active proposals</span><span>Last synced just now</span></div></main>
+    </section>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand"><span class="brand-mark">B</span><span>bidwise</span><span class="brand-dot">•</span></div>
@@ -35,7 +43,7 @@
 
       <main class="main-content">
         <header class="topbar">
-          <div class="breadcrumb"><span>PROPOSAL</span><i>/</i><strong>AMERICAN FORK, UT</strong></div>
+          <div class="breadcrumb"><button class="back-home" id="backHome" type="button">← All bids</button><i>/</i><span>PROPOSAL</span><i>/</i><strong>OREM, UT</strong></div>
           <div class="top-actions"><button class="icon-button" aria-label="Print proposal" onclick="window.print()">↗</button><span class="present-label"><span class="mode-dot"></span> PRESENTATION VIEW</span><button class="auth-button" id="authButton">Sign in with Google</button><button class="avatar">KL</button></div>
         </header>
         <div class="report-wrap">

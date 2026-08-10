@@ -18,11 +18,21 @@ const defaults = {
   layout: { mapZoom: 19, defaultLineColor: '#ff5b68', designNote: 'Verify stall dimensions, ADA clearances, utility locate, and final trench depth in construction documents.' }
 };
 
+const bidProfiles = {
+  'kneaders-orem': { label: 'Kneaders Bakery & Cafe', locationLabel: 'OREM, UT', scopes: { solar: true, storage: true, ev: true }, overrides: {} },
+  'maverick-lehi-solar': { label: 'Maverik · Lehi solar', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: false, ev: false }, overrides: { overview: { siteName: 'Maverik #412', location: '760 E Main Street, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 24.1 }, site: { footprint: 5200, utilitySpend: 62000, annualKwh: 412000, peakDemand: 220, latitude: 40.391617, longitude: -111.849055, mapRadius: 4 }, solar: { arrayKw: 185, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0, powerKw: 0 }, ev: { dcFast: 0, level2: 0 }, investment: { solar: 415000, battery: 0, ev: 0, siteImprovements: 42000 } } },
+  'maverick-lehi-solar-battery': { label: 'Maverik · Lehi solar + battery', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: true, ev: false }, overrides: { overview: { siteName: 'Maverik #412', location: '760 E Main Street, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 25.7 }, site: { footprint: 5200, utilitySpend: 62000, annualKwh: 412000, peakDemand: 220, latitude: 40.391617, longitude: -111.849055, mapRadius: 4 }, solar: { arrayKw: 185, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0.8, powerKw: 400, shavePct: 22, dispatchHours: 2, investment: 168000 }, ev: { dcFast: 0, level2: 0 }, investment: { solar: 415000, battery: 168000, ev: 0, siteImprovements: 58000 } } }
+};
+const routeParams = new URLSearchParams(window.location.search);
+const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid') : null;
+const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
+document.body.classList.toggle('home-mode', !activeBidId);
+const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(activeBid.overrides[section] || {}) }]));
 const savedState = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'null');
-const importedSource = 'kneaders-orem-ev-demand-20260802';
-const reusableState = savedState?.meta?.source === importedSource ? savedState : null;
-const state = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
-state.meta = { source: importedSource };
+const importedSource = activeBidId === 'kneaders-orem' ? 'kneaders-orem-ev-demand-20260802' : `bid-${activeBidId}`;
+const reusableState = activeBidId === 'kneaders-orem' && savedState?.meta?.source === importedSource ? savedState : null;
+const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
+state.meta = { source: importedSource, bidId: activeBidId || 'home' };
 const saveState = () => localStorage.setItem('bidwise-assumptions', JSON.stringify(state));
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
@@ -318,14 +328,18 @@ function updateScopeUI() {
   const scopeControls = $$('.scope-toggle, .top-scope-toggle');
   const activeScopes = new Set(scopeControls.filter(control => control.checked).map(control => control.dataset.scope));
   scopeControls.forEach(control => { control.checked = activeScopes.has(control.dataset.scope); });
-  ['solar', 'storage', 'ev'].forEach(scope => { const section = document.getElementById(scope); const nav = $(`.nav-item[data-target="${scope}"]`); if (section) section.classList.toggle('scope-off', !activeScopes.has(scope)); if (nav) nav.classList.toggle('scope-off', !activeScopes.has(scope)); });
+  ['solar', 'storage', 'ev'].forEach(scope => { const section = document.getElementById(scope); const nav = $(`.nav-item[data-target="${scope}"]`); if (section) section.classList.toggle('scope-off', !activeScopes.has(scope)); if (nav) nav.classList.toggle('scope-off', !activeScopes.has(scope)); }); const layoutSection = document.getElementById('layout'); const layoutNav = $('.nav-item[data-target="layout"]'); if (layoutSection) layoutSection.classList.toggle('scope-off', !activeScopes.has('ev')); if (layoutNav) layoutNav.classList.toggle('scope-off', !activeScopes.has('ev'));
   let number = 2;
   ['site', 'layout', 'solar', 'storage', 'ev', 'bundles', 'vpp', 'investment', 'economics'].forEach(sectionId => { const section = document.getElementById(sectionId); const nav = $(`.nav-item[data-target="${sectionId}"]`); if (!section || section.classList.contains('scope-off')) { if (nav) nav.classList.toggle('scope-off', !section || section.classList.contains('scope-off')); return; } const label = String(number).padStart(2, '0'); const kicker = section.querySelector('.section-kicker'); if (kicker) kicker.textContent = kicker.textContent.replace(/^\d+\s*\/\s*/, `${label} / `); if (nav) nav.querySelector('span').textContent = label; number += 1; });
   const count = $('#scopeCount'); if (count) count.textContent = `${activeScopes.size} of 3`; const overviewNav = $('.nav-item[data-target="overview"]'); if (overviewNav) overviewNav.querySelector('span').textContent = '01';
 }
 $$('.scope-toggle, .top-scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { $$('.scope-toggle, .top-scope-toggle').filter(control => control.dataset.scope === toggle.dataset.scope).forEach(control => { control.checked = toggle.checked; }); updateScopeUI(); }));
 $$('.segmented button').forEach(button => button.addEventListener('click', () => { $$('.segmented button').forEach(item => item.classList.remove('selected')); button.classList.add('selected'); }));
+$$('.scope-toggle, .top-scope-toggle').forEach(control => { control.checked = activeBid.scopes[control.dataset.scope] !== false; });
+$$('.bid-card').forEach(card => card.querySelector('.bid-open')?.addEventListener('click', () => { window.location.href = `?bid=${encodeURIComponent(card.dataset.bid)}`; }));
+$('#backHome')?.addEventListener('click', () => { window.location.href = './'; });
+$('#newBidButton')?.addEventListener('click', () => { const toast = $('#toast'); if (toast) { toast.textContent = 'New bid workspace coming next — choose an existing bid to begin.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); } });
 $('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; try { await navigator.clipboard.writeText(shareUrl); } catch { const fallback = document.createElement('textarea'); fallback.value = shareUrl; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } const toast = $('#toast'); toast.textContent = 'View-only link copied to clipboard.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); });
 
 updateScopeUI();
-renderReport();
+if (activeBidId) { renderReport(); setText('.breadcrumb strong', activeBid.locationLabel); document.title = `Bidwise — ${state.overview.siteName} Proposal`; } else { document.title = 'Bidwise — Sales Workspace'; }
