@@ -56,3 +56,4 @@ h1 em{color:#b6e36a}
 @media(max-width:900px){.bid-grid{grid-template-columns:1fr 1fr}.home-heading{align-items:start;flex-direction:column}.home-main{padding-top:48px}}
 @media(max-width:600px){.bid-grid{grid-template-columns:1fr}.home-topbar{padding:0 24px}.home-user{display:none}.home-main{padding-left:24px;padding-right:24px}.home-footer{gap:15px;flex-direction:column}}
 .bid-open{display:none}
+.home-user{display:flex;align-items:center;gap:8px}.home-user .auth-button{margin-left:8px;color:#e9ebf2;background:#24252b;border-color:#454751;padding:7px 9px;font-size:9px}.top-actions .auth-button{white-space:nowrap}
