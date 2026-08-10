@@ -37,12 +37,25 @@ const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; }
 
 if (firebaseConfig) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
-  const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
+  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
+
+  const explainAuthError = error => {
+    console.error('Bidwise Google sign-in error', error);
+    if (error?.code === 'auth/unauthorized-domain') {
+      toast('This site is not authorized in Firebase yet. Add richkingsford.github.io under Authentication → Settings → Authorized domains.');
+      return;
+    }
+    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
+      toast('Opening Google sign-in in this tab…');
+      return;
+    }
+    if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') toast(`Google sign-in failed${error?.code ? ` (${error.code})` : ''}. Please try again.`);
+  };
 
   const loadCompanyProfile = async user => {
     const snapshot = await getDoc(doc(db, 'profiles', user.uid));
@@ -69,13 +82,19 @@ if (firebaseConfig) {
     try { await loadCompanyProfile(user); } catch { toast('Signed in, but company profile could not be loaded. Check Firebase Firestore setup.'); }
   });
 
+  try { await getRedirectResult(auth); } catch (error) { explainAuthError(error); }
+
   authButtons.forEach(button => button.addEventListener('click', async () => {
     try {
       if (currentUser) { await signOut(auth); return; }
       const result = await signInWithPopup(auth, provider);
       if (!result.user.email?.toLowerCase().endsWith('@gmail.com')) { await signOut(auth); toast('Please use a Gmail address to access Bidwise.'); }
     } catch (error) {
-      if (error?.code !== 'auth/popup-closed-by-user') toast('Google sign-in was not completed. Please try again.');
+      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      explainAuthError(error);
     }
   }));
 } else {
