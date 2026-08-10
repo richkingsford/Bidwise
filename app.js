@@ -6,7 +6,7 @@ const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
 
 const defaults = {
-  overview: { siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 26.4, co2Factor: 0.72 },
+  overview: { siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 90, co2Factor: 0.72 },
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
@@ -32,6 +32,9 @@ const savedState = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'nu
 const importedSource = activeBidId === 'kneaders-orem' ? 'kneaders-orem-ev-demand-20260802' : `bid-${activeBidId}`;
 const reusableState = activeBidId === 'kneaders-orem' && savedState?.meta?.source === importedSource ? savedState : null;
 const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
+if (activeBidId) state.overview.savingsRate = 90;
+if (activeBidId === 'maverick-lehi-solar') state.economics.annualOpex = 5200;
+if (activeBidId === 'target-lehi-solar-battery') state.economics.annualOpex = 8100;
 state.meta = { source: importedSource, bidId: activeBidId || 'home' };
 const saveState = () => localStorage.setItem('bidwise-assumptions', JSON.stringify(state));
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
@@ -44,7 +47,13 @@ const calc = {
   solarMwh: () => state.solar.arrayKw * state.solar.productionRatio / 1000,
   co2AvoidedSolar: () => calc.solarMwh() * state.overview.co2Factor,
   modules: () => Math.ceil(state.solar.arrayKw * 1000 / state.solar.moduleW),
-  solarSavings: () => state.site.utilitySpend * state.overview.savingsRate / 100,
+  solarSavings: () => {
+    const productionMwh = calc.solarMwh();
+    const onsiteMwh = Math.min(productionMwh * state.site.selfConsumption / 100, state.site.annualKwh / 1000);
+    const exportedMwh = Math.max(0, productionMwh - onsiteMwh);
+    const grossValue = onsiteMwh * 1000 * state.site.onsiteValue + exportedMwh * 1000 * state.site.exportRate;
+    return Math.min(state.site.utilitySpend, grossValue * state.overview.savingsRate / 100);
+  },
   proposedBill: () => Math.max(0, state.site.utilitySpend - calc.solarSavings() - calc.demandSavings()),
   postPeak: () => state.site.peakDemand * (1 - state.storage.shavePct / 100),
   demandSavings: () => (state.site.peakDemand - calc.postPeak()) * state.site.demandRate * 12,
@@ -59,7 +68,10 @@ const calc = {
   cumulativeBenefit: () => Array.from({ length: Math.max(1, Math.round(state.economics.period)) }, (_, i) => calc.year1Benefit() * Math.pow(1 + state.economics.escalation / 100, i) - state.economics.annualOpex).reduce((a, b) => a + b, 0),
   netValue: () => calc.cumulativeBenefit() - calc.netInvestment(),
   npv: () => Array.from({ length: Math.max(1, Math.round(state.economics.period)) }, (_, i) => (calc.year1Benefit() * Math.pow(1 + state.economics.escalation / 100, i) - state.economics.annualOpex) / Math.pow(1 + state.economics.discountRate / 100, i + 1)).reduce((a, b) => a + b, 0) - calc.netInvestment(),
-  payback: () => calc.netInvestment() / Math.max(1, calc.year1Benefit() - state.economics.annualOpex),
+  payback: () => {
+    const annualNetBenefit = calc.year1Benefit() - state.economics.annualOpex;
+    return annualNetBenefit > 0 ? calc.netInvestment() / annualNetBenefit : null;
+  },
   roi: () => (calc.netValue() / Math.max(1, calc.netInvestment())) * 100
 };
 
@@ -84,7 +96,7 @@ const regionalEvBenchmark = { location: 'St. George, UT', ports: 53, stations: 9
 const configSchemas = {
   overview: { title: 'Overview', fields: [
     ['siteName', 'Customer / site name', 'text'], ['location', 'Location', 'text'], ['proposalDate', 'Proposal date', 'date'], ['status', 'Proposal status', 'text'],
-    ['savingsRate', 'Utility savings assumption (%)', 'number'], ['co2Factor', 'CO2 factor (t/MWh)', 'number']
+    ['savingsRate', 'Solar savings realization (%)', 'number'], ['co2Factor', 'CO2 factor (t/MWh)', 'number']
   ], formulas: [
     ['Year 1 utility savings', 'Annual utility spend × savings rate', () => money(calc.solarSavings())],
     ['Project investment', 'Solar + battery + EV + site improvements', () => compactMoney(calc.totalInvestment())],
@@ -135,7 +147,7 @@ const configSchemas = {
 };
 
 function formulaMarkup(schema) {
-  return schema.formulas?.length ? `<div class="formula-box"><div class="formula-title">CALCULATED OUTPUTS</div>${schema.formulas.map(([label, formula, value]) => `<div class="formula-row"><span><b>${esc(label)}</b><small>${esc(formula)}</small></span><strong>${esc(value())}</strong></div>`).join('')}</div>` : '';
+  return schema.formulas?.length ? `<div class="formula-box"><div class="formula-title">CALCULATED OUTPUTS</div>${schema.formulas.map(([label, formula, value]) => { const output = label === 'Simple payback' && calc.payback() == null ? 'Not reached within modeled inputs' : value(); return `<div class="formula-row"><span><b>${esc(label)}</b><small>${esc(formula)}</small></span><strong>${esc(output)}</strong></div>`; }).join('')}</div>` : '';
 }
 
 function fieldMarkup([key, label, type, options]) {
@@ -257,6 +269,15 @@ function seasonalBars() {
 function renderSolarChart() { const data = seasonalBars(); $('#solarChart').innerHTML = data.map((row, index) => { const load = 64 + ((index % 4) * 4); const solar = Math.max(8, Math.min(load, row.value)); const grid = Math.max(0, load - solar); return `<i title="${esc(row.label)}: ${number(solar, 1)}% solar served + ${number(grid, 1)}% grid supplied" aria-label="${esc(row.label)}: ${number(solar, 1)} percent solar served and ${number(grid, 1)} percent grid supplied"><span class="bar-segment grid-segment" style="height:${grid}%"></span><span class="bar-segment solar-segment" style="height:${solar}%"></span></i>`; }).join(''); }
 
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
+function refreshDerivedMetrics() {
+  const payback = calc.payback();
+  const paybackNode = $('#payback');
+  if (paybackNode) paybackNode.innerHTML = payback == null ? 'Not reached' : `${number(payback, 1)} <small>yrs</small>`;
+  const realizedSavings = calc.solarSavings() / Math.max(1, state.site.utilitySpend) * 100;
+  setText('#yearSavings', compactMoney(calc.year1Benefit()));
+  setText('.hero-badge strong', `${number(realizedSavings, 1)}%`);
+  setText('.metric-card.primary .trend-up', `↓ ${number(realizedSavings, 1)}%`);
+}
 function renderReport() {
   renderSolarChart(); renderDemandMap(); mountLayoutMap(); setText('.status-pill', state.overview.status);
   setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroDate = $('.hero .eyebrow'); if (heroDate) heroDate.innerHTML = `COMMERCIAL ENERGY PROPOSAL <span>•</span> ${state.overview.proposalDate}`; const heroLocation = $('.hero .hero-meta span:last-child'); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N · ${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); setText('.breadcrumb strong', 'OREM, UT'); setText('#yearSavings', compactMoney(calc.solarSavings())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); setText('#payback', `${number(calc.payback(), 1)} yrs`); const co2Metric = $('#overview .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
@@ -270,7 +291,7 @@ function renderReport() {
   const bundleValues = [state.bundles.critterGuard, state.bundles.lighting, state.bundles.hvac]; bundleValues.forEach((value, i) => setText(`#bundles .bundle-card:nth-child(${i + 1}) strong`, money(value)));
   setText('#investment .investment-row:nth-child(2) strong', money(state.investment.solar)); setText('#investment .investment-row:nth-child(3) strong', money(state.investment.battery)); setText('#investment .investment-row:nth-child(4) strong', money(state.investment.ev)); setText('#investment .investment-row:nth-child(5) strong', money(state.investment.siteImprovements)); setText('#investment .investment-row.total strong', money(calc.totalInvestment())); setText('#investment .incentive-card>strong', `Up to ${number(state.investment.incentivePct)}%`); const incentive = $('#investment .incentive-bar i'); if (incentive) incentive.style.width = `${Math.min(100, state.investment.incentivePct)}%`;
   setText('#economics .economics-summary strong', compactMoney(calc.netValue())); setText('#economics .roi-chip', `${number(calc.roi(), 1)}% ROI`);
-  renderAuditBlocks(); renderReferenceComponents(); applyScopeCopy(); saveState();
+  renderAuditBlocks(); renderReferenceComponents(); applyScopeCopy(); refreshDerivedMetrics(); saveState();
 }
 
 const currentScopes = () => ({ solar: $('.top-scope-toggle[data-scope="solar"]')?.checked ?? activeBid.scopes.solar, storage: $('.top-scope-toggle[data-scope="storage"]')?.checked ?? activeBid.scopes.storage, ev: $('.top-scope-toggle[data-scope="ev"]')?.checked ?? activeBid.scopes.ev });
