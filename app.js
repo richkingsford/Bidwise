@@ -10,7 +10,7 @@ const defaults = {
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
-  ev: { dcFast: 6, level2: 8, utilization: 31, sessionsPerPortYear: 4200, avgKwh: 18, price: 0.45, networkFee: 0.10, powerCost: 0.16, managementFee: 0.02, co2PerSession: 0.0069, compatibility: 'NACS + CCS1', layout: '4 roadside + 4 drive-through', contribution: 125000, profitShare: 100, avgStoreSpend: 15.50, conversion: 50, maxKw: 500, posts: 8, cabinet: 'Shared-power V4 cabinet', observedCharges3m: 27544, observedStations: 16, observedPorts: 58, sourceWindow: 'Most recent 3 months' },
+  ev: { dcFast: 6, level2: 8, utilization: 15.5, sessionsPerPortYear: 4200, avgKwh: 26.5, price: 0.47, networkFee: 0.10, powerCost: 0.15, managementFee: 0.02, co2PerSession: 0.0191, compatibility: 'NACS + CCS1', layout: '4 roadside + 4 drive-through', contribution: 125000, profitShare: 100, avgStoreSpend: 15.50, conversion: 50, maxKw: 400, posts: 8, cabinet: 'Shared-power 400 kW cabinet', observedCharges3m: 25114, observedStations: 12, observedPorts: 59, sourceWindow: '2026-05-10 to 2026-08-02 · 13 weekly observations' },
   bundles: { critterGuard: 27500, lighting: 41250, hvac: 93193.39, hvacBase: 71687.22, coordination: 0 },
   vpp: { demandResponse: 12000, reservePct: 20, status: 'Subject to utility approval', controls: 'Secure dispatch + monitoring', customerValue: 'Peak management, resilience, bill control', utilityValue: 'Local capacity and summer peak support', workPlan: 'Metering → cybersecurity → dispatch testing → agreement' },
   investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
@@ -65,23 +65,21 @@ const calc = {
 
 // Imported from the workbook's Metadata + Weekly tabs: unique nearby station locations and their observed 3-month demand.
 const demandStations = [
-  { name: 'Orem, UT · 427 W University Pkwy', network: 'Tesla', lat: 40.272660, lon: -111.705004, ports: 8, charges: 18713 },
-  { name: 'RMP Midtown 360 · 280–360 S State St', network: 'Rocky Mountain Power', lat: 40.292770, lon: -111.693440, ports: 4, charges: 2411 },
-  { name: 'Orem, UT · 895 N 980 W', network: 'Tesla', lat: 40.312870, lon: -111.721124, ports: 15, charges: 1210 },
-  { name: 'Orem City DC · 97 E Center St', network: 'ChargePoint', lat: 40.298160, lon: -111.692900, ports: 1, charges: 1020 },
-  { name: 'Orem City DC · 95 E Center St', network: 'ChargePoint', lat: 40.297465, lon: -111.693144, ports: 1, charges: 1020 },
-  { name: 'American Fork · 221 S 500 E', network: 'Blink', lat: 40.372490, lon: -111.785045, ports: 2, charges: 562 },
-  { name: 'Lindon Supercenter · 585 N State St', network: 'Walmart', lat: 40.349450, lon: -111.732344, ports: 8, charges: 411 },
-  { name: 'Orem Supercenter · 1355 Sandhill Rd', network: 'Walmart', lat: 40.273129, lon: -111.711981, ports: 8, charges: 397 },
-  { name: 'Murdock Lindon Hyundai', network: 'ChargePoint', lat: 40.328836, lon: -111.731873, ports: 1, charges: 288 },
-  { name: 'Murdock Lindon Hyundai', network: 'ChargePoint', lat: 40.328821, lon: -111.731898, ports: 1, charges: 288 },
-  { name: 'Murdock Genesis Sales', network: 'ChargePoint', lat: 40.329342, lon: -111.733807, ports: 1, charges: 90 },
-  { name: 'Murdock Genesis Sales', network: 'ChargePoint', lat: 40.329044, lon: -111.734000, ports: 1, charges: 90 },
-  { name: 'American Fork Ford · 597 E 1000 S', network: 'ChargePoint', lat: 40.357231, lon: -111.783763, ports: 1, charges: 12 },
-  { name: 'American Fork Ford · 597 E 1000 S', network: 'ChargePoint', lat: 40.357198, lon: -111.783924, ports: 1, charges: 12 },
-  { name: 'Lindon EV Structure · 553 S Geneva Rd', network: 'EV Structure', lat: 40.326594, lon: -111.736770, ports: 4, charges: 0 },
-  { name: 'Orem City DC · 97 E Center St', network: 'ChargePoint', lat: 40.298440, lon: -111.693410, ports: 1, charges: 1020 }
+  { name: 'Orem, UT - Tesla Supercharger', network: 'Tesla', lat: 40.272608, lon: -111.704992, ports: 8, charges: 18713 },
+  { name: 'RMP Midtown 360 (Orem, UT)', network: 'Rocky Mountain Power', lat: 40.292770, lon: -111.693440, ports: 4, charges: 2411 },
+  { name: 'WinCo Foods - Tesla Supercharger', network: 'Tesla', lat: 40.312900, lon: -111.721024, ports: 16, charges: 1210 },
+  { name: 'CC Station1 Orem City DC 4', network: 'ChargePoint', lat: 40.297465, lon: -111.693144, ports: 1, charges: 1020 },
+  { name: 'Unique Auto Body - DCFC', network: 'Blink', lat: 40.372490, lon: -111.785045, ports: 4, charges: 562 },
+  { name: 'Walmart EV Charging - Lindon', network: 'Walmart', lat: 40.348499, lon: -111.731817, ports: 8, charges: 411 },
+  { name: 'Walmart EV Charging - Orem', network: 'Walmart', lat: 40.272656, lon: -111.710217, ports: 8, charges: 397 },
+  { name: 'Murdock Lindon Hyundai F2', network: 'ChargePoint', lat: 40.328821, lon: -111.731898, ports: 1, charges: 288 },
+  { name: 'Murdock Genesis Sales South', network: 'ChargePoint', lat: 40.329342, lon: -111.733807, ports: 1, charges: 90 },
+  { name: 'AF Ford Power Link 1', network: 'ChargePoint', lat: 40.357198, lon: -111.783924, ports: 2, charges: 12 },
+  { name: 'Ken Garff Nissan - Orem', network: 'ChargePoint', lat: 40.273330, lon: -111.702080, ports: 1, charges: 0 },
+  { name: 'Doug Smith Kia', network: 'ChargePoint', lat: 40.329843, lon: -111.730039, ports: 5, charges: 0 }
 ];
+
+const regionalEvBenchmark = { location: 'St. George, UT', ports: 53, stations: 9, charges3m: 39210, utilization: 18.3, avgKwh: 26.8, sourceWindow: '2026-05-07 to 2026-08-02 · 88 daily observations' };
 
 const configSchemas = {
   overview: { title: 'Overview', fields: [
@@ -292,6 +290,7 @@ function upsertDetail(sectionId, className, html) {
   node.innerHTML = html;
 }
 function renderReferenceComponents() {
+  upsertDetail('ev', 'regional-benchmark', `<div class="reference-card"><div class="reference-title">REGIONAL DEMAND CALIBRATION</div><div class="reference-foot">The proposal uses the supplied Orem weekly report as its site benchmark: ${number(state.ev.observedCharges3m)} observed charges across ${number(state.ev.observedPorts)} tracked ports. A second St. George daily report provides a cross-market check: ${number(regionalEvBenchmark.charges3m)} charges across ${number(regionalEvBenchmark.ports)} ports, ${number(regionalEvBenchmark.utilization, 1)}% mean utilization, and ${number(regionalEvBenchmark.avgKwh, 1)} kWh average energy per charge. These are observed market signals, not a guarantee of site performance.</div></div>`);
   upsertDetail('site', 'reference-components', `<div class="reference-card"><div class="reference-title">UTILITY BASELINE + VALUE STACK</div><div class="reference-list"><span><b>Provider</b>${esc(state.site.provider)}</span><span><b>Tariff</b>${esc(state.site.tariff)}</span><span><b>Energy charge</b>${money(state.site.energyRate, 2)} / kWh</span><span><b>Demand charge</b>${money(state.site.demandRate, 2)} / kW-month</span><span><b>Current annual bill</b>${money(state.site.utilitySpend)}</span><span><b>Current monthly bill</b>${money(state.site.utilitySpend / 12)}</span></div><div class="rate-stack"><span>Onsite use<strong>${money(state.site.onsiteValue, 2)} / kWh</strong></span><span>Export credit<strong>${money(state.site.exportRate, 2)} / kWh</strong></span><span>Demand reduction<strong>${money(calc.demandSavings())} / yr</strong></span></div><div class="bill-compare"><span>Current bill<strong>${money(state.site.utilitySpend / 12)} / mo</strong></span><i></i><span>Modeled bill<strong>${money(calc.proposedBill() / 12)} / mo</strong></span></div><div class="reference-foot">Onsite energy offsets retail purchases first; exports are modeled at the export credit. Nearby demand map: ${number(demandStations.length)} station locations and ${number(state.ev.observedCharges3m)} observed charges in ${esc(state.ev.sourceWindow)} from the supplied workbook.</div></div>`);
   upsertDetail('solar', 'reference-components', `<div class="reference-card"><div class="reference-title">PHASE 1 → PHASE 2 ROADMAP</div><div class="roadmap"><span><b>01</b>Build the approved ${number(state.solar.arrayKw)} kW foundation</span><span><b>02</b>Measure 12 months of utility and interval data</span><span><b>03</b>Evaluate additional panels, storage, controls, and VPP enrollment</span></div><div class="reference-foot">System design: ${esc(state.solar.installation)} · ${esc(state.solar.manufacturer)} ${esc(state.solar.model)} · ${number(state.solar.productionRatio)} kWh/kW-year.</div></div>`);
   upsertDetail('storage', 'reference-components', `<div class="reference-card"><div class="reference-title">BATTERY VALUE STACK + HOURLY LOAD ANALYSIS</div><div class="reference-list"><span><b>Equipment</b>${number(state.storage.capacityMwh, 1)} MWh rated · ${number(state.storage.capacityMwh * state.storage.batteryEfficiency / 100, 2)} MWh usable</span><span><b>Manufacturer / model</b>${esc(state.storage.manufacturer)} · ${esc(state.storage.model)}</span><span><b>Controls</b>${esc(state.storage.controls)}</span><span><b>Energy shifting</b>Solar surplus stored for later store load</span><span><b>Demand reduction</b>${money(calc.demandSavings())} modeled annual demand-charge savings</span><span><b>Resilience</b>${number(state.storage.dispatchHours)}-hour dispatch duration with ${number(state.vpp.reservePct)}% reserve</span></div><table class="load-table"><thead><tr><th>Period</th><th>Store load</th><th>Solar</th><th>Battery</th><th>Grid</th></tr></thead><tbody><tr><td>6 AM</td><td>42%</td><td>8%</td><td>+0%</td><td>34%</td></tr><tr><td>12 PM</td><td>78%</td><td>64%</td><td>+14%</td><td>0%</td></tr><tr><td>6 PM</td><td>92%</td><td>22%</td><td>−19%</td><td>51%</td></tr><tr><td>11 PM</td><td>38%</td><td>0%</td><td>−8%</td><td>30%</td></tr></tbody></table><div class="load-series"><span>Solar serves load</span><span>Storage charges</span><span>Storage discharges</span><span>Grid imports / exports</span></div></div>`);
