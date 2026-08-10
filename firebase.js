@@ -1,30 +1,79 @@
-// Google sign-in is shared across the Bidwise homepage and proposal views.
+// Google sign-in plus installer-company onboarding for the Bidwise workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || null;
 const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton')].filter(Boolean);
+const companyProfileButton = document.querySelector('#companyProfileButton');
+const companyModal = document.querySelector('#companyModal');
+const companyForm = document.querySelector('#companyForm');
 const toast = message => { const node = document.querySelector('#toast'); if (!node) return; node.textContent = message; node.classList.add('show'); setTimeout(() => node.classList.remove('show'), 3200); };
-const setIdentity = user => {
-  const name = user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
-  const firstName = name.split(' ')[0];
-  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
-  document.querySelector('#workspaceAuthor')?.replaceChildren(document.createTextNode(user ? name : 'Sign in to personalize'));
-  document.querySelector('#authorName')?.replaceChildren(document.createTextNode(user ? name : 'Proposal team'));
+let currentUser = null;
+let currentProfile = null;
+let saveCompanyProfile = null;
+
+const setIdentity = (user, profile = currentProfile) => {
+  const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
+  const contactName = profile?.contactName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
+  const firstName = contactName.split(' ')[0];
+  const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
+  document.querySelector('#workspaceAuthor')?.replaceChildren(document.createTextNode(user ? displayName : 'Sign in to personalize'));
+  document.querySelector('#authorName')?.replaceChildren(document.createTextNode(user ? contactName : 'Proposal team'));
   const avatar = document.querySelector('#avatarInitials'); if (avatar) { avatar.textContent = initials; avatar.title = user?.email || 'Not signed in'; }
   authButtons.forEach(button => { button.textContent = user ? `Sign out · ${firstName}` : 'Sign in with Google'; });
+  if (companyProfileButton) companyProfileButton.hidden = !user;
 };
+
+const showCompanyModal = (user, profile = {}) => {
+  if (!companyModal || !companyForm) return;
+  companyForm.elements.companyName.value = profile.companyName || '';
+  companyForm.elements.contactName.value = profile.contactName || user?.displayName || '';
+  companyForm.elements.email.value = user?.email || '';
+  companyForm.elements.territory.value = profile.territory || '';
+  companyForm.elements.website.value = profile.website || '';
+  ['solar', 'storage', 'ev'].forEach(key => { companyForm.elements[key].checked = Boolean(profile.services?.[key]); });
+  companyForm.querySelector('button[type="submit"]').textContent = profile.companyName ? 'Save company profile' : 'Create company profile';
+  companyModal.hidden = false;
+  companyForm.elements.companyName.focus();
+};
+const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; };
 
 if (firebaseConfig) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
   const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
+  const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
-  let currentUser = null;
-  onAuthStateChanged(auth, user => { currentUser = user; setIdentity(user); });
+
+  const loadCompanyProfile = async user => {
+    const snapshot = await getDoc(doc(db, 'profiles', user.uid));
+    currentProfile = snapshot.exists() ? snapshot.data() : null;
+    setIdentity(user, currentProfile);
+    if (!currentProfile?.companyName) showCompanyModal(user);
+  };
+
+  saveCompanyProfile = async profile => {
+    if (!currentUser) return;
+    await setDoc(doc(db, 'profiles', currentUser.uid), { ...profile, email: currentUser.email, verificationStatus: currentProfile?.verificationStatus || 'pending', updatedAt: serverTimestamp() }, { merge: true });
+    currentProfile = { ...currentProfile, ...profile, email: currentUser.email, verificationStatus: currentProfile?.verificationStatus || 'pending' };
+    setIdentity(currentUser, currentProfile);
+    hideCompanyModal();
+    toast('Company profile saved. Your registration is pending review.');
+  };
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    currentProfile = null;
+    if (!user) { hideCompanyModal(); setIdentity(null); return; }
+    if (!user.email?.toLowerCase().endsWith('@gmail.com')) { await signOut(auth); toast('Please use a Gmail address to access Bidwise.'); return; }
+    setIdentity(user);
+    try { await loadCompanyProfile(user); } catch { toast('Signed in, but company profile could not be loaded. Check Firebase Firestore setup.'); }
+  });
+
   authButtons.forEach(button => button.addEventListener('click', async () => {
     try {
       if (currentUser) { await signOut(auth); return; }
       const result = await signInWithPopup(auth, provider);
-      if (!result.user.email?.toLowerCase().endsWith('@gmail.com')) { await signOut(auth); toast('Please use a Gmail address to access Bidwise.'); return; }
+      if (!result.user.email?.toLowerCase().endsWith('@gmail.com')) { await signOut(auth); toast('Please use a Gmail address to access Bidwise.'); }
     } catch (error) {
       if (error?.code !== 'auth/popup-closed-by-user') toast('Google sign-in was not completed. Please try again.');
     }
@@ -32,4 +81,16 @@ if (firebaseConfig) {
 } else {
   setIdentity(null);
   authButtons.forEach(button => button.addEventListener('click', () => toast('Google sign-in is not configured for this workspace yet.')));
-}
+};
+
+companyProfileButton?.addEventListener('click', () => showCompanyModal(currentUser, currentProfile || {}));
+document.querySelector('#closeCompanyModal')?.addEventListener('click', hideCompanyModal);
+companyModal?.addEventListener('click', event => { if (event.target === companyModal) hideCompanyModal(); });
+companyForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const form = new FormData(companyForm);
+  const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
+  if (!Object.values(services).some(Boolean)) { toast('Select at least one installation service.'); return; }
+  const submit = companyForm.querySelector('button[type="submit"]'); submit.disabled = true; submit.textContent = 'Saving…';
+  try { await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), contactName: String(form.get('contactName')).trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services }); } catch { toast('Could not save your company profile. Please try again.'); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
+});
