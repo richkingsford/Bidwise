@@ -1,11 +1,12 @@
 // Google sign-in plus installer-company onboarding for the Bidwise workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || {
-  apiKey: 'AIzaSyCdpWkwtSrTQhWMiHJWvcz2U1rWYmYHOLg',
-  authDomain: 'bidwise-6683d.firebaseapp.com',
-  projectId: 'bidwise-6683d',
-  storageBucket: 'bidwise-6683d.firebasestorage.app',
-  messagingSenderId: '648793647498',
-  appId: '1:648793647498:web:569a46e939909dc92e8073'
+  apiKey: 'AIzaSyD515NidpwJdAX7utodOaiDIWT4TBd89t4',
+  authDomain: 'bidwise-production.firebaseapp.com',
+  projectId: 'bidwise-production',
+  storageBucket: 'bidwise-production.firebasestorage.app',
+  messagingSenderId: '687354188457',
+  appId: '1:687354188457:web:b61d5eb5f03420dc1b0fb8',
+  measurementId: 'G-XX3K470W2Y'
 };
 const isLocalFile = window.location.protocol === 'file:';
 const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton'), document.querySelector('#gateAuthButton')].filter(Boolean);
