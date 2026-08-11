@@ -1,6 +1,7 @@
 // Google sign-in plus installer-company onboarding for the Bidwise workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || null;
-const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton')].filter(Boolean);
+const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton'), document.querySelector('#gateAuthButton')].filter(Boolean);
+const authCtas = [...document.querySelectorAll('[data-auth-cta]')];
 const companyProfileButton = document.querySelector('#companyProfileButton');
 const companyModal = document.querySelector('#companyModal');
 const companyForm = document.querySelector('#companyForm');
@@ -19,6 +20,9 @@ const setIdentity = (user, profile = currentProfile) => {
   const avatar = document.querySelector('#avatarInitials'); if (avatar) { avatar.textContent = initials; avatar.title = user?.email || 'Not signed in'; }
   authButtons.forEach(button => { button.textContent = user ? `Sign out · ${firstName}` : 'Sign in with Google'; });
   if (companyProfileButton) companyProfileButton.hidden = !user;
+  document.body.classList.toggle('home-authenticated', Boolean(user));
+  document.body.classList.toggle('home-registered', Boolean(user && profile?.companyName));
+  document.body.classList.toggle('access-granted', Boolean(user && profile?.companyName));
 };
 
 const showCompanyModal = (user, profile = {}) => {
@@ -97,9 +101,11 @@ if (firebaseConfig) {
       explainAuthError(error);
     }
   }));
+  authCtas.forEach(button => button.addEventListener('click', () => document.querySelector('#homeAuthButton')?.click()));
 } else {
   setIdentity(null);
   authButtons.forEach(button => button.addEventListener('click', () => toast('Google sign-in is not configured for this workspace yet.')));
+  authCtas.forEach(button => button.addEventListener('click', () => toast('Google sign-in is not configured for this workspace yet.')));
 };
 
 companyProfileButton?.addEventListener('click', () => showCompanyModal(currentUser, currentProfile || {}));

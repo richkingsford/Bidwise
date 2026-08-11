@@ -1,7 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=contrast-20260810b'; document.head.appendChild(themeLink);
+const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=auth-gate-20260811a'; document.head.appendChild(themeLink);
 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
 
