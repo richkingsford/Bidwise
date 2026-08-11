@@ -14,10 +14,23 @@ const companyProfileButton = document.querySelector('#companyProfileButton');
 const companyModal = document.querySelector('#companyModal');
 const companyForm = document.querySelector('#companyForm');
 const companySignInButton = document.querySelector('#companySignInButton');
+const adminModal = document.querySelector('#adminModal');
+const adminProfilesList = document.querySelector('#adminProfilesList');
+const adminButton = document.createElement('button');
+adminButton.className = 'auth-button';
+adminButton.type = 'button';
+adminButton.textContent = 'Admin';
+adminButton.hidden = true;
+document.querySelector('.home-user')?.prepend(adminButton);
+const ADMIN_EMAIL = 'richkingsford@gmail.com';
 const toast = message => { const node = document.querySelector('#toast'); if (!node) return; node.textContent = message; node.classList.add('show'); setTimeout(() => node.classList.remove('show'), 3200); };
 let currentUser = null;
 let currentProfile = null;
 let saveCompanyProfile = null;
+let loadAdminProfiles = null;
+
+const isAdminUser = user => user?.email?.toLowerCase() === ADMIN_EMAIL;
+const hasWorkspaceAccess = (user, profile) => Boolean(user && (isAdminUser(user) || profile?.verificationStatus === 'approved'));
 
 const setIdentity = (user, profile = currentProfile) => {
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
@@ -29,9 +42,11 @@ const setIdentity = (user, profile = currentProfile) => {
   const avatar = document.querySelector('#avatarInitials'); if (avatar) { avatar.textContent = initials; avatar.title = user?.email || 'Not signed in'; }
   authButtons.forEach(button => { button.textContent = user ? `Sign out · ${firstName}` : 'Sign in with Google'; });
   if (companyProfileButton) companyProfileButton.hidden = !user;
+  adminButton.hidden = !isAdminUser(user);
   document.body.classList.toggle('home-authenticated', Boolean(user));
-  document.body.classList.toggle('home-registered', Boolean(user && profile?.companyName));
-  document.body.classList.toggle('access-granted', Boolean(user && profile?.companyName));
+  document.body.classList.toggle('home-registered', hasWorkspaceAccess(user, profile) && Boolean(profile?.companyName));
+  document.body.classList.toggle('access-granted', hasWorkspaceAccess(user, profile));
+  document.body.classList.toggle('admin-user', isAdminUser(user));
 };
 
 const showCompanyModal = (user, profile = {}) => {
@@ -54,11 +69,27 @@ const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; }
 if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
   const { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
-  const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+  const { getFirestore, doc, getDoc, setDoc, getDocs, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
+
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
+  const renderAdminProfiles = profiles => {
+    if (!adminProfilesList) return;
+    if (!profiles.length) { adminProfilesList.innerHTML = '<p class="admin-empty">No company registrations yet.</p>'; return; }
+    adminProfilesList.innerHTML = profiles.map(profile => `<article class="admin-profile"><div><strong>${escapeHtml(profile.companyName || 'Unnamed company')}</strong><span>${escapeHtml(profile.businessEmail || profile.email || 'No email')} · ${escapeHtml(profile.territory || 'Territory not provided')}</span><small>${escapeHtml(Object.entries(profile.services || {}).filter(([, enabled]) => enabled).map(([key]) => key === 'storage' ? 'Battery storage' : key === 'ev' ? 'EV charging' : 'Solar').join(' · ') || 'No services selected')}</small></div><div class="admin-profile-actions"><span class="admin-status ${escapeHtml(profile.verificationStatus || 'pending')}">${escapeHtml(profile.verificationStatus || 'pending')}</span><button type="button" data-admin-status="approved" data-profile-id="${escapeHtml(profile.id)}">Approve</button><button type="button" data-admin-status="rejected" data-profile-id="${escapeHtml(profile.id)}">Reject</button></div></article>`).join('');
+    adminProfilesList.querySelectorAll('[data-admin-status]').forEach(button => button.addEventListener('click', async () => {
+      button.disabled = true;
+      try { await setDoc(doc(db, 'profiles', button.dataset.profileId), { verificationStatus: button.dataset.adminStatus, reviewedBy: currentUser.email, reviewedAt: serverTimestamp() }, { merge: true }); await loadAdminProfiles(); toast(`Company ${button.dataset.adminStatus}.`); } catch (error) { console.error('Bidwise admin update error', error); toast('Could not update company approval.'); } finally { button.disabled = false; }
+    }));
+  };
+  loadAdminProfiles = async () => {
+    if (!isAdminUser(currentUser)) return;
+    const snapshot = await getDocs(collection(db, 'profiles'));
+    renderAdminProfiles(snapshot.docs.map(item => ({ id: item.id, ...item.data() })));
+  };
 
   const explainAuthError = error => {
     console.error('Bidwise Google sign-in error', error);
@@ -76,17 +107,22 @@ if (firebaseConfig && !isLocalFile) {
   const loadCompanyProfile = async user => {
     const snapshot = await getDoc(doc(db, 'profiles', user.uid));
     currentProfile = snapshot.exists() ? snapshot.data() : null;
+    if (isAdminUser(user) && currentProfile) {
+      currentProfile = { ...currentProfile, role: 'admin', verificationStatus: 'approved' };
+      await setDoc(doc(db, 'profiles', user.uid), currentProfile, { merge: true });
+    }
     setIdentity(user, currentProfile);
     if (!currentProfile?.companyName) showCompanyModal(user);
   };
 
   saveCompanyProfile = async profile => {
     if (!currentUser) return;
-    await setDoc(doc(db, 'profiles', currentUser.uid), { ...profile, email: currentUser.email, verificationStatus: currentProfile?.verificationStatus || 'pending', updatedAt: serverTimestamp() }, { merge: true });
-    currentProfile = { ...currentProfile, ...profile, email: currentUser.email, verificationStatus: currentProfile?.verificationStatus || 'pending' };
+    const verificationStatus = isAdminUser(currentUser) ? 'approved' : currentProfile?.verificationStatus || 'pending';
+    await setDoc(doc(db, 'profiles', currentUser.uid), { ...profile, email: currentUser.email, role: isAdminUser(currentUser) ? 'admin' : currentProfile?.role || 'member', verificationStatus, updatedAt: serverTimestamp() }, { merge: true });
+    currentProfile = { ...currentProfile, ...profile, email: currentUser.email, role: isAdminUser(currentUser) ? 'admin' : currentProfile?.role || 'member', verificationStatus };
     setIdentity(currentUser, currentProfile);
     hideCompanyModal();
-    toast('Company profile saved. Your registration is pending review.');
+    toast(isAdminUser(currentUser) ? 'Admin company profile saved.' : 'Company profile saved. Your registration is pending review.');
   };
 
   onAuthStateChanged(auth, async user => {
@@ -137,6 +173,13 @@ if (firebaseConfig && !isLocalFile) {
 };
 
 companyProfileButton?.addEventListener('click', () => showCompanyModal(currentUser, currentProfile || {}));
+adminButton.addEventListener('click', async () => {
+  if (!isAdminUser(currentUser) || !adminModal) return;
+  adminModal.hidden = false;
+  try { await loadAdminProfiles?.(); } catch (error) { console.error('Bidwise admin profiles error', error); toast('Could not load company registrations.'); }
+});
+document.querySelector('#closeAdminModal')?.addEventListener('click', () => { adminModal.hidden = true; });
+adminModal?.addEventListener('click', event => { if (event.target === adminModal) adminModal.hidden = true; });
 document.querySelector('#closeCompanyModal')?.addEventListener('click', hideCompanyModal);
 companyModal?.addEventListener('click', event => { if (event.target === companyModal) hideCompanyModal(); });
 companyForm?.addEventListener('submit', async event => {

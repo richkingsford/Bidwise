@@ -19,6 +19,12 @@
         <article class="bid-card" data-bid="target-lehi-solar-battery"><div class="bid-card-top"><span class="bid-status review">IN REVIEW</span><span class="bid-date">CREATED TODAY</span></div><div class="bid-card-title"><span class="store-avatar target-mark">T</span><div><h2>Target + storage</h2><p>Lehi, Utah · 1250 E Timpanogos Hwy</p></div></div><div class="bid-scope"><span>Solar</span><span>Battery</span></div><div class="bid-metrics"><div><small>ARRAY SIZE</small><strong>210 kW</strong></div><div><small>BATTERY</small><strong>400 kW</strong></div><div><small>STATUS</small><strong>Review</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
       </div><div class="home-footer"><span><i class="live-dot"></i> Three active proposals</span><span>Last synced just now</span></div></section><section class="home-marketing" aria-labelledby="marketingTitle"><div class="home-kicker">COMMERCIAL ENERGY PROPOSALS, WITHOUT THE SPREADSHEET CHAOS</div><div class="marketing-hero"><div><h1 id="marketingTitle">Turn site data into a bid buyers can believe.</h1><p>Bidwise helps installer teams build clear, interactive proposals for solar, battery storage, and EV charging — with the assumptions, maps, and economics ready for a real conversation.</p><button class="primary-button marketing-cta" type="button" data-auth-cta>Register your company <span>→</span></button></div><div class="marketing-proof"><span class="marketing-proof-mark">B</span><strong>One workspace.<br />Three scopes.<br /><em>More confidence.</em></strong></div></div><div class="marketing-grid"><article><span class="marketing-icon">01</span><h2>Build faster</h2><p>Start from realistic retail defaults, then tune the independent inputs your team actually knows.</p></article><article><span class="marketing-icon">02</span><h2>Explain the value</h2><p>Show production, demand reduction, charger demand, incentives, and payback in one buyer-friendly report.</p></article><article><span class="marketing-icon">03</span><h2>Present with confidence</h2><p>Share a view-only proposal with interactive maps, charts, and a clean construction-ready story.</p></article></div><div class="marketing-bottom"><strong>Designed for service-installing companies.</strong><span>Solar · Battery storage · EV charging</span><button class="auth-button marketing-signin" type="button" data-auth-cta>Sign in with Google</button></div></section></main>
     </section>
+    <div class="admin-modal" id="adminModal" hidden>
+      <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+        <div class="company-modal-head"><div><div class="home-kicker">ADMINISTRATION</div><h2 id="adminModalTitle">Company approvals</h2><p>Only approved companies and Gmail accounts can enter the Bidwise workspace.</p></div><button class="close-edit" id="closeAdminModal" type="button" aria-label="Close admin">×</button></div>
+        <div class="admin-list" id="adminProfilesList"><p class="admin-empty">Loading company profiles…</p></div>
+      </div>
+    </div>
     <div class="company-modal" id="companyModal" hidden>
       <div class="company-modal-card" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
         <div class="company-modal-head"><div><div class="home-kicker">INSTALLER REGISTRATION</div><h2 id="companyModalTitle">Tell us about your company.</h2><p>Bidwise is built for teams that design and install commercial energy systems.</p></div><button class="close-edit" id="closeCompanyModal" type="button" aria-label="Close registration">×</button></div>
@@ -99,6 +105,6 @@
     <div class="toast" id="toast">Proposal export ready — your PDF is being prepared.</div>
     <script src="app.js?v=sliders-20260811a"></script>
     <script src="firebase-config.js?v=auth-config-20260811a"></script>
-  <script type="module" src="firebase.js?v=redirect-final-20260811a"></script>
+  <script type="module" src="firebase.js?v=admin-approvals-20260811a"></script>
   </body>
 </html>

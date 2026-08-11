@@ -1,11 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /profiles/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function signedIn() {
+      return request.auth != null;
     }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == 'richkingsford@gmail.com';
+    }
+
+    function isApproved() {
+      return isAdmin() || (signedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.verificationStatus == 'approved');
+    }
+
+    match /profiles/{userId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow create: if signedIn() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending';
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && request.resource.data.verificationStatus == resource.data.verificationStatus);
+      allow delete: if isAdmin();
+    }
+
     match /proposals/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isApproved() && (isAdmin() || request.auth.uid == userId);
     }
   }
 }
