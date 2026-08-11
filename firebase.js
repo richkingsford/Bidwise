@@ -38,7 +38,7 @@ const showCompanyModal = (user, profile = {}) => {
   if (!companyModal || !companyForm) return;
   companyForm.elements.companyName.value = profile.companyName || '';
   companyForm.elements.contactName.value = profile.contactName || user?.displayName || '';
-  companyForm.elements.email.value = user?.email || '';
+  companyForm.elements.email.value = profile.businessEmail || user?.email || '';
   companyForm.elements.territory.value = profile.territory || '';
   companyForm.elements.website.value = profile.website || '';
   ['solar', 'storage', 'ev'].forEach(key => { companyForm.elements[key].checked = Boolean(profile.services?.[key]); });
@@ -146,5 +146,5 @@ companyForm?.addEventListener('submit', async event => {
   const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
   if (!Object.values(services).some(Boolean)) { toast('Select at least one installation service.'); return; }
   const submit = companyForm.querySelector('button[type="submit"]'); submit.disabled = true; submit.textContent = 'Saving…';
-  try { await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), contactName: String(form.get('contactName')).trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services }); } catch { toast('Could not save your company profile. Please try again.'); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
+  try { await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services }); } catch { toast('Could not save your company profile. Please try again.'); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
 });
