@@ -69,12 +69,13 @@ const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; }
 
 if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
-  const { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
+  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, getDocs, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
+  try { await setPersistence(auth, browserLocalPersistence); } catch (error) { console.warn('Bidwise auth persistence fallback', error); }
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
   const renderAdminProfiles = profiles => {
@@ -151,8 +152,11 @@ if (firebaseConfig && !isLocalFile) {
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error) {
+      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
+        try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; }
+      }
       explainAuthError(error);
     }
   };
