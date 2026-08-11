@@ -100,17 +100,22 @@ if (firebaseConfig && !isLocalFile) {
 
   try { await getRedirectResult(auth); } catch (error) { explainAuthError(error); }
 
-  authButtons.forEach(button => button.addEventListener('click', async () => {
+  const startSignIn = async () => {
     try {
-      if (currentUser) { await signOut(auth); return; }
+      if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
       // Redirect is more reliable than a popup in embedded browsers and avoids
       // blank Firebase auth windows when the browser blocks popup rendering.
       await signInWithRedirect(auth, provider);
     } catch (error) {
       explainAuthError(error);
     }
+  };
+  authButtons.forEach(button => button.addEventListener('click', async () => {
+    if (currentUser) { await signOut(auth); return; }
+    await startSignIn();
   }));
-  authCtas.forEach(button => button.addEventListener('click', () => document.querySelector('#homeAuthButton')?.click()));
+  // Attach directly so the visible CTA retains the browser's user gesture.
+  authCtas.forEach(button => button.addEventListener('click', startSignIn));
 } else {
   setIdentity(null);
   const localMessage = isLocalFile ? 'Google sign-in is available on the hosted Bidwise site. Open https://richkingsford.github.io/Bidwise/ to continue.' : 'Google sign-in is not configured for this workspace yet.';
