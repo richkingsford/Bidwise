@@ -13,6 +13,7 @@ const authCtas = [...document.querySelectorAll('[data-auth-cta]')];
 const companyProfileButton = document.querySelector('#companyProfileButton');
 const companyModal = document.querySelector('#companyModal');
 const companyForm = document.querySelector('#companyForm');
+const companySignInButton = document.querySelector('#companySignInButton');
 const toast = message => { const node = document.querySelector('#toast'); if (!node) return; node.textContent = message; node.classList.add('show'); setTimeout(() => node.classList.remove('show'), 3200); };
 let currentUser = null;
 let currentProfile = null;
@@ -42,8 +43,11 @@ const showCompanyModal = (user, profile = {}) => {
   companyForm.elements.website.value = profile.website || '';
   ['solar', 'storage', 'ev'].forEach(key => { companyForm.elements[key].checked = Boolean(profile.services?.[key]); });
   companyForm.querySelector('button[type="submit"]').textContent = profile.companyName ? 'Save company profile' : 'Create company profile';
+  if (companySignInButton) companySignInButton.hidden = Boolean(user);
+  const submitButton = companyForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.hidden = !user;
   companyModal.hidden = false;
-  companyForm.elements.companyName.focus();
+  (user ? companyForm.elements.companyName : companySignInButton)?.focus();
 };
 const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; };
 
@@ -120,7 +124,11 @@ if (firebaseConfig && !isLocalFile) {
     await startSignIn();
   }));
   // Attach directly so the visible CTA retains the browser's user gesture.
-  authCtas.forEach(button => button.addEventListener('click', startSignIn));
+  authCtas.forEach(button => button.addEventListener('click', () => {
+    if (currentUser) showCompanyModal(currentUser, currentProfile || {});
+    else showCompanyModal(null);
+  }));
+  companySignInButton?.addEventListener('click', startSignIn);
 } else {
   setIdentity(null);
   const localMessage = isLocalFile ? 'Google sign-in is available on the hosted Bidwise site. Open https://richkingsford.github.io/Bidwise/ to continue.' : 'Google sign-in is not configured for this workspace yet.';
@@ -133,6 +141,7 @@ document.querySelector('#closeCompanyModal')?.addEventListener('click', hideComp
 companyModal?.addEventListener('click', event => { if (event.target === companyModal) hideCompanyModal(); });
 companyForm?.addEventListener('submit', async event => {
   event.preventDefault();
+  if (!currentUser) { toast('Continue with Google before creating your company profile.'); return; }
   const form = new FormData(companyForm);
   const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
   if (!Object.values(services).some(Boolean)) { toast('Select at least one installation service.'); return; }
