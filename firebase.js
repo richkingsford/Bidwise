@@ -49,7 +49,7 @@ const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; }
 
 if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
-  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
+  const { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -110,16 +110,8 @@ if (firebaseConfig && !isLocalFile) {
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      const result = await signInWithPopup(auth, provider);
-      if (!result.user.email?.toLowerCase().endsWith('@gmail.com')) {
-        await signOut(auth);
-        toast('Please use a Gmail address to access Bidwise.');
-      }
+      await signInWithRedirect(auth, provider);
     } catch (error) {
-      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
       explainAuthError(error);
     }
   };
