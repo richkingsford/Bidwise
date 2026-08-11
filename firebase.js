@@ -1,5 +1,6 @@
 // Google sign-in plus installer-company onboarding for the Bidwise workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || null;
+const isLocalFile = window.location.protocol === 'file:';
 const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton'), document.querySelector('#gateAuthButton')].filter(Boolean);
 const authCtas = [...document.querySelectorAll('[data-auth-cta]')];
 const companyProfileButton = document.querySelector('#companyProfileButton');
@@ -39,7 +40,7 @@ const showCompanyModal = (user, profile = {}) => {
 };
 const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; };
 
-if (firebaseConfig) {
+if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
   const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
@@ -104,8 +105,9 @@ if (firebaseConfig) {
   authCtas.forEach(button => button.addEventListener('click', () => document.querySelector('#homeAuthButton')?.click()));
 } else {
   setIdentity(null);
-  authButtons.forEach(button => button.addEventListener('click', () => toast('Google sign-in is not configured for this workspace yet.')));
-  authCtas.forEach(button => button.addEventListener('click', () => toast('Google sign-in is not configured for this workspace yet.')));
+  const localMessage = isLocalFile ? 'Google sign-in is available on the hosted Bidwise site. Open https://richkingsford.github.io/Bidwise/ to continue.' : 'Google sign-in is not configured for this workspace yet.';
+  authButtons.forEach(button => button.addEventListener('click', () => toast(localMessage)));
+  authCtas.forEach(button => button.addEventListener('click', () => toast(localMessage)));
 };
 
 companyProfileButton?.addEventListener('click', () => showCompanyModal(currentUser, currentProfile || {}));
