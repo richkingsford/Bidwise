@@ -147,15 +147,21 @@ if (firebaseConfig && !isLocalFile) {
     }
   });
 
-  try { await getRedirectResult(auth); } catch (error) { explainAuthError(error); }
+  try {
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult?.user && currentUser?.uid !== redirectResult.user.uid) {
+      currentUser = redirectResult.user;
+      await loadCompanyProfile(redirectResult.user);
+    }
+  } catch (error) { explainAuthError(error); }
 
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
-        try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; }
+        try { await signInWithPopup(auth, provider); return; } catch (popupError) { explainAuthError(popupError); return; }
       }
       explainAuthError(error);
     }
