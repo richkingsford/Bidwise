@@ -150,10 +150,10 @@ if (firebaseConfig && !isLocalFile) {
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error) {
       if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
-        try { await signInWithPopup(auth, provider); return; } catch (popupError) { explainAuthError(popupError); return; }
+        try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; }
       }
       explainAuthError(error);
     }
