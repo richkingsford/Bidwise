@@ -84,7 +84,18 @@ if (firebaseConfig && !isLocalFile) {
     if (!user) { hideCompanyModal(); setIdentity(null); return; }
     if (!user.email?.toLowerCase().endsWith('@gmail.com')) { await signOut(auth); toast('Please use a Gmail address to access Bidwise.'); return; }
     setIdentity(user);
-    try { await loadCompanyProfile(user); } catch { toast('Signed in, but company profile could not be loaded. Check Firebase Firestore setup.'); }
+    try {
+      await loadCompanyProfile(user);
+    } catch (error) {
+      console.error('Bidwise company profile load error', error);
+      // Keep onboarding available even if a profile read is temporarily unavailable.
+      // The explicit code makes Firebase configuration failures diagnosable instead of
+      // presenting a generic "registration form" failure.
+      setIdentity(user, null);
+      showCompanyModal(user);
+      const code = error?.code?.replace(/^firestore\//, '') || 'unavailable';
+      toast(`Signed in, but registration needs attention (${code}).`);
+    }
   });
 
   try { await getRedirectResult(auth); } catch (error) { explainAuthError(error); }
