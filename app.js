@@ -1,7 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=auth-gate-20260811a'; document.head.appendChild(themeLink);
+const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=sliders-20260811a'; document.head.appendChild(themeLink);
 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
 
@@ -150,10 +150,20 @@ function formulaMarkup(schema) {
   return schema.formulas?.length ? `<div class="formula-box"><div class="formula-title">CALCULATED OUTPUTS</div>${schema.formulas.map(([label, formula, value]) => { const output = label === 'Simple payback' && calc.payback() == null ? 'Not reached within modeled inputs' : value(); return `<div class="formula-row"><span><b>${esc(label)}</b><small>${esc(formula)}</small></span><strong>${esc(output)}</strong></div>`; }).join('')}</div>` : '';
 }
 
+const sliderRanges = {
+  savingsRate: [50, 100, 1], co2Factor: [0.2, 1.2, 0.01], footprint: [1000, 300000, 100], utilitySpend: [10000, 1000000, 1000], annualKwh: [50000, 5000000, 10000], peakDemand: [25, 3000, 5], openHours: [1, 24, 1], selfConsumption: [50, 100, 1], energyRate: [0.05, 0.4, 0.01], demandRate: [0, 40, 0.25], exportRate: [0, 0.15, 0.01], onsiteValue: [0.05, 0.4, 0.01], latitude: [-90, 90, 0.000001], longitude: [-180, 180, 0.000001], mapRadius: [1, 25, 0.5],
+  arrayKw: [10, 5000, 5], productionRatio: [1000, 3000, 10], moduleW: [300, 700, 5], warranty: [10, 40, 1], chartHigh: [50, 120, 1], chartLow: [0, 80, 1], chartStd: [1, 40, 1], capacityMwh: [0.1, 20, 0.1], powerKw: [25, 5000, 25], shavePct: [0, 50, 1], dispatchHours: [0.5, 12, 0.5], batteryEfficiency: [70, 98, 1], ratedCapacity: [0.1, 20, 0.1], investment: [10000, 5000000, 5000],
+  dcFast: [0, 100, 1], level2: [0, 200, 1], utilization: [0, 100, 0.5], sessionsPerPortYear: [500, 10000, 100], avgKwh: [5, 150, 1], price: [0.1, 1, 0.01], networkFee: [0, 0.5, 0.01], powerCost: [0, 0.5, 0.01], managementFee: [0, 0.5, 0.01], co2PerSession: [0.001, 0.1, 0.001], contribution: [0, 5000000, 5000], profitShare: [0, 100, 1], avgStoreSpend: [0, 100, 0.5], conversion: [0, 100, 1], maxKw: [3, 1000, 1], posts: [1, 100, 1], observedCharges3m: [0, 200000, 100], observedStations: [0, 200, 1], observedPorts: [0, 1000, 1],
+  critterGuard: [0, 500000, 5000], lighting: [0, 500000, 5000], hvac: [0, 1000000, 5000], hvacBase: [0, 1000000, 5000], coordination: [0, 500000, 5000], demandResponse: [0, 500000, 5000], reservePct: [0, 80, 1], solar: [10000, 10000000, 5000], solarModules: [0, 5000000, 5000], solarInverters: [0, 5000000, 5000], solarRacking: [0, 5000000, 5000], solarBos: [0, 5000000, 5000], solarLabor: [0, 5000000, 5000], solarEngineering: [0, 2000000, 5000], solarCommissioning: [0, 2000000, 5000], battery: [0, 5000000, 5000], ev: [0, 5000000, 5000], siteImprovements: [0, 2000000, 5000], incentivePct: [0, 50, 1], escalation: [0, 10, 0.25], period: [5, 40, 1], discountRate: [0, 20, 0.25], annualOpex: [0, 500000, 1000], taxBenefitPct: [0, 50, 1], mapZoom: [15, 22, 1]
+};
+const sliderDigits = step => String(step).includes('.') ? String(step).split('.')[1].length : 0;
+const sliderValueLabel = (label, value, step) => { const digits = Math.max(sliderDigits(step), String(value).includes('.') ? String(value).split('.')[1].length : 0); if (label.includes('$')) return money(value); if (label.includes('%')) return `${number(value, digits)}%`; return number(value, digits); };
+const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : ((value - min) / (max - min)) * 100; input.style.background = `linear-gradient(90deg,var(--electric) 0%,var(--electric) ${pct}%,#30323a ${pct}%,#30323a 100%)`; };
 function fieldMarkup([key, label, type, options]) {
   const value = state[activeConfigSection][key] ?? '';
   if (type === 'textarea') return `<label class="config-field"><span>${esc(label)}</span><textarea data-key="${key}" rows="7" placeholder="Month,Value\nJAN,48\nFEB,55">${esc(value)}</textarea></label>`;
   if (type === 'select') return `<label class="config-field"><span>${esc(label)}</span><select data-key="${key}">${options.map(option => `<option ${option === value ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></label>`;
+  if (type === 'number') { const [min, max, step] = sliderRanges[key] || [0, Math.max(100, Number(value) * 2 || 100), 1]; return `<label class="config-field config-slider-field"><div class="config-slider-head"><span>${esc(label)}</span><output data-output="${key}">${esc(sliderValueLabel(label, value, step))}</output></div><div class="config-slider-row"><input class="config-range" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${esc(value)}" aria-label="${esc(label)}" /><input class="config-number" data-key="${key}" type="number" min="${min}" max="${max}" step="${step}" value="${esc(value)}" aria-label="Exact ${esc(label)}" /></div></label>`; }
   return `<label class="config-field"><span>${esc(label)}</span><input data-key="${key}" type="${type}" value="${esc(value)}" /></label>`;
 }
 
@@ -169,7 +179,8 @@ function openConfig(sectionId) {
   const schema = configSchemas[sectionId] || configSchemas.overview;
   configTitle.textContent = schema.title;
   configBody.innerHTML = `<div class="config-input-title">INDEPENDENT INPUTS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
-  configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; state[activeConfigSection][key] = input.type === 'number' ? Number(input.value) : input.value; refreshFormulaBox(); }));
+  configBody.querySelectorAll('.config-range').forEach(paintRange);
+  configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; state[activeConfigSection][key] = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
   configBody.querySelector('.config-file')?.addEventListener('change', event => handleImageUpload(event.target.files[0], sectionId));
   configPanel.classList.add('open'); configBackdrop.classList.add('open');
 }
