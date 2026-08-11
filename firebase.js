@@ -1,7 +1,7 @@
 // Google sign-in plus installer-company onboarding for the Bidwise workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || {
   apiKey: 'AIzaSyD515NidpwJdAX7utodOaiDIWT4TBd89t4',
-  authDomain: 'bidwise-production.firebaseapp.com',
+  authDomain: 'bidwise-production.web.app',
   projectId: 'bidwise-production',
   storageBucket: 'bidwise-production.firebasestorage.app',
   messagingSenderId: '687354188457',
@@ -150,10 +150,10 @@ if (firebaseConfig && !isLocalFile) {
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
-        try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; }
+        try { await signInWithPopup(auth, provider); return; } catch (popupError) { explainAuthError(popupError); return; }
       }
       explainAuthError(error);
     }
