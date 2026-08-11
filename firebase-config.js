@@ -1,6 +1,6 @@
 window.BIDWISE_FIREBASE_CONFIG = {
   apiKey: 'AIzaSyD515NidpwJdAX7utodOaiDIWT4TBd89t4',
-  authDomain: 'bidwise-production.firebaseapp.com',
+  authDomain: 'bidwise-production.web.app',
   projectId: 'bidwise-production',
   storageBucket: 'bidwise-production.firebasestorage.app',
   messagingSenderId: '687354188457',
