@@ -147,14 +147,6 @@ if (firebaseConfig && !isLocalFile) {
     }
   });
 
-  try {
-    const redirectResult = await getRedirectResult(auth);
-    if (redirectResult?.user && currentUser?.uid !== redirectResult.user.uid) {
-      currentUser = redirectResult.user;
-      await loadCompanyProfile(redirectResult.user);
-    }
-  } catch (error) { explainAuthError(error); }
-
   const startSignIn = async () => {
     try {
       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
@@ -176,6 +168,13 @@ if (firebaseConfig && !isLocalFile) {
     else showCompanyModal(null);
   }));
   companySignInButton?.addEventListener('click', startSignIn);
+  // Recover redirect results without blocking the initial sign-in controls.
+  void getRedirectResult(auth).then(async redirectResult => {
+    if (redirectResult?.user && currentUser?.uid !== redirectResult.user.uid) {
+      currentUser = redirectResult.user;
+      await loadCompanyProfile(redirectResult.user);
+    }
+  }).catch(explainAuthError);
 } else {
   setIdentity(null);
   const localMessage = isLocalFile ? 'Google sign-in is available on the hosted Bidwise site. Open https://richkingsford.github.io/Bidwise/ to continue.' : 'Google sign-in is not configured for this workspace yet.';
