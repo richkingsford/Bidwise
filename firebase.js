@@ -169,10 +169,7 @@ if (firebaseConfig && !isLocalFile) {
       explainAuthError(error);
     }
   };
-  authButtons.forEach(button => button.addEventListener('click', async () => {
-    if (currentUser) { await signOut(auth); return; }
-    await startSignIn();
-  }));
+  authButtons.forEach(button => button.addEventListener('click', startSignIn));
   // Attach directly so the visible CTA retains the browser's user gesture.
   authCtas.forEach(button => button.addEventListener('click', () => {
     if (currentUser) showCompanyModal(currentUser, currentProfile || {});
