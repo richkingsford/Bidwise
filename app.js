@@ -1,6 +1,16 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
+const applyProductBranding = () => {
+  document.title = document.title.replace(/Bidwise/gi, 'GetEV');
+  document.querySelectorAll('.brand-mark,.marketing-proof-mark').forEach(node => { node.textContent = 'G'; });
+  document.querySelectorAll('.brand>span:nth-child(2),.home-brand>span:nth-child(2)').forEach(node => { node.textContent = 'getev'; });
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => { node.nodeValue = node.nodeValue.replace(/Bidwise/g, 'GetEV').replace(/BIDWISE/g, 'GETEV'); });
+};
+applyProductBranding();
+
 const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=slider-blue-final-20260813o'; document.head.appendChild(themeLink);
 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
