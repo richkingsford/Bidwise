@@ -68,6 +68,9 @@ const showCompanyModal = (user, profile = {}) => {
   companyForm.elements.email.value = profile.businessEmail || user?.email || '';
   companyForm.elements.territory.value = profile.territory || '';
   companyForm.elements.website.value = profile.website || '';
+  companyForm.elements.proposalCertifications.value = profile.proposalCertifications || '';
+  if (companyForm.elements.insuranceDocument) companyForm.elements.insuranceDocument.required = !profile.insuranceDocument;
+  if (companyForm.elements.contractorCertification) companyForm.elements.contractorCertification.required = !profile.contractorCertification;
   ['solar', 'storage', 'ev'].forEach(key => { companyForm.elements[key].checked = Boolean(profile.services?.[key]); });
   companyForm.querySelector('button[type="submit"]').textContent = profile.companyName ? 'Save company profile' : 'Create company profile';
   if (companySignInButton) companySignInButton.hidden = Boolean(user);
@@ -82,10 +85,13 @@ if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
   const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, getDocs, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+  const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js');
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const storage = getStorage(app);
   const provider = new GoogleAuthProvider();
+  const uploadCompanyDocument = async file => { if (!file) return null; const safeName = file.name.replace(/[^a-z0-9._-]+/gi, '-'); const target = ref(storage, `company-documents/${currentUser.uid}/${Date.now()}-${safeName}`); const uploaded = await uploadBytes(target, file, { contentType: file.type }); return { name: file.name, type: file.type, size: file.size, url: await getDownloadURL(uploaded.ref) }; };
   try { await setPersistence(auth, browserLocalPersistence); } catch (error) { console.warn('Bidwise auth persistence fallback', error); }
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
@@ -209,6 +215,9 @@ companyForm?.addEventListener('submit', async event => {
   const form = new FormData(companyForm);
   const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
   if (!Object.values(services).some(Boolean)) { toast('Select at least one installation service.'); return; }
+  const documents = [...(companyForm.elements.certificationDocuments?.files || [])].map(file => ({ name: file.name, type: file.type, size: file.size }));
+  const insuranceFile = companyForm.elements.insuranceDocument?.files?.[0]; const contractorFile = companyForm.elements.contractorCertification?.files?.[0];
+  if (!insuranceFile && !currentProfile?.insuranceDocument || !contractorFile && !currentProfile?.contractorCertification) { toast('Upload proof of insurance and contractor certification before saving.'); return; }
   const submit = companyForm.querySelector('button[type="submit"]'); submit.disabled = true; submit.textContent = 'Saving…';
-  try { await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services }); } catch { toast('Could not save your company profile. Please try again.'); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
+  try { const [insuranceDocument, contractorCertification] = await Promise.all([uploadCompanyDocument(insuranceFile), uploadCompanyDocument(contractorFile)]); const certificationDocuments = []; for (const file of [...(companyForm.elements.certificationDocuments?.files || [])]) certificationDocuments.push(await uploadCompanyDocument(file)); await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services, proposalCertifications: String(form.get('proposalCertifications') || '').trim(), insuranceDocument: insuranceDocument || currentProfile?.insuranceDocument || null, contractorCertification: contractorCertification || currentProfile?.contractorCertification || null, certificationDocuments: certificationDocuments.length ? certificationDocuments : currentProfile?.certificationDocuments || [] }); } catch (error) { console.error('Bidwise company profile save error', error); toast(`Could not save your company profile${error?.code ? ` (${error.code})` : ''}. Please try again.`); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
 });

@@ -20,6 +20,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /company-documents/{userId}/{documentId} {
+      allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
     match /proposals/{userId} {
       allow read, write: if isApproved() && (isAdmin() || request.auth.uid == userId);
     }
