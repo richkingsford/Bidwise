@@ -162,7 +162,7 @@ const sliderRanges = {
 };
 const sliderDigits = step => String(step).includes('.') ? String(step).split('.')[1].length : 0;
 const sliderValueLabel = (label, value, step) => { const digits = Math.max(sliderDigits(step), String(value).includes('.') ? String(value).split('.')[1].length : 0); if (label.includes('$')) return money(value); if (label.includes('%')) return `${number(value, digits)}%`; return number(value, digits); };
-const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)); const fill = input.parentElement.querySelector('.config-range-fill'); if (fill) fill.style.width = `${pct}%`; };
+const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)); const control = input.parentElement; const track = control.querySelector('.config-range-track'); const fill = control.querySelector('.config-range-fill'); if (track) { track.style.setProperty('left', '9px', 'important'); track.style.setProperty('right', 'auto', 'important'); track.style.setProperty('width', `${Math.max(0, input.getBoundingClientRect().width - 18)}px`, 'important'); } if (fill) fill.style.width = `${pct}%`; };
 function fieldMarkup([key, label, type, options]) {
   const value = state[activeConfigSection][key] ?? '';
   if (type === 'textarea') return `<label class="config-field"><span>${esc(label)}</span><textarea data-key="${key}" rows="7" placeholder="Month,Value\nJAN,48\nFEB,55">${esc(value)}</textarea></label>`;
