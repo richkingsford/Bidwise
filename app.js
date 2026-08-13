@@ -160,7 +160,7 @@ const sliderRanges = {
 };
 const sliderDigits = step => String(step).includes('.') ? String(step).split('.')[1].length : 0;
 const sliderValueLabel = (label, value, step) => { const digits = Math.max(sliderDigits(step), String(value).includes('.') ? String(value).split('.')[1].length : 0); if (label.includes('$')) return money(value); if (label.includes('%')) return `${number(value, digits)}%`; return number(value, digits); };
-const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : ((value - min) / (max - min)) * 100; input.style.background = `linear-gradient(90deg,var(--electric) 0%,var(--electric) ${pct}%,#30323a ${pct}%,#30323a 100%)`; };
+const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)); input.style.setProperty('background', `linear-gradient(90deg,var(--electric) 0%,var(--electric) ${pct}%,#30323a ${pct}%,#30323a 100%)`, 'important'); };
 function fieldMarkup([key, label, type, options]) {
   const value = state[activeConfigSection][key] ?? '';
   if (type === 'textarea') return `<label class="config-field"><span>${esc(label)}</span><textarea data-key="${key}" rows="7" placeholder="Month,Value\nJAN,48\nFEB,55">${esc(value)}</textarea></label>`;
