@@ -169,6 +169,35 @@ function fieldMarkup([key, label, type, options]) {
   return `<label class="config-field"><span>${esc(label)}</span><input data-key="${key}" type="${type}" value="${esc(value)}" /></label>`;
 }
 
+function validateConfigValue(sectionId, key, value) {
+  const field = configSchemas[sectionId]?.fields.find(item => item[0] === key);
+  if (!field) return 'Unknown input.';
+  if (field[2] === 'number') {
+    const numeric = Number(value); const range = sliderRanges[key];
+    if (!Number.isFinite(numeric)) return 'Enter a valid number.';
+    if (range && (numeric < range[0] || numeric > range[1])) return `Use a value from ${range[0]} to ${range[1]}.`;
+  }
+  if (field[2] === 'select' && !field[3].includes(value)) return 'Choose one of the listed options.';
+  if (field[2] === 'date' && value && Number.isNaN(Date.parse(value))) return 'Enter a valid date.';
+  if (field[2] !== 'number' && String(value).length > 5000) return 'Keep this value under 5,000 characters.';
+  return '';
+}
+
+function configText() {
+  const lines = ['BIDWISE CONFIGURATION FILE', '# Edit the values after the = sign. Keep section and field names unchanged.', '# Lines beginning with # are ignored.', ''];
+  Object.entries(configSchemas).forEach(([sectionId, schema]) => { lines.push(`[${sectionId}]`); schema.fields.forEach(([key, label]) => { lines.push(`# ${label}`); lines.push(`${key}=${String(state[sectionId][key] ?? '').replace(/\r?\n/g, '\\n')}`); }); lines.push(''); });
+  return lines.join('\n');
+}
+
+function exportConfigs() { const blob = new Blob([configText()], { type: 'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${(state.overview.proposalName || state.overview.siteName || 'bidwise').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-configs.txt`; link.click(); URL.revokeObjectURL(url); toast('Readable configuration file downloaded.'); }
+
+function importConfigsText(text) {
+  const draft = {}; let sectionId = null; const errors = [];
+  text.split(/\r?\n/).forEach((raw, index) => { const line = raw.trim(); if (!line || line.startsWith('#') || line === 'BIDWISE CONFIGURATION FILE') return; const header = line.match(/^\[([^\]]+)\]$/); if (header) { sectionId = header[1]; if (!configSchemas[sectionId]) errors.push(`Line ${index + 1}: unknown section ${sectionId}.`); return; } const divider = line.indexOf('='); if (divider < 1 || !sectionId) { errors.push(`Line ${index + 1}: use field=value inside a section.`); return; } const key = line.slice(0, divider).trim(); const rawValue = line.slice(divider + 1).replace(/\\n/g, '\n'); const schemaField = configSchemas[sectionId]?.fields.find(item => item[0] === key); if (!schemaField) { errors.push(`Line ${index + 1}: unknown field ${key}.`); return; } const value = schemaField[2] === 'number' ? Number(rawValue) : rawValue; const error = validateConfigValue(sectionId, key, value); if (error) errors.push(`Line ${index + 1}: ${error}`); else { draft[sectionId] ||= {}; draft[sectionId][key] = value; } });
+  if (errors.length) { toast(`Import stopped: ${errors.slice(0, 2).join(' ')}`); return false; }
+  Object.entries(draft).forEach(([sectionId, values]) => Object.assign(state[sectionId], values)); saveState(); renderReport(); toast('Configuration file imported successfully.'); return true;
+}
+
 const configPanel = $('#configPanel');
 const configBackdrop = $('#configBackdrop');
 const configTitle = $('#configTitle');
@@ -183,7 +212,7 @@ function openConfig(sectionId) {
   configBody.innerHTML = `<div class="config-tabs"><button type="button" class="config-tab selected" data-config-tab="section">This section</button><button type="button" class="config-tab" data-config-tab="all">All report sections</button></div><div class="config-input-title">INDEPENDENT INPUTS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
   configBody.querySelector('[data-config-tab="all"]')?.addEventListener('click', () => { configBody.querySelectorAll('.config-tab').forEach(tab => tab.classList.toggle('selected', tab.dataset.configTab === 'all')); configBody.querySelector('.config-input-title').innerHTML = 'ALL REPORT INPUTS <small>Choose a section below to edit its independent assumptions.</small>'; const selector = document.createElement('select'); selector.className = 'config-section-picker'; selector.innerHTML = Object.entries(configSchemas).map(([key, item]) => `<option value="${key}">${esc(item.title)}</option>`).join(''); selector.value = activeConfigSection; configBody.insertBefore(selector, configBody.querySelector('.config-input-title').nextSibling); selector.addEventListener('change', event => openConfig(event.target.value)); });
   configBody.querySelectorAll('.config-range').forEach(paintRange);
-  configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; state[activeConfigSection][key] = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
+  configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; const value = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; const error = validateConfigValue(activeConfigSection, key, value); input.classList.toggle('invalid', Boolean(error)); input.title = error; if (error) return; state[activeConfigSection][key] = value; configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
   configBody.querySelector('.config-file')?.addEventListener('change', event => handleImageUpload(event.target.files[0], sectionId));
   configPanel.classList.add('open'); configBackdrop.classList.add('open');
 }
@@ -359,6 +388,10 @@ function renderReferenceComponents() {
 }
 
 $('#applyConfig').addEventListener('click', () => { renderReport(); closeConfig(); });
+$('#showAllConfigs').addEventListener('click', () => openConfig('overview'));
+$('#exportConfigs').addEventListener('click', exportConfigs);
+$('#importConfigs').addEventListener('click', () => $('#configImportFile').click());
+$('#configImportFile').addEventListener('change', event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => importConfigsText(String(reader.result || '')); reader.readAsText(file); event.target.value = ''; });
 
 const editableFor = (section) => $$(`#${section.id} h2, #${section.id} .heading-note, #${section.id} h3, #${section.id} .bundle-card p, #${section.id} .bundle-card strong, #${section.id} .fact-row strong, #${section.id} .detail-specs b, #${section.id} .ev-stats strong, #${section.id} .investment-row strong`);
 function addSectionControls(section, sectionId) {
