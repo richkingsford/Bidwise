@@ -75,3 +75,4 @@ h1 em{color:#b6e36a}
 .config-range-track{display:block!important}
 .config-range-control{width:100%}.config-range-track{width:auto!important;right:9px!important}
 .config-range-track{right:auto!important}
+.config-range-dial{position:absolute;z-index:3;top:50%;left:0;width:18px;height:18px;transform:translate(-50%,-50%);border-radius:50%;background:var(--lime);border:3px solid var(--navy);box-shadow:0 0 0 2px #d8ed4f44;pointer-events:none}.config-range::-webkit-slider-thumb{background:transparent!important;border:0!important;box-shadow:none!important}.config-range::-moz-range-thumb{width:18px;height:18px;background:transparent;border:0;box-shadow:none}
