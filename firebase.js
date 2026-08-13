@@ -11,7 +11,7 @@ const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || {
 const isLocalFile = window.location.protocol === 'file:';
 const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton'), document.querySelector('#gateAuthButton')].filter(Boolean);
 const authCtas = [...document.querySelectorAll('[data-auth-cta]')];
-const companyProfileButton = document.querySelector('#companyProfileButton');
+const homeCompanyProfileButton = document.querySelector('#companyProfileButton');
 let homeAvatarInitials = document.querySelector('#homeAvatarInitials');
 if (!homeAvatarInitials) { homeAvatarInitials = document.createElement('button'); homeAvatarInitials.id = 'homeAvatarInitials'; homeAvatarInitials.className = 'avatar'; homeAvatarInitials.type = 'button'; homeAvatarInitials.setAttribute('aria-label', 'Open profile menu'); homeAvatarInitials.hidden = true; document.querySelector('.home-user')?.append(homeAvatarInitials); }
 const profileMenu = document.createElement('div');
@@ -46,14 +46,14 @@ const setIdentity = (user, profile = currentProfile) => {
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const contactName = profile?.contactName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const firstName = contactName.split(' ')[0];
-  const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
+  const initials = contactName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
   document.querySelector('#workspaceAuthor')?.replaceChildren(document.createTextNode(user ? displayName : 'Sign in to personalize'));
   document.querySelector('#authorName')?.replaceChildren(document.createTextNode(user ? contactName : 'Proposal team'));
   const avatar = document.querySelector('#avatarInitials'); if (avatar) { avatar.textContent = initials; avatar.title = user?.email || 'Not signed in'; avatar.hidden = !user; }
   if (homeAvatarInitials) { homeAvatarInitials.textContent = initials; homeAvatarInitials.hidden = !user; }
   authButtons.forEach(button => { button.hidden = Boolean(user); if (!user) button.textContent = 'Sign in with Google'; });
   document.querySelector('#profileMenuName')?.replaceChildren(document.createTextNode(displayName)); document.querySelector('#profileMenuEmail')?.replaceChildren(document.createTextNode(user?.email || ''));
-  if (companyProfileButton) companyProfileButton.hidden = !user;
+  if (homeCompanyProfileButton) homeCompanyProfileButton.hidden = true;
   adminButton.hidden = !isAdminUser(user);
   document.body.classList.toggle('home-authenticated', Boolean(user));
   document.body.classList.toggle('home-registered', hasWorkspaceAccess(user, profile) && Boolean(profile?.companyName));
@@ -199,7 +199,6 @@ if (firebaseConfig && !isLocalFile) {
   authCtas.forEach(button => button.addEventListener('click', () => toast(localMessage)));
 };
 
-companyProfileButton?.addEventListener('click', () => showCompanyModal(currentUser, currentProfile || {}));
 adminButton.addEventListener('click', async () => {
   if (!isAdminUser(currentUser) || !adminModal) return;
   adminModal.hidden = false;
