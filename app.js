@@ -6,7 +6,7 @@ const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; 
 if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
 
 const defaults = {
-  overview: { siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 90, co2Factor: 0.72 },
+  overview: { siteName: 'Kneaders Bakery & Cafe', proposalName: 'Kneaders Bakery & Cafe Energy Proposal', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 90, co2Factor: 0.72 },
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
@@ -26,6 +26,8 @@ const bidProfiles = {
 const routeParams = new URLSearchParams(window.location.search);
 const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid') : null;
 const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
+const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
+$$('.bid-card').forEach(card => { const status = homeBidStatuses[card.dataset.bid]; if (!status) return; const badge = card.querySelector('.bid-status'); const metric = [...card.querySelectorAll('.bid-metrics strong')].find(node => node.previousElementSibling?.textContent?.trim() === 'STATUS'); if (badge) badge.textContent = status.toUpperCase(); if (metric) metric.textContent = status; });
 document.body.classList.toggle('home-mode', !activeBidId);
 const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(activeBid.overrides[section] || {}) }]));
 const savedState = JSON.parse(localStorage.getItem('bidwise-assumptions') || 'null');
@@ -95,7 +97,7 @@ const regionalEvBenchmark = { location: 'St. George, UT', ports: 53, stations: 9
 
 const configSchemas = {
   overview: { title: 'Overview', fields: [
-    ['siteName', 'Customer / site name', 'text'], ['location', 'Location', 'text'], ['proposalDate', 'Proposal date', 'date'], ['status', 'Proposal status', 'text'],
+    ['proposalName', 'Proposal name', 'text'], ['siteName', 'Customer / site name', 'text'], ['location', 'Location', 'text'], ['proposalDate', 'Proposal date', 'date'], ['status', 'Proposal status', 'select', ['Prepared', 'In review', 'Ready to present', 'Approved', 'Won', 'Lost']],
     ['savingsRate', 'Solar savings realization (%)', 'number'], ['co2Factor', 'CO2 factor (t/MWh)', 'number']
   ], formulas: [
     ['Year 1 utility savings', 'Annual utility spend × savings rate', () => money(calc.solarSavings())],
@@ -178,7 +180,8 @@ function openConfig(sectionId) {
   activeConfigSection = sectionId;
   const schema = configSchemas[sectionId] || configSchemas.overview;
   configTitle.textContent = schema.title;
-  configBody.innerHTML = `<div class="config-input-title">INDEPENDENT INPUTS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
+  configBody.innerHTML = `<div class="config-tabs"><button type="button" class="config-tab selected" data-config-tab="section">This section</button><button type="button" class="config-tab" data-config-tab="all">All report sections</button></div><div class="config-input-title">INDEPENDENT INPUTS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
+  configBody.querySelector('[data-config-tab="all"]')?.addEventListener('click', () => { configBody.querySelectorAll('.config-tab').forEach(tab => tab.classList.toggle('selected', tab.dataset.configTab === 'all')); configBody.querySelector('.config-input-title').innerHTML = 'ALL REPORT INPUTS <small>Choose a section below to edit its independent assumptions.</small>'; const selector = document.createElement('select'); selector.className = 'config-section-picker'; selector.innerHTML = Object.entries(configSchemas).map(([key, item]) => `<option value="${key}">${esc(item.title)}</option>`).join(''); selector.value = activeConfigSection; configBody.insertBefore(selector, configBody.querySelector('.config-input-title').nextSibling); selector.addEventListener('change', event => openConfig(event.target.value)); });
   configBody.querySelectorAll('.config-range').forEach(paintRange);
   configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; state[activeConfigSection][key] = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
   configBody.querySelector('.config-file')?.addEventListener('change', event => handleImageUpload(event.target.files[0], sectionId));
@@ -290,6 +293,9 @@ function refreshDerivedMetrics() {
   setText('.metric-card.primary .trend-up', `↓ ${number(realizedSavings, 1)}%`);
 }
 function renderReport() {
+  const proposalName = state.overview.proposalName || `${state.overview.siteName} Energy Proposal`;
+  setText('#sidebarBidStatus', state.overview.status); setText('#proposalNameEyebrow', proposalName);
+  const proposalEyebrow = $('.hero .eyebrow'); if (proposalEyebrow) proposalEyebrow.innerHTML = `${esc(proposalName)} <span>•</span> ${state.overview.proposalDate}`;
   renderSolarChart(); renderDemandMap(); mountLayoutMap(); setText('.status-pill', state.overview.status);
   setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroDate = $('.hero .eyebrow'); if (heroDate) heroDate.innerHTML = `COMMERCIAL ENERGY PROPOSAL <span>•</span> ${state.overview.proposalDate}`; const heroLocation = $('.hero .hero-meta span:last-child'); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N · ${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); setText('.breadcrumb strong', 'OREM, UT'); setText('#yearSavings', compactMoney(calc.solarSavings())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); setText('#payback', `${number(calc.payback(), 1)} yrs`); const co2Metric = $('#overview .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
   const footprint = $('#site .fact-row:nth-child(1) strong'); if (footprint) footprint.innerHTML = `${number(state.site.footprint)} <small>sq ft</small>`;
@@ -370,7 +376,8 @@ $$('.nav-item').forEach(item => item.addEventListener('click', () => { document.
 const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { const current = $(`.nav-item[data-target="${entry.target.id}"]`); if (current) $$('.nav-item').forEach(nav => nav.classList.toggle('active', nav === current)); } }), { rootMargin: '-25% 0px -65% 0px' });
 $$('.section-anchor').forEach(section => observer.observe(section));
 
-const siteInput = $('#siteInput'); if (siteInput) { siteInput.value = state.overview.siteName; siteInput.addEventListener('input', event => { state.overview.siteName = event.target.value; renderReport(); }); }
+const proposalNameInput = $('#proposalNameInput'); if (proposalNameInput) { proposalNameInput.value = state.overview.proposalName || `${state.overview.siteName} Energy Proposal`; proposalNameInput.addEventListener('input', event => { state.overview.proposalName = event.target.value; renderReport(); }); }
+const siteInput = $('#siteInput'); if (siteInput) { siteInput.value = state.overview.siteName; siteInput.addEventListener('input', event => { state.overview.siteName = event.target.value; if (!state.overview.proposalName) state.overview.proposalName = `${event.target.value} Energy Proposal`; renderReport(); }); }
 const utilityInput = $('#utilityInput'); if (utilityInput) { utilityInput.value = state.site.utilitySpend; utilityInput.addEventListener('input', event => { state.site.utilitySpend = Number(event.target.value.replace(/[^0-9]/g, '')) || 0; renderReport(); }); }
 function updateScopeUI() {
   const scopeControls = $$('.scope-toggle, .top-scope-toggle');
