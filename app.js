@@ -3,8 +3,12 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 const applyProductBranding = () => {
   document.title = document.title.replace(/Bidwise/gi, 'GetEV');
-  document.querySelectorAll('.brand-mark,.marketing-proof-mark').forEach(node => { node.textContent = 'G'; });
-  document.querySelectorAll('.brand>span:nth-child(2),.home-brand>span:nth-child(2)').forEach(node => { node.textContent = 'getev'; });
+  document.querySelectorAll('.brand-mark').forEach(node => {
+    node.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13.4 2 5.8 13h5.3L10.7 22 18.2 11h-5.1L13.4 2Z"></path></svg>';
+    node.setAttribute('aria-label', 'GetEV');
+  });
+  document.querySelectorAll('.marketing-proof-mark').forEach(node => { node.textContent = 'G'; });
+  document.querySelectorAll('.brand>span:nth-child(2),.home-brand>span:nth-child(2)').forEach(node => { node.textContent = 'GetEV'; });
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => { node.nodeValue = node.nodeValue.replace(/Bidwise/gi, 'GetEV'); });
