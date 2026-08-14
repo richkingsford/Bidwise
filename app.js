@@ -24,7 +24,7 @@ const defaults = {
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
-  ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, averageReceipt: 20, daysPerYear: 365, evpinLink: '' },
+  ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 18713, marketProofDays: 91, sourceWindow: 'May 10-August 2, 2026', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, conservativeReceipt: 12, averageReceipt: 20, highReceipt: 30, daysPerYear: 365, evpinLink: '' },
   bundles: { critterGuard: 27500, lighting: 41250, hvac: 93193.39, hvacBase: 71687.22, coordination: 0 },
   vpp: { demandResponse: 12000, reservePct: 20, status: 'Subject to utility approval', controls: 'Secure dispatch + monitoring', customerValue: 'Peak management, resilience, bill control', utilityValue: 'Local capacity and summer peak support', workPlan: 'Metering → cybersecurity → dispatch testing → agreement' },
   investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
@@ -34,19 +34,21 @@ const defaults = {
 
 const bidProfiles = {
   'kneaders-orem': { label: 'Kneaders Bakery & Cafe', locationLabel: 'OREM, UT', scopes: { solar: true, storage: true, ev: true }, overrides: {} },
+  'kneaders-orem-ev': { label: 'Kneaders Bakery & Cafe · Orem EV', locationLabel: 'OREM, UT', scopes: { solar: false, storage: false, ev: true }, overrides: { overview: { proposalName: 'Kneaders Bakery & Cafe Orem, Utah', siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-14', status: 'Prepared' }, site: { latitude: 40.333002, longitude: -111.712338, mapRadius: 5 }, ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 18713, marketProofDays: 91, sourceWindow: 'May 10-August 2, 2026', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, conservativeReceipt: 12, averageReceipt: 20, highReceipt: 30, daysPerYear: 365 } } },
   'maverick-lehi-solar': { label: 'Maverik · Lehi solar', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: false, ev: false }, overrides: { overview: { proposalName: 'Maverik #412 Lehi, Utah', siteName: 'Maverik #412', location: '760 E Main Street, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 24.1 }, site: { footprint: 5200, utilitySpend: 62000, annualKwh: 412000, peakDemand: 220, latitude: 40.391617, longitude: -111.849055, mapRadius: 4 }, solar: { arrayKw: 185, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0, powerKw: 0, shavePct: 0, dispatchHours: 0, investment: 0 }, ev: { dcFast: 0, level2: 0 }, vpp: { demandResponse: 0, reservePct: 0 }, investment: { solar: 415000, battery: 0, ev: 0, siteImprovements: 42000 } } },
   'target-lehi-solar-battery': { label: 'Target · Lehi solar + battery', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: true, ev: false }, overrides: { overview: { proposalName: 'Target Store #2234 Lehi, Utah', siteName: 'Target Store #2234', location: '1250 E Timpanogos Highway, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 25.7 }, site: { footprint: 128000, utilitySpend: 98000, annualKwh: 650000, peakDemand: 310, latitude: 40.416170, longitude: -111.848840, mapRadius: 4 }, solar: { arrayKw: 210, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0.8, powerKw: 400, shavePct: 22, dispatchHours: 2, investment: 168000 }, ev: { dcFast: 0, level2: 0 }, investment: { solar: 472000, battery: 168000, ev: 0, siteImprovements: 65000 } } }
 };
 const routeParams = new URLSearchParams(window.location.search);
 const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid') : null;
 const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
-const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
+const isEvOnlyBid = activeBidId === 'kneaders-orem-ev';
+const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'kneaders-orem-ev': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
 $$('.bid-card').forEach(card => { const status = homeBidStatuses[card.dataset.bid]; if (!status) return; const badge = card.querySelector('.bid-status'); const metric = [...card.querySelectorAll('.bid-metrics strong')].find(node => node.previousElementSibling?.textContent?.trim() === 'STATUS'); if (badge) badge.textContent = status.toUpperCase(); if (metric) metric.textContent = status; });
 document.body.classList.toggle('home-mode', !activeBidId);
 const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(activeBid.overrides[section] || {}) }]));
 const savedState = JSON.parse(localStorage.getItem('GetEV-assumptions') || 'null');
-const importedSource = activeBidId === 'kneaders-orem' ? 'kneaders-orem-ev-demand-20260802' : `bid-${activeBidId}`;
-const reusableState = activeBidId === 'kneaders-orem' && savedState?.meta?.source === importedSource ? savedState : null;
+const importedSource = activeBidId === 'kneaders-orem-ev' ? 'kneaders-orem-ev-only-paren-20260802' : `bid-${activeBidId}`;
+const reusableState = activeBidId === 'kneaders-orem-ev' && savedState?.meta?.source === importedSource ? savedState : null;
 const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
 const standardProposalName = () => `${state.overview.siteName} ${state.overview.location.split(',').slice(-2).join(',').trim()}`;
 if (!state.overview.proposalName || /Energy Proposal|Solar Proposal|Solar \+ Battery Proposal/.test(state.overview.proposalName)) state.overview.proposalName = standardProposalName();
@@ -57,6 +59,8 @@ state.meta = { source: importedSource, bidId: activeBidId || 'home' };
 const saveState = () => localStorage.setItem('GetEV-assumptions', JSON.stringify(state));
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
+const roundedMoney = (n, increment = 100) => money(Math.round(Number(n || 0) / increment) * increment);
+const approximateMoney = n => money(Math.round(Number(n || 0) / 1000) * 1000);
 const number = (n, digits = 0) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
 
@@ -79,6 +83,8 @@ const calc = {
   evForecastParties: year => calc.evForecastVisits(year) * state.ev.restaurantCaptureRate / 100,
   evRoundedParties: year => Math.round(calc.evForecastParties(year)),
   evRestaurantSales: receipt => calc.evRoundedParties(5) * receipt,
+  evRestaurantSalesMonthly: receipt => calc.evRestaurantSales(receipt) * state.ev.daysPerYear / 12,
+  evRestaurantSalesAnnual: receipt => calc.evRestaurantSales(receipt) * state.ev.daysPerYear,
   evPorts: () => state.ev.ports,
   observedAnnualCharges: () => 0,
   sessions: () => 0,
@@ -148,13 +154,14 @@ const configSchemas = {
     ['Usable storage', 'Capacity × round-trip efficiency', () => `${number(state.storage.capacityMwh * state.storage.batteryEfficiency / 100, 2)} MWh`]
   ] },
   ev: { title: 'EV customer value', fields: [
-    ['marketProofVisitsPerDay', 'Observed nearby Tesla visits / day', 'number'], ['marketProofPorts', 'Observed nearby Tesla ports', 'number'], ['ports', 'Proposed site charging ports', 'number'], ['averageSessionMinutes', 'Average session duration (minutes)', 'number'],
-    ['forecastYear1Utilization', 'Year 1 EVpin utilization (%)', 'number'], ['forecastYear3Utilization', 'Year 3 EVpin utilization (%)', 'number'], ['forecastYear5Utilization', 'Year 5 EVpin utilization (%)', 'number'], ['restaurantCaptureRate', 'Restaurant capture rate (%)', 'number'], ['averageReceipt', 'Expected average receipt ($)', 'number'], ['daysPerYear', 'Operating days per year', 'number'], ['evpinLink', 'EVpin forecast link', 'text']
+    ['ports', 'Proposed site charging ports', 'number'], ['averageSessionMinutes', 'Average session duration (minutes)', 'number'],
+    ['forecastYear1Utilization', 'Year 1 EVpin utilization (%)', 'number'], ['forecastYear3Utilization', 'Year 3 EVpin utilization (%)', 'number'], ['forecastYear5Utilization', 'Year 5 EVpin utilization (%)', 'number'], ['restaurantCaptureRate', 'Restaurant capture rate (%)', 'number'], ['conservativeReceipt', 'Conservative average receipt ($)', 'number'], ['averageReceipt', 'Expected average receipt ($)', 'number'], ['highReceipt', 'High average receipt ($)', 'number'], ['daysPerYear', 'Operating days per year', 'number'], ['evpinLink', 'EVpin forecast link', 'text']
   ], formulas: [
-    ['Year 5 charging visits / day', 'Ports × 24 × Year 5 utilization ÷ average session duration in hours', () => number(calc.evForecastVisits(5), 0)],
-    ['Additional parties / day', 'Year 5 visits × restaurant capture rate', () => number(calc.evRoundedParties(5))],
-    ['Monthly parties', 'Rounded daily parties × 30', () => number(calc.evRoundedParties(5) * 30)],
-    ['Annual expected restaurant sales', 'Rounded daily parties × average receipt × operating days', () => money(calc.evRestaurantSales(state.ev.averageReceipt) * state.ev.daysPerYear)]
+    ['Charging visits / day', 'Ports × 24 hours × utilization ÷ average session length in hours', () => `Y1 ${number(calc.evForecastVisits(1))} · Y3 ${number(calc.evForecastVisits(3))} · Y5 ${number(calc.evForecastVisits(5))}`],
+    ['Additional customer parties / day', 'Year 5 charging visits × restaurant capture rate', () => number(calc.evRoundedParties(5))],
+    ['Daily restaurant sales', 'Rounded daily parties × average receipt', () => money(calc.evRestaurantSales(state.ev.averageReceipt))],
+    ['Monthly restaurant sales', 'Daily restaurant sales × operating days ÷ 12', () => roundedMoney(calc.evRestaurantSalesMonthly(state.ev.averageReceipt))],
+    ['Annual restaurant sales', 'Daily restaurant sales × operating days', () => roundedMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt))]
   ] },
   bundles: { title: 'Bundled scopes', fields: [
     ['critterGuard', 'Critter guard investment ($)', 'number'], ['lighting', 'Permanent lighting investment ($)', 'number'], ['hvac', 'HVAC investment ($)', 'number'], ['hvacBase', 'HVAC contractor base cost ($)', 'number'], ['coordination', 'Project coordination ($)', 'number']
@@ -175,7 +182,7 @@ function formulaMarkup(schema) {
 const sliderRanges = {
   savingsRate: [0, 100, 1], co2Factor: [0, 2, 0.01], footprint: [500, 500000, 100], utilitySpend: [0, 2000000, 1000], annualKwh: [0, 10000000, 10000], peakDemand: [0, 5000, 5], openHours: [1, 24, 1], selfConsumption: [0, 100, 1], energyRate: [0, 1, 0.01], demandRate: [0, 100, 0.25], exportRate: [0, 0.5, 0.01], onsiteValue: [0, 1, 0.01], latitude: [-90, 90, 0.000001], longitude: [-180, 180, 0.000001], mapRadius: [0.5, 50, 0.5],
   arrayKw: [1, 10000, 5], productionRatio: [500, 3500, 10], moduleW: [100, 800, 5], warranty: [1, 40, 1], chartHigh: [0, 150, 1], chartLow: [0, 150, 1], chartStd: [0.1, 60, 0.1], capacityMwh: [0, 100, 0.1], powerKw: [0, 10000, 25], shavePct: [0, 80, 1], dispatchHours: [0, 24, 0.5], batteryEfficiency: [50, 100, 1], ratedCapacity: [0, 100, 0.1], investment: [0, 10000000, 5000],
-  marketProofVisitsPerDay: [0, 5000, 1], marketProofPorts: [1, 100, 1], ports: [1, 100, 1], averageSessionMinutes: [5, 180, 1], forecastYear1Utilization: [0, 100, 0.1], forecastYear3Utilization: [0, 100, 0.1], forecastYear5Utilization: [0, 100, 0.1], restaurantCaptureRate: [0, 100, 1], averageReceipt: [1, 250, 1], daysPerYear: [1, 366, 1],
+  marketProofVisitsPerDay: [0, 5000, 1], marketProofPorts: [1, 100, 1], ports: [1, 32, 1], averageSessionMinutes: [10, 90, 1], forecastYear1Utilization: [0, 40, 0.1], forecastYear3Utilization: [0, 40, 0.1], forecastYear5Utilization: [0, 40, 0.1], restaurantCaptureRate: [0, 75, 1], conservativeReceipt: [1, 100, 1], averageReceipt: [1, 100, 1], highReceipt: [1, 100, 1], daysPerYear: [250, 366, 1],
   critterGuard: [0, 1000000, 5000], lighting: [0, 1000000, 5000], hvac: [0, 2000000, 5000], hvacBase: [0, 2000000, 5000], coordination: [0, 1000000, 5000], demandResponse: [0, 1000000, 5000], reservePct: [0, 80, 1], solar: [0, 20000000, 5000], solarModules: [0, 10000000, 5000], solarInverters: [0, 10000000, 5000], solarRacking: [0, 10000000, 5000], solarBos: [0, 10000000, 5000], solarLabor: [0, 10000000, 5000], solarEngineering: [0, 5000000, 5000], solarCommissioning: [0, 5000000, 5000], battery: [0, 10000000, 5000], ev: [0, 10000000, 5000], siteImprovements: [0, 5000000, 5000], incentivePct: [0, 50, 1], escalation: [0, 15, 0.25], period: [1, 40, 1], discountRate: [0, 30, 0.25], annualOpex: [0, 2000000, 1000], taxBenefitPct: [0, 50, 1], mapZoom: [15, 22, 1]
 };
 const sliderDigits = step => String(step).includes('.') ? String(step).split('.')[1].length : 0;
@@ -351,11 +358,27 @@ function renderEvCustomerStory() {
 
 function renderEvCustomerValues() {
   const y1 = calc.evForecastVisits(1), y3 = calc.evForecastVisits(3), y5 = calc.evForecastVisits(5), parties = calc.evRoundedParties(5), monthlyParties = parties * 30, annualParties = parties * state.ev.daysPerYear;
-  setText('#evMarketProof', number(state.ev.marketProofVisitsPerDay)); setText('#evObservedProof', `${number(state.ev.marketProofVisitsPerDay)} / day`); setText('#evProjectedVisits', number(y5)); setText('#evProjectedParties', number(parties)); setText('#evProjectedSales', compactMoney(calc.evRestaurantSales(state.ev.averageReceipt) * state.ev.daysPerYear));
+  setText('#evMarketProof', number(state.ev.marketProofVisitsPerDay)); setText('#evObservedProof', `${number(state.ev.marketProofVisitsPerDay)} / day`); setText('#evProjectedVisits', number(y5)); setText('#evProjectedParties', number(parties)); setText('#evProjectedSales', approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt)));
   [[1, y1], [3, y3], [5, y5]].forEach(([year, visits]) => { setText(`#evY${year}Util`, `${number(state.ev[`forecastYear${year}Utilization`], 1)}%`); setText(`#evY${year}Visits`, number(visits)); });
   setText('#evCaptureVisits', number(y5)); setText('#evCaptureRate', `${number(state.ev.restaurantCaptureRate)}%`); setText('#evCaptureParties', number(parties)); setText('#evCaptureMonthly', number(monthlyParties)); setText('#evCaptureAnnual', number(annualParties));
-  [['Conservative', 12], ['Expected', 20], ['High', 30]].forEach(([key, receipt]) => { const daily = calc.evRestaurantSales(receipt), prefix = `#evSales${key}`; setText(`${prefix}Receipt`, money(receipt)); setText(`${prefix}Daily`, money(daily)); setText(`${prefix}Monthly`, money(daily * 30)); setText(`${prefix}Annual`, money(daily * state.ev.daysPerYear)); });
-  setText('#evSalesQuote', `Approximately ${number(parties)} additional customer parties per day could produce roughly ${money(calc.evRestaurantSales(state.ev.averageReceipt) * state.ev.daysPerYear)} in incremental annual restaurant sales.`);
+  [['Conservative', state.ev.conservativeReceipt], ['Expected', state.ev.averageReceipt], ['High', state.ev.highReceipt]].forEach(([key, receipt]) => { const daily = calc.evRestaurantSales(receipt), prefix = `#evSales${key}`; setText(`${prefix}Receipt`, money(receipt)); setText(`${prefix}Daily`, money(daily)); setText(`${prefix}Monthly`, roundedMoney(calc.evRestaurantSalesMonthly(receipt))); setText(`${prefix}Annual`, roundedMoney(calc.evRestaurantSalesAnnual(receipt))); });
+  setText('#evSalesQuote', `Approximately ${number(parties)} additional customer parties per day could produce roughly ${approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt))} in incremental annual restaurant sales.`);
+}
+
+function renderEvOnlyOverview() {
+  if (!isEvOnlyBid) return;
+  const heroTitle = $('.hero h1'); if (heroTitle) heroTitle.innerHTML = 'Turn charging visits<br /><em>into customer value.</em>';
+  const heroSub = $('.hero-sub'); if (heroSub) heroSub.innerHTML = `A focused EV charging proposal for <strong id="storeName">${esc(state.overview.siteName)}</strong>, built around observed Orem market demand, an EVpin utilization forecast, and the restaurant-sales opportunity those visits can create.`;
+  const heroMeta = $('.hero .hero-meta'); if (heroMeta) heroMeta.innerHTML = `<span><b class="status-pill">${esc(state.overview.status)}</b> GetEV EV customer-value proposal</span><span>${esc(state.overview.location)}</span>`;
+  $('.metric-grid')?.classList.add('scope-off');
+  $('.hero-art')?.classList.add('scope-off');
+  const evKicker = $('#ev .section-kicker'); if (evKicker) evKicker.textContent = '02 / EV CUSTOMER VALUE';
+  $$('.nav-item').forEach(item => {
+    const target = item.dataset.target;
+    item.classList.toggle('scope-off', !['overview', 'ev'].includes(target));
+    if (target === 'overview') item.innerHTML = '<span>01</span> Proposal';
+    if (target === 'ev') item.innerHTML = '<span>02</span> Customer value';
+  });
 }
 
 function renderReport() {
@@ -374,12 +397,19 @@ function renderReport() {
   const bundleValues = [state.bundles.critterGuard, state.bundles.lighting, state.bundles.hvac]; bundleValues.forEach((value, i) => setText(`#bundles .bundle-card:nth-child(${i + 1}) strong`, money(value)));
   setText('#investment .investment-row:nth-child(2) strong', money(state.investment.solar)); setText('#investment .investment-row:nth-child(3) strong', money(state.investment.battery)); setText('#investment .investment-row:nth-child(4) strong', money(state.investment.ev)); setText('#investment .investment-row:nth-child(5) strong', money(state.investment.siteImprovements)); setText('#investment .investment-row.total strong', money(calc.totalInvestment())); setText('#investment .incentive-card>strong', `Up to ${number(state.investment.incentivePct)}%`); const incentive = $('#investment .incentive-bar i'); if (incentive) incentive.style.width = `${Math.min(100, state.investment.incentivePct)}%`;
   setText('#economics .economics-summary strong', compactMoney(calc.netValue())); setText('#economics .roi-chip', `${number(calc.roi(), 1)}% ROI`);
-  renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); refreshDerivedMetrics(); saveState();
+  renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); refreshDerivedMetrics(); saveState();
 }
 
 const currentScopes = () => ({ solar: $('.config-scope-toggle[data-scope="solar"]')?.checked ?? activeBid.scopes.solar, storage: $('.config-scope-toggle[data-scope="storage"]')?.checked ?? activeBid.scopes.storage, ev: $('.config-scope-toggle[data-scope="ev"]')?.checked ?? activeBid.scopes.ev });
 function applyScopeCopy() {
   const scopes = currentScopes();
+  document.body.classList.toggle('ev-only-proposal', isEvOnlyBid);
+  if (isEvOnlyBid) {
+    ['site', 'layout', 'solar', 'storage', 'bundles', 'vpp', 'investment', 'economics'].forEach(id => document.getElementById(id)?.classList.add('scope-off'));
+    document.getElementById('ev')?.classList.remove('scope-off');
+    return;
+  }
+  ['site', 'layout', 'solar', 'storage', 'bundles', 'vpp', 'investment', 'economics'].forEach(id => document.getElementById(id)?.classList.remove('scope-off'));
   const bundleSection = $('#bundles'); if (bundleSection) bundleSection.classList.toggle('scope-off', !(scopes.solar && scopes.storage && scopes.ev));
   const vppSection = $('#vpp'); if (vppSection) vppSection.classList.toggle('scope-off', !scopes.storage);
   const investmentRows = $$('#investment .investment-row'); if (investmentRows[2]) investmentRows[2].classList.toggle('scope-off', !scopes.storage); if (investmentRows[3]) investmentRows[3].classList.toggle('scope-off', !scopes.ev);

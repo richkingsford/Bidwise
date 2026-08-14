@@ -82,3 +82,6 @@ h1 em{color:#b6e36a}
 .brand-dot{display:none!important}
 .brand-mark svg{width:19px;height:19px;display:block;fill:currentColor}
 .home-brand .brand-mark{box-shadow:0 0 0 1px #ffffff18,0 5px 16px #6f9dff44!important}
+.ev-only-proposal .hero{grid-template-columns:1fr;min-height:0;padding-bottom:34px}
+.ev-only-proposal .hero-copy{max-width:800px}
+.ev-only-proposal #ev{padding-top:56px}
