@@ -41,6 +41,9 @@ const bidProfiles = {
 const routeParams = new URLSearchParams(window.location.search);
 const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid') : null;
 const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
+const decodeCopyPayload = value => { if (!value) return null; try { const normalized = value.replace(/-/g, '+').replace(/_/g, '/'); const binary = atob(normalized); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); const payload = JSON.parse(new TextDecoder().decode(bytes)); return payload?.version === 1 && payload?.bidId === activeBidId && payload?.state && typeof payload.state === 'object' ? payload : null; } catch { return null; } };
+const copiedProposal = decodeCopyPayload(routeParams.get('copy'));
+const proposalScopes = { ...activeBid.scopes, ...(copiedProposal?.scopes || {}) };
 const isEvOnlyBid = ['kneaders-orem', 'kneaders-orem-ev'].includes(activeBidId);
 const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'kneaders-orem-ev': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
 $$('.bid-card').forEach(card => { const status = homeBidStatuses[card.dataset.bid]; if (!status) return; const badge = card.querySelector('.bid-status'); const metric = [...card.querySelectorAll('.bid-metrics strong')].find(node => node.previousElementSibling?.textContent?.trim() === 'STATUS'); if (badge) badge.textContent = status.toUpperCase(); if (metric) metric.textContent = status; });
@@ -48,14 +51,14 @@ document.body.classList.toggle('home-mode', !activeBidId);
 const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(activeBid.overrides[section] || {}) }]));
 const savedState = JSON.parse(localStorage.getItem('GetEV-assumptions') || 'null');
 const importedSource = isEvOnlyBid ? 'kneaders-orem-ev-only-paren-20260802' : `bid-${activeBidId}`;
-const reusableState = isEvOnlyBid && savedState?.meta?.source === importedSource ? savedState : null;
+const reusableState = copiedProposal?.state || (isEvOnlyBid && savedState?.meta?.source === importedSource ? savedState : null);
 const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
 const standardProposalName = () => `${state.overview.siteName} ${state.overview.location.split(',').slice(-2).join(',').trim()}`;
 if (!state.overview.proposalName || /Energy Proposal|Solar Proposal|Solar \+ Battery Proposal/.test(state.overview.proposalName)) state.overview.proposalName = standardProposalName();
 if (activeBidId) state.overview.savingsRate = 90;
 if (activeBidId === 'maverick-lehi-solar') state.economics.annualOpex = 5200;
 if (activeBidId === 'target-lehi-solar-battery') state.economics.annualOpex = 8100;
-state.meta = { source: importedSource, bidId: activeBidId || 'home' };
+state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home' };
 const saveState = () => localStorage.setItem('GetEV-assumptions', JSON.stringify(state));
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
@@ -238,7 +241,7 @@ function openConfig(sectionId) {
   configTitle.textContent = schema.title;
   const scopeConfig = sectionId === 'overview' ? `<div class="config-scope-box"><div class="config-input-title">PROPOSAL SCOPE <small>Choose what appears in this bid.</small></div><label><span>EV Chargers</span><input type="checkbox" class="config-scope-toggle" data-scope="ev" /></label><label><span>Solar</span><input type="checkbox" class="config-scope-toggle" data-scope="solar" /></label><label><span>Batteries</span><input type="checkbox" class="config-scope-toggle" data-scope="storage" /></label></div>` : '';
   configBody.innerHTML = `<div class="config-tabs"><button type="button" class="config-tab selected" data-config-tab="section">This section</button><button type="button" class="config-tab" data-config-tab="all">All report sections</button></div>${scopeConfig}<div class="config-input-title">INDEPENDENT INPUTS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
-  configBody.querySelectorAll('.config-scope-toggle').forEach(toggle => { toggle.checked = activeBid.scopes[toggle.dataset.scope] !== false; toggle.addEventListener('change', () => { updateScopeUI(); applyScopeCopy(); }); });
+  configBody.querySelectorAll('.config-scope-toggle').forEach(toggle => { toggle.checked = proposalScopes[toggle.dataset.scope] !== false; toggle.addEventListener('change', () => { proposalScopes[toggle.dataset.scope] = toggle.checked; updateScopeUI(); applyScopeCopy(); }); });
   configBody.querySelector('[data-config-tab="all"]')?.addEventListener('click', () => { configBody.querySelectorAll('.config-tab').forEach(tab => tab.classList.toggle('selected', tab.dataset.configTab === 'all')); configBody.querySelector('.config-input-title').innerHTML = 'ALL REPORT INPUTS <small>Choose a section below to edit its independent assumptions.</small>'; const selector = document.createElement('select'); selector.className = 'config-section-picker'; selector.innerHTML = Object.entries(configSchemas).map(([key, item]) => `<option value="${key}">${esc(item.title)}</option>`).join(''); selector.value = activeConfigSection; configBody.insertBefore(selector, configBody.querySelector('.config-input-title').nextSibling); selector.addEventListener('change', event => openConfig(event.target.value)); });
   configBody.querySelectorAll('.config-range').forEach(paintRange);
   configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; const value = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; const error = validateConfigValue(activeConfigSection, key, value); input.classList.toggle('invalid', Boolean(error)); input.title = error; if (error) return; state[activeConfigSection][key] = value; if (input.classList.contains('config-range')) paintRange(input); configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
@@ -400,7 +403,7 @@ function renderReport() {
   renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); refreshDerivedMetrics(); saveState();
 }
 
-const currentScopes = () => ({ solar: $('.config-scope-toggle[data-scope="solar"]')?.checked ?? activeBid.scopes.solar, storage: $('.config-scope-toggle[data-scope="storage"]')?.checked ?? activeBid.scopes.storage, ev: $('.config-scope-toggle[data-scope="ev"]')?.checked ?? activeBid.scopes.ev });
+const currentScopes = () => ({ solar: $('.config-scope-toggle[data-scope="solar"]')?.checked ?? proposalScopes.solar, storage: $('.config-scope-toggle[data-scope="storage"]')?.checked ?? proposalScopes.storage, ev: $('.config-scope-toggle[data-scope="ev"]')?.checked ?? proposalScopes.ev });
 function applyScopeCopy() {
   const scopes = currentScopes();
   document.body.classList.toggle('ev-only-proposal', isEvOnlyBid);
@@ -488,7 +491,10 @@ $$('.segmented button').forEach(button => button.addEventListener('click', () =>
 $$('.bid-card').forEach(card => { card.tabIndex = 0; card.setAttribute('role', 'link'); const open = () => { window.location.href = `?bid=${encodeURIComponent(card.dataset.bid)}`; }; card.addEventListener('click', open); card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } }); });
 $('#backHome')?.addEventListener('click', () => { window.location.href = './'; });
 $('#newBidButton')?.addEventListener('click', () => { const toast = $('#toast'); if (toast) { toast.textContent = 'New bid workspace coming next — choose an existing bid to begin.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); } });
-$('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; try { await navigator.clipboard.writeText(shareUrl); } catch { const fallback = document.createElement('textarea'); fallback.value = shareUrl; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } const toast = $('#toast'); toast.textContent = 'View-only link copied to clipboard.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); });
+const copyText = async value => { try { await navigator.clipboard.writeText(value); } catch { const fallback = document.createElement('textarea'); fallback.value = value; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } };
+const encodeCopyPayload = payload => { const bytes = new TextEncoder().encode(JSON.stringify(payload)); let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); }); return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), state: Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'meta')) })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
+$('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; await copyText(shareUrl); toast('View-only link copied to clipboard.'); });
 
 updateScopeUI();
 if (activeBidId) { renderReport(); setText('.breadcrumb strong', activeBid.locationLabel); document.title = `GetEV — ${state.overview.siteName} Proposal`; } else { document.title = 'GetEV — Sales Workspace'; }

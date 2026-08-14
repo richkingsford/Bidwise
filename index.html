@@ -70,7 +70,7 @@
       <main class="main-content">
         <header class="topbar">
           <div class="breadcrumb"><button class="back-home" id="backHome" type="button">← All bids</button><i>/</i><span>PROPOSAL</span><i>/</i><strong>OREM, UT</strong></div>
-          <div class="top-actions"><button class="print-button" type="button" aria-label="Print proposal" onclick="window.print()"><span aria-hidden="true">Print</span></button><button class="auth-button" id="authButton">Sign in with Google</button><button class="avatar" id="avatarInitials" aria-label="Open profile menu" hidden>?</button></div>
+          <div class="top-actions"><button class="copy-proposal-button" id="copyProposalButton" type="button" aria-label="Copy editable proposal link">Copy proposal</button><button class="print-button" type="button" aria-label="Print proposal" onclick="window.print()"><span aria-hidden="true">Print</span></button><button class="auth-button" id="authButton">Sign in with Google</button><button class="avatar" id="avatarInitials" aria-label="Open profile menu" hidden>?</button></div>
         </header>
         <div class="report-wrap">
           <section class="hero section-anchor" id="overview">
@@ -105,7 +105,7 @@
       <div class="config-backdrop" id="configBackdrop"></div><aside class="config-panel" id="configPanel" aria-label="Section configuration"><div class="config-panel-head"><div><div class="section-kicker">SECTION CONFIGURATION</div><h2 id="configTitle">Solar array</h2></div><button class="close-edit" id="closeConfig">×</button></div><div class="config-panel-body" id="configBody"></div><div class="config-footer"><button class="show-all-configs" id="showAllConfigs" type="button">Show all configs</button><div class="config-file-actions"><button type="button" id="exportConfigs">Export configs (.txt)</button><button type="button" id="importConfigs">Import configs (.txt)</button><input id="configImportFile" type="file" accept=".txt,text/plain" hidden /></div><span class="save-state"><i class="live-dot"></i> Updates apply instantly</span><button class="primary-button" id="applyConfig">Apply changes</button></div></aside>
     </div>
     <div class="toast" id="toast" aria-live="polite"></div>
-    <script src="app.js?v=kneaders-orem-ev-only-20260814"></script>
+    <script src="app.js?v=proposal-copy-link-20260814"></script>
     <script src="firebase-config.js?v=auth-config-compliance-20260813b"></script>
   <script type="module" src="firebase.js?v=profile-menu-controls-20260813e"></script>
   </body>

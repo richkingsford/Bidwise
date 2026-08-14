@@ -64,6 +64,9 @@ def main():
     require(INDEX.count('data-bid="kneaders-orem"') == 1, "Dashboard has one canonical Kneaders proposal card")
     kneaders_card = INDEX.split('data-bid="kneaders-orem"', 1)[1].split('</article>', 1)[0].lower()
     require("ev charging" in kneaders_card and "solar" not in kneaders_card and "battery" not in kneaders_card, "Dashboard card presents Kneaders as EV charging only")
+    require('id="copyProposalButton"' in INDEX, "Proposal header exposes an editable-copy action")
+    require("encodeCopyPayload" in SOURCE and "decodeCopyPayload" in SOURCE and "scopes: currentScopes()" in SOURCE, "Copy links serialize and restore proposal inputs and scope")
+    require("recipient can open it and make their own changes" in SOURCE, "Copy action clearly communicates editable ownership")
 
     forecast = {1: 7.7, 3: 15.4, 5: 16.1}
     forecast_visits = {year: 8 * 24 * (utilization / 100) / (24 / 60) for year, utilization in forecast.items()}
