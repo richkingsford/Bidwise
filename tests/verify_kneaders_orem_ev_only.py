@@ -64,6 +64,7 @@ def main():
     require("'copper-fork-grill-american-fork'" in SOURCE and "scopes: { solar: true, storage: true, ev: true }" in SOURCE, "Hypothetical restaurant profile restores all three proposal scopes")
     copper_card = INDEX.split('data-bid="copper-fork-grill-american-fork"', 1)[1].split('</article>', 1)[0].lower()
     require("solar" in copper_card and "battery" in copper_card and "ev charging" in copper_card, "All-three-scope dashboard card shows solar, battery, and EV charging")
+    require("openBidCard" in SOURCE and "document.addEventListener('click'" in SOURCE, "Dashboard proposal cards have resilient click navigation")
     require(INDEX.count('data-bid="kneaders-orem"') == 1, "Dashboard has one canonical Kneaders proposal card")
     kneaders_card = INDEX.split('data-bid="kneaders-orem"', 1)[1].split('</article>', 1)[0].lower()
     require("ev charging" in kneaders_card and "solar" not in kneaders_card and "battery" not in kneaders_card, "Dashboard card presents Kneaders as EV charging only")
