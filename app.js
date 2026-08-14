@@ -2,12 +2,12 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 const applyProductBranding = () => {
-  document.title = document.title.replace(/GetEV/gi, 'GetEV');
+  document.title = document.title.replace(/Bidwise/gi, 'GetEV');
   document.querySelectorAll('.brand-mark,.marketing-proof-mark').forEach(node => { node.textContent = 'G'; });
   document.querySelectorAll('.brand>span:nth-child(2),.home-brand>span:nth-child(2)').forEach(node => { node.textContent = 'getev'; });
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach(node => { node.nodeValue = node.nodeValue.replace(/GetEV/g, 'GetEV').replace(/GetEV/g, 'GETEV'); });
+  nodes.forEach(node => { node.nodeValue = node.nodeValue.replace(/Bidwise/gi, 'GetEV'); });
 };
 applyProductBranding();
 
