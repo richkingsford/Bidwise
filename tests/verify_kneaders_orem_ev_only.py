@@ -9,6 +9,7 @@ import openpyxl
 ROOT = Path(__file__).resolve().parents[1]
 WORKBOOK = Path(r"C:\Users\rking\Downloads\1Solar_20260802_40.333002_-111.712338_5.0_3M (2) (1).xlsx")
 SOURCE = (ROOT / "app.js").read_text(encoding="utf-8")
+INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
 
 def require(condition, message):
@@ -54,12 +55,15 @@ def main():
     require(abs(daily_visits - 205.6374) < 0.01, "Workbook: observed market demand is 205.6 visits/day (reported as roughly 200)")
     require(abs(avg_minutes - 24.0724) < 0.01, "Workbook: weighted average session duration is 24.07 minutes (reported as approximately 24)")
 
-    require("'kneaders-orem-ev'" in SOURCE, "New Kneaders Orem EV-only bid profile exists")
-    profile = SOURCE.split("'kneaders-orem-ev':", 1)[1].split("'maverick-lehi-solar'", 1)[0]
+    require("'kneaders-orem':" in SOURCE, "Canonical Kneaders Orem EV-only bid profile exists")
+    profile = SOURCE.split("'kneaders-orem':", 1)[1].split("'kneaders-orem-ev':", 1)[0]
     require("scopes: { solar: false, storage: false, ev: true }" in profile, "Bid scope is EV only; solar and battery are disabled")
     require("Kneaders Bakery & Cafe Orem, Utah" in profile, "Proposal name matches the required store-name/location format")
     require("1960 State Street, Orem, Utah 84057" in profile, "Proposal location matches the workbook address")
     require("marketProofSessions3m: 18713" in profile and "marketProofDays: 91" in profile, "Imported Paren evidence is preserved in the bid profile")
+    require(INDEX.count('data-bid="kneaders-orem"') == 1, "Dashboard has one canonical Kneaders proposal card")
+    kneaders_card = INDEX.split('data-bid="kneaders-orem"', 1)[1].split('</article>', 1)[0].lower()
+    require("ev charging" in kneaders_card and "solar" not in kneaders_card and "battery" not in kneaders_card, "Dashboard card presents Kneaders as EV charging only")
 
     forecast = {1: 7.7, 3: 15.4, 5: 16.1}
     forecast_visits = {year: 8 * 24 * (utilization / 100) / (24 / 60) for year, utilization in forecast.items()}
