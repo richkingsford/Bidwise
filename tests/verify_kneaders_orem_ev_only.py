@@ -67,6 +67,8 @@ def main():
     require('id="copyProposalButton"' in INDEX, "Proposal header exposes an editable-copy action")
     require("encodeCopyPayload" in SOURCE and "decodeCopyPayload" in SOURCE and "scopes: currentScopes()" in SOURCE, "Copy links serialize and restore proposal inputs and scope")
     require("recipient can open it and make their own changes" in SOURCE, "Copy action clearly communicates editable ownership")
+    require("editableTextSelector" in SOURCE and "setSectionEditing" in SOURCE, "Edit mode includes all visible text, metric labels, and metric values")
+    require("GetEV-inline-edits" in SOURCE and "inlineEdits" in SOURCE, "Inline section edits persist and travel with copied proposals")
 
     forecast = {1: 7.7, 3: 15.4, 5: 16.1}
     forecast_visits = {year: 8 * 24 * (utilization / 100) / (24 / 60) for year, utilization in forecast.items()}

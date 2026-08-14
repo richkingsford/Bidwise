@@ -44,6 +44,9 @@ const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
 const decodeCopyPayload = value => { if (!value) return null; try { const normalized = value.replace(/-/g, '+').replace(/_/g, '/'); const binary = atob(normalized); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); const payload = JSON.parse(new TextDecoder().decode(bytes)); return payload?.version === 1 && payload?.bidId === activeBidId && payload?.state && typeof payload.state === 'object' ? payload : null; } catch { return null; } };
 const copiedProposal = decodeCopyPayload(routeParams.get('copy'));
 const proposalScopes = { ...activeBid.scopes, ...(copiedProposal?.scopes || {}) };
+const inlineEditStorageKey = `GetEV-inline-edits:${activeBidId || 'home'}`;
+const storedInlineEdits = (() => { try { return JSON.parse(localStorage.getItem(inlineEditStorageKey) || '{}'); } catch { return {}; } })();
+let inlineEdits = copiedProposal?.inlineEdits && typeof copiedProposal.inlineEdits === 'object' ? copiedProposal.inlineEdits : storedInlineEdits;
 const isEvOnlyBid = ['kneaders-orem', 'kneaders-orem-ev'].includes(activeBidId);
 const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'kneaders-orem-ev': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
 $$('.bid-card').forEach(card => { const status = homeBidStatuses[card.dataset.bid]; if (!status) return; const badge = card.querySelector('.bid-status'); const metric = [...card.querySelectorAll('.bid-metrics strong')].find(node => node.previousElementSibling?.textContent?.trim() === 'STATUS'); if (badge) badge.textContent = status.toUpperCase(); if (metric) metric.textContent = status; });
@@ -400,7 +403,7 @@ function renderReport() {
   const bundleValues = [state.bundles.critterGuard, state.bundles.lighting, state.bundles.hvac]; bundleValues.forEach((value, i) => setText(`#bundles .bundle-card:nth-child(${i + 1}) strong`, money(value)));
   setText('#investment .investment-row:nth-child(2) strong', money(state.investment.solar)); setText('#investment .investment-row:nth-child(3) strong', money(state.investment.battery)); setText('#investment .investment-row:nth-child(4) strong', money(state.investment.ev)); setText('#investment .investment-row:nth-child(5) strong', money(state.investment.siteImprovements)); setText('#investment .investment-row.total strong', money(calc.totalInvestment())); setText('#investment .incentive-card>strong', `Up to ${number(state.investment.incentivePct)}%`); const incentive = $('#investment .incentive-bar i'); if (incentive) incentive.style.width = `${Math.min(100, state.investment.incentivePct)}%`;
   setText('#economics .economics-summary strong', compactMoney(calc.netValue())); setText('#economics .roi-chip', `${number(calc.roi(), 1)}% ROI`);
-  renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); refreshDerivedMetrics(); saveState();
+  renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); refreshDerivedMetrics(); ensureSectionControls(); restoreInlineEdits(); saveState();
 }
 
 const currentScopes = () => ({ solar: $('.config-scope-toggle[data-scope="solar"]')?.checked ?? proposalScopes.solar, storage: $('.config-scope-toggle[data-scope="storage"]')?.checked ?? proposalScopes.storage, ev: $('.config-scope-toggle[data-scope="ev"]')?.checked ?? proposalScopes.ev });
@@ -458,16 +461,35 @@ $('#exportConfigs').addEventListener('click', exportConfigs);
 $('#importConfigs').addEventListener('click', () => $('#configImportFile').click());
 $('#configImportFile').addEventListener('change', event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => importConfigsText(String(reader.result || '')); reader.readAsText(file); event.target.value = ''; });
 
-const editableFor = (section) => $$(`#${section.id} h2, #${section.id} .heading-note, #${section.id} h3, #${section.id} .bundle-card p, #${section.id} .bundle-card strong, #${section.id} .fact-row strong, #${section.id} .detail-specs b, #${section.id} .ev-stats strong, #${section.id} .investment-row strong`);
+const editableTextSelector = 'h1,h2,h3,h4,p,span,small,strong,b,th,td,li,.metric-value,.ev-formula-note,.hero-badge';
+const excludedInlineEditSelector = '.section-controls,.hero-actions,button,input,select,textarea,.layout-sidebar,.layout-map-shell,.leaflet-container,.map-grid,.map-road,.map-pin,.chart-bars,.dispatch-chart,.roi-bars,.battery-pack,.energy-signal,.sun-orb,.store-block';
+function editableFor(section) {
+  const candidates = [...section.querySelectorAll(editableTextSelector)].filter(field => field.textContent.trim() && !field.closest(excludedInlineEditSelector));
+  return candidates.filter(field => !candidates.some(other => other !== field && other.contains(field)));
+}
+function saveInlineEdits() { localStorage.setItem(inlineEditStorageKey, JSON.stringify(inlineEdits)); }
+function prepareInlineEdits(section) {
+  editableFor(section).forEach((field, index) => {
+    const key = `${section.id}:${index}`; field.dataset.inlineEditKey = key;
+    if (Object.hasOwn(inlineEdits, key) && !field.isContentEditable) field.innerHTML = inlineEdits[key];
+    if (field.dataset.inlineEditBound === 'true') return;
+    field.dataset.inlineEditBound = 'true';
+    field.addEventListener('input', () => { inlineEdits[field.dataset.inlineEditKey] = field.innerHTML; saveInlineEdits(); });
+  });
+}
+function restoreInlineEdits() { [$('.hero'), ...$$('.content-section')].filter(Boolean).forEach(prepareInlineEdits); }
+function setSectionEditing(section, editing) { prepareInlineEdits(section); editableFor(section).forEach(field => { field.contentEditable = editing; field.classList.toggle('inline-editing', editing); }); }
 function addSectionControls(section, sectionId) {
+  if (section.querySelector('.section-controls')) return;
   const heading = section.querySelector('.section-heading'); if (!heading) return;
   const controls = document.createElement('div'); controls.className = 'section-controls'; controls.innerHTML = `<button class="section-edit" type="button" aria-label="Edit ${sectionId} section"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure ${sectionId} section"><span>⚙</span><b>Configure</b></button>`; heading.appendChild(controls);
-  const pencil = controls.querySelector('.section-edit'); pencil.addEventListener('click', () => { const editing = pencil.classList.toggle('editing'); pencil.querySelector('span').textContent = editing ? '✓' : '✎'; editableFor(section).forEach(field => { field.contentEditable = editing; field.classList.toggle('inline-editing', editing); }); });
+  const pencil = controls.querySelector('.section-edit'); pencil.addEventListener('click', () => { const editing = pencil.classList.toggle('editing'); pencil.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(section, editing); });
   controls.querySelector('.section-config').addEventListener('click', () => openConfig(sectionId));
 }
-$$('.content-section').forEach(section => addSectionControls(section, section.id));
+function ensureSectionControls() { $$('.content-section').forEach(section => addSectionControls(section, section.id)); }
+ensureSectionControls();
 const hero = $('.hero'); const heroActions = document.createElement('div'); heroActions.className = 'hero-actions'; heroActions.innerHTML = '<button class="section-edit" type="button" aria-label="Edit overview"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure overview"><span>⚙</span><b>Configure</b></button>'; hero.appendChild(heroActions);
-heroActions.querySelector('.section-edit').addEventListener('click', event => { const editing = event.currentTarget.classList.toggle('editing'); event.currentTarget.querySelector('span').textContent = editing ? '✓' : '✎'; [hero.querySelector('h1'), hero.querySelector('.hero-sub'), hero.querySelector('.hero-badge strong')].forEach(field => { field.contentEditable = editing; field.classList.toggle('inline-editing', editing); }); });
+heroActions.querySelector('.section-edit').addEventListener('click', event => { const editing = event.currentTarget.classList.toggle('editing'); event.currentTarget.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(hero, editing); });
 heroActions.querySelector('.section-config').addEventListener('click', () => openConfig('overview'));
 
 $$('.nav-item').forEach(item => item.addEventListener('click', () => { document.getElementById(item.dataset.target).scrollIntoView({ behavior: 'smooth', block: 'start' }); $$('.nav-item').forEach(nav => nav.classList.toggle('active', nav === item)); }));
@@ -493,7 +515,7 @@ $('#backHome')?.addEventListener('click', () => { window.location.href = './'; }
 $('#newBidButton')?.addEventListener('click', () => { const toast = $('#toast'); if (toast) { toast.textContent = 'New bid workspace coming next — choose an existing bid to begin.'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3200); } });
 const copyText = async value => { try { await navigator.clipboard.writeText(value); } catch { const fallback = document.createElement('textarea'); fallback.value = value; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } };
 const encodeCopyPayload = payload => { const bytes = new TextEncoder().encode(JSON.stringify(payload)); let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); }); return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), state: Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'meta')) })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
+$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), inlineEdits, state: Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'meta')) })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
 $('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; await copyText(shareUrl); toast('View-only link copied to clipboard.'); });
 
 updateScopeUI();
