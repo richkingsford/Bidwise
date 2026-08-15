@@ -73,9 +73,10 @@ $$('.bid-card').forEach(card => { const metrics = homeBidMetrics(card.dataset.bi
 const homeFooterCount = document.querySelector('.home-footer span:first-child'); if (homeFooterCount) homeFooterCount.innerHTML = `<i class="live-dot"></i> ${$$('.bid-card').length} active proposals`;
 document.body.classList.toggle('home-mode', !activeBidId);
 const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(activeBid.overrides[section] || {}) }]));
-const savedState = JSON.parse(localStorage.getItem('GetEV-assumptions') || 'null');
+const assumptionStorageKey = `GetEV-assumptions:${activeBidId || 'home'}`;
+const savedState = (() => { try { return JSON.parse(localStorage.getItem(assumptionStorageKey) || localStorage.getItem('GetEV-assumptions') || 'null'); } catch { return null; } })();
 const importedSource = isEvOnlyBid ? 'kneaders-orem-ev-only-paren-20260802' : `bid-${activeBidId}`;
-const reusableState = copiedProposal?.state || (isEvOnlyBid && savedState?.meta?.source === importedSource ? savedState : null);
+const reusableState = copiedProposal?.state || (savedState?.meta?.bidId === (activeBidId || 'home') || (isEvOnlyBid && savedState?.meta?.source === importedSource) ? savedState : null);
 const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
 const storedCompanyBranding = (() => { try { return JSON.parse(localStorage.getItem('GetEV-company-branding') || '{}'); } catch { return {}; } })();
 state.brand = { companyName: 'GetEV Energy', tagline: 'Commercial energy projects, made decision-ready.', proposalSlogan: 'One accountable installation team.', companyLogo: '', ...(storedCompanyBranding || {}), ...(reusableState?.brand || {}) };
@@ -87,7 +88,7 @@ if (activeBidId) state.overview.savingsRate = 90;
 if (activeBidId === 'maverick-lehi-solar') state.economics.annualOpex = 5200;
 if (activeBidId === 'target-lehi-solar-battery') state.economics.annualOpex = 8100;
 state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home', scenarios: { ...(reusableState?.meta?.scenarios || {}) } };
-const saveState = () => localStorage.setItem('GetEV-assumptions', JSON.stringify(state));
+const saveState = () => { const serialized = JSON.stringify(state); localStorage.setItem(assumptionStorageKey, serialized); localStorage.setItem('GetEV-assumptions', serialized); };
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
 const roundedMoney = (n, increment = 100) => money(Math.round(Number(n || 0) / increment) * increment);
@@ -856,7 +857,7 @@ $('#newBidButton')?.addEventListener('click', () => {
 });
 const copyText = async value => { try { await navigator.clipboard.writeText(value); } catch { const fallback = document.createElement('textarea'); fallback.value = value; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } };
 const encodeCopyPayload = payload => { const bytes = new TextEncoder().encode(JSON.stringify(payload)); let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); }); return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), inlineEdits, state: Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'meta')) })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
+$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), inlineEdits, state })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
 $('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; await copyText(shareUrl); toast('View-only link copied to clipboard.'); });
 
 updateScopeUI();
