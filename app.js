@@ -87,7 +87,7 @@ if (!state.overview.proposalName || /Energy Proposal|Solar Proposal|Solar \+ Bat
 if (activeBidId) state.overview.savingsRate = 90;
 if (activeBidId === 'maverick-lehi-solar') state.economics.annualOpex = 5200;
 if (activeBidId === 'target-lehi-solar-battery') state.economics.annualOpex = 8100;
-state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home', scenarios: { ...(reusableState?.meta?.scenarios || {}) } };
+state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home', scenarios: { ...(reusableState?.meta?.scenarios || {}) }, expandedAssumptions: { ...(reusableState?.meta?.expandedAssumptions || {}) } };
 const saveState = () => { const serialized = JSON.stringify(state); localStorage.setItem(assumptionStorageKey, serialized); localStorage.setItem('GetEV-assumptions', serialized); };
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
@@ -545,7 +545,13 @@ function renderEvSectionInputOutputPanels() {
     const outputs = document.createElement('div'); outputs.className = 'ev-section-outputs'; outputNodes.forEach(node => outputs.appendChild(node));
     const inputs = document.createElement('div'); inputs.className = 'ev-section-inputs';
     const scenarioSection = fields.find(([sectionName]) => configSchemas[sectionName])?.[0] || 'ev';
-    inputs.innerHTML = fields.length ? `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>Adjust the assumptions that drive this section.</small></div>${scenarioMarkup(scenarioSection, 'ev-scenario-picker')}<div class="ev-section-input-scroll">${fields.map(evSectionInputMarkup).join('')}</div>` : `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>This narrative section uses the installer company profile; it has no calculated variables.</small></div>`;
+    const snapshotPrimaryKeys = new Set(['dailyTraffic', 'travelRouteDistance', 'currentBevPopulation']);
+    const isSiteSnapshot = index === '3';
+    const primaryFields = isSiteSnapshot ? fields.filter(([, key]) => snapshotPrimaryKeys.has(key)) : fields;
+    const extraFields = isSiteSnapshot ? fields.filter(([, key]) => !snapshotPrimaryKeys.has(key)) : [];
+    const snapshotExpanded = Boolean(state.meta.expandedAssumptions?.['ev-report-3']);
+    const moreAssumptions = isSiteSnapshot ? `<button class="ev-more-assumptions" type="button" aria-expanded="${snapshotExpanded}" data-assumption-section="ev-report-3"><span>${snapshotExpanded ? 'Show fewer assumptions' : `${extraFields.length} more assumptions`}</span><i aria-hidden="true">${snapshotExpanded ? '−' : '+'}</i></button><div class="ev-more-assumptions-body" ${snapshotExpanded ? '' : 'hidden'}><div class="ev-section-input-scroll">${extraFields.map(evSectionInputMarkup).join('')}</div></div>` : '';
+    inputs.innerHTML = fields.length ? `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>Adjust the assumptions that drive this section.</small></div>${scenarioMarkup(scenarioSection, 'ev-scenario-picker')}<div class="ev-section-input-scroll">${primaryFields.map(evSectionInputMarkup).join('')}</div>${moreAssumptions}` : `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>This narrative section uses the installer company profile; it has no calculated variables.</small></div>`;
     reportSection.querySelector('.ev-report-head')?.after(inputs); inputs.after(outputs);
   });
   $$('#ev .ev-section-outputs article > span, #ev .ev-section-outputs th').forEach(node => {
@@ -560,6 +566,7 @@ function bindEvSectionInputs() {
   });
   $$('.ev-section-select').forEach(select => select.addEventListener('change', () => { state[select.dataset.stateSection][select.dataset.stateKey] = select.value; saveState(); renderReport(); }));
   $$('.ev-scenario-picker .scenario-button').forEach(button => button.addEventListener('click', () => { applyScenario(button.dataset.scenarioSection, button.dataset.scenario); renderReport(); toast(`${button.dataset.scenario} assumptions applied.`); }));
+  $$('.ev-more-assumptions').forEach(button => button.addEventListener('click', () => { const sectionId = button.dataset.assumptionSection; state.meta.expandedAssumptions[sectionId] = !state.meta.expandedAssumptions[sectionId]; saveState(); renderReport(); }));
 }
 
 function renderUniversalEvCustomerStory() {
