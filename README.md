@@ -1,6 +1,10 @@
-# Bidwise
+# GetEV
 
-Bidwise is a single-page MVP quote generator for commercial energy proposals. It turns a retail site brief into a presentation-ready report covering solar, battery storage, and EV charging.
+GetEV is a single-page MVP quote generator for commercial energy proposals. It turns a retail site brief into a presentation-ready report covering solar, battery storage, and EV charging.
+
+## Dashboard information rule
+
+Each proposal card has exactly one status badge, one owner field, and three distinct decision-useful summaries. Do not repeat status, scope, owner, or the same underlying metric elsewhere on that card. Cards stay visually neutral until the user hovers or focuses them.
 
 ## Run locally
 
