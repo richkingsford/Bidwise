@@ -41,7 +41,7 @@ let saveCompanyProfile = null;
 let loadAdminProfiles = null;
 
 const isAdminUser = user => user?.email?.toLowerCase() === ADMIN_EMAIL;
-const hasWorkspaceAccess = (user, profile) => Boolean(user && (isAdminUser(user) || profile?.verificationStatus === 'approved'));
+const hasWorkspaceAccess = user => Boolean(user);
 
 const setIdentity = (user, profile = currentProfile) => {
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
@@ -64,12 +64,7 @@ const setIdentity = (user, profile = currentProfile) => {
   const gateTitle = document.querySelector('#accessGateTitle');
   const gateCopy = document.querySelector('#accessGate p');
   const gateButton = document.querySelector('#gateAuthButton');
-  if (user && !hasWorkspaceAccess(user, profile)) {
-    const hasProfile = Boolean(profile?.companyName);
-    if (gateTitle) gateTitle.textContent = hasProfile ? 'Company approval pending.' : 'Complete your company profile.';
-    if (gateCopy) gateCopy.textContent = hasProfile ? `You are signed in as ${user.email}. An administrator must approve ${profile.companyName} before proposals become available.` : `You are signed in as ${user.email}. Add your installer company profile to request workspace access.`;
-    if (gateButton) gateButton.textContent = hasProfile ? 'Update company profile' : 'Create company profile';
-  } else if (!user) {
+  if (!user) {
     if (gateTitle) gateTitle.textContent = 'Your proposals are inside.';
     if (gateCopy) gateCopy.textContent = 'Sign in with Google and complete your installer company profile to access this bid workspace.';
     if (gateButton) gateButton.textContent = 'Sign in with Google';
@@ -160,7 +155,7 @@ if (firebaseConfig && !isLocalFile) {
       toast('We could not find a company profile yet. You can create one now.');
     }
     setIdentity(user, currentProfile);
-    if (!currentProfile?.companyName) showCompanyModal(user);
+    if (!currentProfile?.companyName) toast('You are signed in. Add your company profile anytime from your profile menu.');
   };
 
   saveCompanyProfile = async profile => {
@@ -187,9 +182,8 @@ if (firebaseConfig && !isLocalFile) {
       // The explicit code makes Firebase configuration failures diagnosable instead of
       // presenting a generic "registration form" failure.
       setIdentity(user, null);
-      showCompanyModal(user);
       const code = error?.code?.replace(/^firestore\//, '') || 'unavailable';
-      toast(`Signed in, but registration needs attention (${code}).`);
+      toast(`Signed in. Your company profile could not be loaded (${code}), but the workspace is available.`);
     } finally { document.body.classList.add('auth-ready'); }
   });
 
