@@ -794,14 +794,18 @@ function prepareInlineEdits(section) {
 }
 function restoreInlineEdits() { [$('.hero'), ...$$('.content-section')].filter(Boolean).forEach(prepareInlineEdits); }
 function setSectionEditing(section, editing) { prepareInlineEdits(section); editableFor(section).forEach(field => { field.contentEditable = editing; field.classList.toggle('inline-editing', editing); }); }
-function addSectionControls(section, sectionId) {
+function addSectionControls(section, sectionId, configSectionId = sectionId) {
   if (section.querySelector('.section-controls')) return;
-  const heading = section.querySelector('.section-heading'); if (!heading) return;
+  const heading = section.querySelector('.section-heading, .ev-report-head'); if (!heading) return;
   const controls = document.createElement('div'); controls.className = 'section-controls'; controls.innerHTML = `<button class="section-edit" type="button" aria-label="Edit ${sectionId} section"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure ${sectionId} section"><span>⚙</span><b>Configure</b></button>`; heading.appendChild(controls);
   const pencil = controls.querySelector('.section-edit'); pencil.addEventListener('click', () => { const editing = pencil.classList.toggle('editing'); pencil.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(section, editing); });
-  controls.querySelector('.section-config').addEventListener('click', () => openConfig(sectionId));
+  controls.querySelector('.section-config').addEventListener('click', () => openConfig(configSectionId));
 }
-function ensureSectionControls() { $$('.content-section').forEach(section => addSectionControls(section, section.id)); }
+function ensureSectionControls() {
+  $$('.content-section').forEach(section => addSectionControls(section, section.id));
+  const evConfigSections = { 'ev-report-1': 'ev', 'ev-report-2': 'overview', 'ev-report-3': 'ev', 'ev-report-4': 'ev', 'ev-report-5': 'ev', 'ev-report-6': 'ev', 'ev-report-7': 'economics', 'ev-report-8': 'lender' };
+  $$('#ev .ev-report-section').forEach(section => addSectionControls(section, section.id, evConfigSections[section.id] || 'ev'));
+}
 ensureSectionControls();
 const hero = $('.hero'); const heroActions = document.createElement('div'); heroActions.className = 'hero-actions'; heroActions.innerHTML = '<button class="section-edit" type="button" aria-label="Edit overview"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure overview"><span>⚙</span><b>Configure</b></button>'; hero.appendChild(heroActions);
 heroActions.querySelector('.section-edit').addEventListener('click', event => { const editing = event.currentTarget.classList.toggle('editing'); event.currentTarget.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(hero, editing); });
