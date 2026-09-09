@@ -1501,6 +1501,7 @@ async function searchLocationSuggestions(raw) {
   ];
   return [];
 }
+window.getevSearchLocationSuggestions = searchLocationSuggestions;
 function enhanceNewProposalModal() {
   const modal = $('#newProposalSetup'); const form = modal?.querySelector('form'); if (!modal || !form || form.dataset.enhanced === 'true') return;
   form.dataset.enhanced = 'true';
