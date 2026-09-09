@@ -46,9 +46,9 @@ function renderReviewedProposal(section) {
   const equipmentSection=section.querySelector('#ev-equipment');
   if(equipmentSection){
     const head=equipmentSection.querySelector('.ev-report-head');
-    if(head){head.querySelector('h3').textContent='Tesla V4 brings up to 500 kW hardware capability to this site.'; head.querySelector('p').textContent='The proposed four-post first phase combines next-generation DC fast charging with network discovery for Tesla and compatible non-Tesla drivers.';}
+    if(head){const title=head.querySelector('h3'); const subtitle=head.querySelector('p'); if(title)title.textContent='Tesla V4 brings up to 500 kW hardware capability to this site.'; if(subtitle)subtitle.textContent='The proposed four-post first phase combines next-generation DC fast charging with network discovery for Tesla and compatible non-Tesla drivers.';}
     const panels=equipmentSection.querySelectorAll('.review-equipment>.review-panel');
-    const strategy=panels[panels.length-1]; if(strategy){strategy.querySelector('h4').textContent='Four posts now. Plan for eight.'; strategy.querySelector('p').textContent='Focused first-post opening configuration with a clear path to future expansion.';}
+    const strategy=panels[panels.length-1]; if(strategy){const title=strategy.querySelector('h4'); const detail=strategy.querySelector('p'); if(title)title.textContent='Four posts now. Plan for eight.'; if(detail)detail.textContent='Focused first-post opening configuration with a clear path to future expansion.';}
   }
   // Keep the established report anchors intact for navigation and configuration.
   // Add the host-owned option after the ownership-value page so it remains Slide 9
