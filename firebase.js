@@ -123,7 +123,7 @@ const showCompanyModal = (user, profile = {}) => {
   if (companySignInButton) companySignInButton.hidden = Boolean(user);
   const submitButton = companyForm.querySelector('button[type="submit"]');
   if (submitButton) submitButton.hidden = !user;
-  if (companyFormNote) companyFormNote.textContent = user ? 'Complete the required fields below. Your company profile will be saved for review; optional files can be added now or later.' : 'Verify your email address above before completing the company profile.';
+  if (companyFormNote) companyFormNote.textContent = user ? 'Add whatever details you have now. You can finish the profile later; missing details will use sensible defaults.' : 'Verify your email address above before completing the company profile.';
   companyModal.hidden = false;
   (user ? companyForm.elements.companyName : companySignInButton)?.focus();
 };
@@ -325,25 +325,16 @@ companyForm?.addEventListener('submit', async event => {
   event.preventDefault();
    if (!currentUser) { toast('Verify your email or continue with Google before creating your company profile.'); return; }
   const form = new FormData(companyForm);
-  const requiredFields = [['companyName', 'Company name'], ['contactName', 'Primary contact'], ['email', 'Business email'], ['territory', 'Service territory']];
-  const missingField = requiredFields.find(([name]) => !String(form.get(name) || '').trim());
-  if (missingField) {
-    companyForm.elements[missingField[0]]?.focus();
-    if (companyFormNote) companyFormNote.textContent = `${missingField[1]} is required before your company profile can be saved.`;
-    toast(`${missingField[1]} is required.`);
-    return;
-  }
-  const businessEmail = String(form.get('email') || '').trim();
-  if (!/^\S+@\S+\.\S+$/.test(businessEmail)) {
-    companyForm.elements.email?.focus();
-    if (companyFormNote) companyFormNote.textContent = 'Enter a valid business email address, such as name@company.com.';
-    toast('Enter a valid business email address.');
-    return;
-  }
+  // Profile fields are intentionally optional: keep the save action useful even when
+  // a new installer only has a name. Use realistic defaults until they finish setup.
+  const companyName = String(form.get('companyName') || '').trim() || currentProfile?.companyName || 'Your Energy Company';
+  const contactName = String(form.get('contactName') || '').trim() || currentProfile?.contactName || currentUser.displayName || 'Project team';
+  const businessEmail = String(form.get('email') || '').trim() || currentProfile?.businessEmail || currentUser.email || 'team@yourenergycompany.com';
+  const territory = String(form.get('territory') || '').trim() || currentProfile?.territory || 'Your service territory';
   const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
-  if (!Object.values(services).some(Boolean)) { if (companyFormNote) companyFormNote.textContent = 'Select at least one installation service before saving.'; toast('Select at least one installation service.'); return; }
+  if (!Object.values(services).some(Boolean)) services.ev = true;
   const insuranceFile = companyForm.elements.insuranceDocument?.files?.[0]; const contractorFile = companyForm.elements.contractorCertification?.files?.[0]; const logoFile = companyForm.elements.companyLogo?.files?.[0]; const photoFile = companyForm.elements.companyPhoto?.files?.[0];
   if (logoFile && (!logoFile.type.startsWith('image/') || logoFile.size > 5 * 1024 * 1024)) { toast('Choose an image logo up to 5 MB.'); return; }
   const submit = companyForm.querySelector('button[type="submit"]'); submit.disabled = true; submit.textContent = 'Saving…';
-  try { const [insuranceDocument, contractorCertification, companyLogo, companyPhoto] = await Promise.all([uploadCompanyDocument(insuranceFile), uploadCompanyDocument(contractorFile), uploadCompanyDocument(logoFile, 'company-logos'), uploadCompanyDocument(photoFile, 'company-photos')]); const certificationDocuments = []; for (const file of [...(companyForm.elements.certificationDocuments?.files || [])]) certificationDocuments.push(await uploadCompanyDocument(file)); const pendingStorage = [insuranceDocument, contractorCertification, companyLogo, companyPhoto, ...certificationDocuments].some(document => document?.storageStatus === 'pending-storage-setup'); await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), tagline: String(form.get('tagline') || '').trim(), proposalSlogan: String(form.get('proposalSlogan') || '').trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services, proposalCertifications: String(form.get('proposalCertifications') || '').trim(), companyLogo: companyLogo || currentProfile?.companyLogo || null, companyPhoto: companyPhoto || currentProfile?.companyPhoto || null, insuranceDocument: insuranceDocument || currentProfile?.insuranceDocument || null, contractorCertification: contractorCertification || currentProfile?.contractorCertification || null, certificationDocuments: certificationDocuments.length ? certificationDocuments : currentProfile?.certificationDocuments || [], documentStorageStatus: pendingStorage ? 'pending-storage-setup' : 'stored' }); if (pendingStorage) toast('Profile saved. Documents are recorded and awaiting secure file storage setup.'); } catch (error) { console.error('GetEV company profile save error', error); toast(`Could not save your company profile${error?.code ? ` (${error.code})` : ''}. Please try again.`); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
+  try { const [insuranceDocument, contractorCertification, companyLogo, companyPhoto] = await Promise.all([uploadCompanyDocument(insuranceFile), uploadCompanyDocument(contractorFile), uploadCompanyDocument(logoFile, 'company-logos'), uploadCompanyDocument(photoFile, 'company-photos')]); const certificationDocuments = []; for (const file of [...(companyForm.elements.certificationDocuments?.files || [])]) certificationDocuments.push(await uploadCompanyDocument(file)); const pendingStorage = [insuranceDocument, contractorCertification, companyLogo, companyPhoto, ...certificationDocuments].some(document => document?.storageStatus === 'pending-storage-setup'); if (typeof saveCompanyProfile !== 'function') throw new Error('Profile storage is not ready. Refresh the page and try again.'); await saveCompanyProfile({ companyName, tagline: String(form.get('tagline') || '').trim(), proposalSlogan: String(form.get('proposalSlogan') || '').trim(), contactName, businessEmail, territory, website: String(form.get('website') || '').trim(), services, proposalCertifications: String(form.get('proposalCertifications') || '').trim(), companyLogo: companyLogo || currentProfile?.companyLogo || null, companyPhoto: companyPhoto || currentProfile?.companyPhoto || null, insuranceDocument: insuranceDocument || currentProfile?.insuranceDocument || null, contractorCertification: contractorCertification || currentProfile?.contractorCertification || null, certificationDocuments: certificationDocuments.length ? certificationDocuments : currentProfile?.certificationDocuments || [], documentStorageStatus: pendingStorage ? 'pending-storage-setup' : 'stored' }); if (pendingStorage) toast('Profile saved. Documents are recorded and awaiting secure file storage setup.'); } catch (error) { console.error('GetEV company profile save error', error); toast(`Could not save your company profile${error?.code ? ` (${error.code})` : ''}. Please try again.`); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
 });
