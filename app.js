@@ -1256,7 +1256,7 @@ function setupRotatingHeadline() {
   if (rotatingHeadlineTimer) window.clearInterval(rotatingHeadlineTimer);
   if (!slot || !word) return;
   slot.dataset.ready = 'true';
-  const phrases = ['customer value.', 'restaurant sales.', 'guest opportunities.', 'new visits.', 'more business.'];
+  const phrases = ['customer value.', 'restaurant sales.', 'new visits.', 'more business.'];
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { rotatingHeadlineTimer = null; return; }
   let index = 0;
   const rotate = () => {
