@@ -423,3 +423,5 @@ img,svg,video,canvas{max-width:100%}
 .new-proposal-media-row{grid-template-columns:1fr 1fr}
 .new-proposal-media-row input[type=file]{font-size:11px;padding:9px}
 .new-proposal-media-row label{min-width:0}
+/* Bulk proposal prospect picker */
+.bulk-proposal-card{max-width:680px}.bulk-proposal-fields{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}.bulk-proposal-fields label{display:grid;gap:7px;color:#d9ebe4;font:500 10px var(--mono);letter-spacing:.7px;text-transform:uppercase}.bulk-proposal-fields input{width:100%;padding:11px 12px;border:1px solid #416477;border-radius:6px;background:#0b2130;color:#fff;font:12px var(--sans)}.bulk-proposal-results{min-height:90px;margin-top:18px;padding:14px;border:1px solid #315466;border-radius:8px;background:#0b2130;color:#c8d8e5;font-size:13px;line-height:1.45}.bulk-proposal-results strong{color:#d8ed4f}.bulk-proposal-results ul{margin:8px 0 0;padding-left:18px}.bulk-proposal-results li{margin:3px 0}.bulk-proposal-modal .feedback-actions{margin-top:18px}@media(max-width:600px){.bulk-proposal-fields{grid-template-columns:1fr}.bulk-proposal-card{padding:20px}}
