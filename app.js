@@ -376,7 +376,7 @@ function applyJsonProposalCards() {
   }
   renderJsonLocationMetrics($('#ev-report-1 .ev-location-metrics'), cardCatalog('ev.locationMetrics'));
   const locationSupport = $('#ev-report-1 .ev-location-support');
-  if (locationSupport && !locationSupport.textContent.includes('BUSINESS HOURS')) locationSupport.insertAdjacentHTML('beforeend', `<article><strong>${/kneaders/i.test(state.overview.siteName) ? 'MON–SAT 7:00 AM–10:00 PM · SUNDAY CLOSED' : 'BUSINESS HOURS PENDING VERIFICATION'}</strong><span>BUSINESS HOURS <button class="metric-help" title="Published store hours establish the usable charging and guest-service window.">?</button></span><small>${/kneaders/i.test(state.overview.siteName) ? 'KNEADERS LOCATION DIRECTORY' : 'VERIFY WITH BUSINESS'}</small></article>`);
+  if (locationSupport && !locationSupport.textContent.includes('BUSINESS HOURS')) locationSupport.insertAdjacentHTML('beforeend', `<article><strong>${/kneaders/i.test(state.overview.siteName) ? 'MON–SAT 7:00 AM–10:00 PM · SUNDAY CLOSED' : 'Unknown'}</strong><span>BUSINESS HOURS <button class="metric-help" title="Published store hours establish the usable charging and guest-service window.">?</button></span><small>${/kneaders/i.test(state.overview.siteName) ? 'KNEADERS LOCATION DIRECTORY' : 'VERIFY WITH BUSINESS'}</small></article>`);
   renderJsonSpendingCards($('#ev-report-3 .ev-financial-grid'), cardCatalog('ev.spendingCases'));
   ensureCustomCardProvenance();
 }
