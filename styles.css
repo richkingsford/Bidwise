@@ -430,4 +430,4 @@ img,svg,video,canvas{max-width:100%}
 .feedback-modal-card .bulk-business-row{display:grid;grid-template-columns:18px minmax(0,1fr);grid-template-rows:auto;align-items:start;gap:10px;margin:0;padding:11px 12px}.feedback-modal-card .bulk-business-row input{grid-column:1;grid-row:1;margin-top:3px}.feedback-modal-card .bulk-business-row span{grid-column:2;grid-row:1;display:grid;gap:4px;min-width:0}.feedback-modal-card .bulk-business-row b{display:block;font-size:14px;line-height:1.2}.feedback-modal-card .bulk-business-row small{display:block;line-height:1.35}
 
 .site-scenario-detail small .metric-help{display:inline-grid!important;vertical-align:middle;margin-left:4px}
-.brand-mark-image{width:58px;height:26px;object-fit:contain;display:block}.home-brand .brand-mark-image{width:73px;height:32px}
+.brand-mark-image{width:75px;height:34px;object-fit:contain;display:block}.home-brand .brand-mark-image{width:95px;height:41px}
