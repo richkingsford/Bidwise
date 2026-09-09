@@ -730,6 +730,7 @@ function handleAboutUsLogoUpload(file) {
   const reader = new FileReader(); reader.onload = () => { state.brand.companyLogo = reader.result; saveState(); renderReport(); };
   reader.readAsDataURL(file);
 }
+document.addEventListener('change', event => { const input = event.target.closest('.about-logo-file'); if (input) handleAboutUsLogoUpload(input.files?.[0]); });
 ['photo', 'logo'].forEach(kind => { const saved = localStorage.getItem(proposalVisualStorageKey(kind)); if (saved) applyProposalVisual(kind, saved); else applyProposalVisualSettings(kind); });
 function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), layout: $('#layoutMap'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
 let leafletPromise;
@@ -1059,7 +1060,6 @@ function bindEvSectionInputs() {
     input.addEventListener('input', update); input.addEventListener('change', () => { update(); renderReport(); });
   });
   $$('.ev-section-select').forEach(select => select.addEventListener('change', () => { state[select.dataset.stateSection][select.dataset.stateKey] = select.value; saveState(); renderReport(); }));
-  $$('.about-logo-file').forEach(input => input.addEventListener('change', event => handleAboutUsLogoUpload(event.target.files[0])));
   $$('.ev-more-assumptions').forEach(button => button.addEventListener('click', () => { const sectionId = button.dataset.assumptionSection; state.meta.expandedAssumptions[sectionId] = !state.meta.expandedAssumptions[sectionId]; saveState(); renderReport(); }));
 }
 
