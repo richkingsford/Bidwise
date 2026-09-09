@@ -219,6 +219,7 @@ if (firebaseConfig && !isLocalFile) {
     try {
       const snapshot = await getDoc(doc(db, 'profiles', user.uid));
       currentProfile = snapshot.exists() ? snapshot.data() : null;
+      if (currentProfile?.bulkProposals) window.dispatchEvent(new CustomEvent('getev:bulk-proposals-loaded', { detail: { proposals: currentProfile.bulkProposals } }));
       if (isAdminUser(user) && currentProfile) {
         currentProfile = { ...currentProfile, role: 'admin', verificationStatus: 'approved' };
         await setDoc(doc(db, 'profiles', user.uid), currentProfile, { merge: true });
@@ -242,6 +243,7 @@ if (firebaseConfig && !isLocalFile) {
     toast(isAdminUser(currentUser) ? 'Admin company profile saved.' : 'Company profile saved. Your registration is pending review.');
   };
 
+  window.addEventListener('getev:bulk-proposals-save', event => { if (!currentUser || !event.detail?.proposals) return; void setDoc(doc(db, 'profiles', currentUser.uid), { bulkProposals: event.detail.proposals, updatedAt: serverTimestamp() }, { merge: true }).catch(error => console.error('GetEV bulk proposal save error', error)); });
   onAuthStateChanged(auth, async user => {
     currentUser = user;
     currentProfile = null;
