@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "dashboard": {
+    "kneaders-orem": {
+      "title": "Kneaders Bakery & Cafe",
+      "location": "Orem, Utah · 1960 State Street",
+      "avatar": "K",
+      "avatarClass": "kneaders-mark",
+      "scopes": ["EV charging"],
+      "metrics": [
+        {"label": "FOOT TRAFFIC REVENUE", "valueSource": "footTrafficRevenue"},
+        {"label": "MARKET PROOF CHARGES", "valueSource": "marketProofVisits"},
+        {"label": "YEAR 5 DAILY FORECAST", "valueSource": "year5Visits"}
+      ]
+    },
+    "copper-fork-grill-american-fork": {
+      "title": "Copper Fork Grill",
+      "location": "American Fork, Utah · 789 W Main Street",
+      "avatar": "C",
+      "avatarClass": "copper-mark",
+      "scopes": ["Solar", "Battery", "EV charging"],
+      "metrics": [
+        {"label": "FOOT TRAFFIC REVENUE", "valueSource": "footTrafficRevenue"},
+        {"label": "MARKET PROOF CHARGES", "valueSource": "marketProofVisits"},
+        {"label": "YEAR 5 DAILY FORECAST", "valueSource": "year5Visits"}
+      ]
+    },
+    "maverick-lehi-solar": {
+      "title": "Maverik",
+      "location": "Lehi, Utah · 760 E Main Street",
+      "avatar": "M",
+      "avatarClass": "maverick-mark",
+      "scopes": ["Solar"],
+      "metrics": [
+        {"label": "FOOT TRAFFIC REVENUE", "valueSource": "footTrafficRevenue"},
+        {"label": "MARKET PROOF CHARGES", "valueSource": "marketProofVisits"},
+        {"label": "YEAR 5 DAILY FORECAST", "valueSource": "year5Visits"}
+      ]
+    },
+    "target-lehi-solar-battery": {
+      "title": "Target + storage",
+      "location": "Lehi, Utah · 1250 E Timpanogos Hwy",
+      "avatar": "T",
+      "avatarClass": "target-mark",
+      "scopes": ["Solar", "Battery"],
+      "metrics": [
+        {"label": "FOOT TRAFFIC REVENUE", "valueSource": "footTrafficRevenue"},
+        {"label": "MARKET PROOF CHARGES", "valueSource": "marketProofVisits"},
+        {"label": "YEAR 5 DAILY FORECAST", "valueSource": "year5Visits"}
+      ]
+    }
+  },
+  "ev": {
+    "review": {
+      "version": "2026-09-08",
+      "roadBenchmark": {"state":"Utah","city":"Salt Lake City","cityDescriptor":"Utah's most populous city","cityPopulation":218428,"cityPopulationYear":2025,"cityPopulationSource":"U.S. Census Bureau QuickFacts","road":"I-15 at 500/600 South (City Center)","mean":12749.02471025585,"maximum":214000,"station":"035-0070","year":2024,"source":"UDOT AADT2024_Rounded","url":"https://services.arcgis.com/pA2nEVnB6tquxgOW/ArcGIS/rest/services/AADT2024_Rounded/FeatureServer/13"},
+      "scoreWeights": {"chargingGap":0.20,"roadAudience":0.20,"evAdoption":0.15,"amenities":0.15,"corridorAccess":0.10,"hostFit":0.20},
+      "targetReturn":0.12,
+      "networkFeePerSession":3,
+      "operationsPerSession":1.8,
+      "processingPercent":3,
+      "billedDemandKw":150,
+      "captureSpread":[5,5,5],
+      "spendSpread":[5,5,5],
+      "equipment":{"title":"Tesla V4 brings up to 500 kW hardware capability to this site.","image":"assets/tesla-v4-supercharger.webp","source":"https://www.tesla.com/supercharger-for-business/get","description":"Next-generation DC fast charging with network discovery for Tesla and compatible non-Tesla drivers.","level2":"7.6–19.2 kW","dcFast":"50–350 kW","v4":"UP TO 500 kW"}
+    },
+    "guestSalesProfiles": {
+      "Restaurant": {"spend": [15, 25, 35], "capture": [15, 30, 40]},
+      "Retail store": {"spend": [15, 35, 60], "capture": [10, 20, 30]},
+      "Gas station": {"spend": [5, 10, 18], "capture": [20, 35, 50]},
+      "Car dealership": {"spend": [0, 0, 0], "capture": [0, 0, 0]},
+      "Apartment complex": {"spend": [0, 0, 0], "capture": [0, 0, 0]},
+      "Commercial property": {"spend": [10, 20, 30], "capture": [10, 20, 30]}
+    },
+    "locationMetrics": [
+      {"key": "marketTraffic", "label": "MARKET TRAFFIC", "action": "VIEW DETAILS ›", "valueId": "evLocationSessions", "descriptionId": "evCurrentDemandVerdict", "active": true, "source": "Independent observed charging-session data", "derivedFrom": "observed sessions ÷ observation days", "scale": {"low": "LOW <64", "typical": "TYPICAL 64–80", "high": "HIGH >80"}},
+      {"key": "portProductivity", "label": "PORT PRODUCTIVITY", "action": "VIEW DETAILS ›", "valueId": "evSessionsPerPort", "description": "derived from observed sessions ÷ ports", "source": "Independent observed charging-session data", "derivedFrom": "observed sessions/day ÷ observed ports", "scale": {"low": "LOW <8", "typical": "TYPICAL 8–10", "high": "HIGH >10"}},
+      {"key": "dwellOpportunity", "label": "DWELL OPPORTUNITY", "action": "VIEW DETAILS ›", "valueId": "evDwellMinutes", "description": "observed average session duration", "source": "Independent observed charging-session data", "derivedFrom": "observed session-duration field", "footnote": "Enough time to order, dine, or take food to go"}
+    ],
+    "siteSnapshotLegacy": [
+      {"key": "siteCaptureScore", "label": "SITE CAPTURE SCORE", "valueId": "evSiteCaptureScore", "description": "Traffic, access, amenities, route proximity, and competitor congestion"},
+      {"key": "dailyTraffic", "label": "DAILY TRAFFIC", "valueId": "evDailyTraffic", "description": "vehicles / day near the site"},
+      {"key": "siteVisibility", "label": "SITE VISIBILITY", "valueId": "evVisibilityScore", "description": "visibility from the travel corridor"},
+      {"key": "entryExit", "label": "EASE OF ENTRY + EXIT", "valueId": "evEntryExitScore", "description": "driver access assessment"},
+      {"key": "routeDistance", "label": "DISTANCE FROM MAJOR ROUTE", "valueId": "evTravelRouteDistance", "description": "nearest high-volume travel route"},
+      {"key": "amenities", "label": "FOOD, RESTROOMS, SEATING + WI-FI", "valueId": "evAmenityScore", "description": "host amenity assessment"},
+      {"key": "congestion", "label": "COMPETITIVE CHARGER CONGESTION", "valueId": "evCongestionScore", "description": "room for a more convenient option"},
+      {"key": "futureGrowthScore", "label": "FUTURE GROWTH SCORE", "valueId": "evFutureGrowthScore", "description": "BEV adoption, traffic, charger development, and public fast-charging behavior", "group": "growth"},
+      {"key": "currentBevPopulation", "label": "CURRENT BEV POPULATION", "valueId": "evCurrentBevPopulation", "description": "local market estimate", "group": "growth"},
+      {"key": "historicalBevGrowth", "label": "HISTORICAL BEV GROWTH", "valueId": "evHistoricalBevGrowth", "description": "annual growth assumption", "group": "growth"},
+      {"key": "projectedBevFleet", "label": "PROJECTED BEV FLEET", "valueId": "evProjectedBevFleet", "description": "planning-horizon estimate", "group": "growth"},
+      {"key": "teslaMix", "label": "TESLA + OTHER-MAKE MIX", "valueId": "evTeslaMix", "description": "Tesla share; remaining mix is other makes", "group": "growth"},
+      {"key": "trafficGrowth", "label": "TRAFFIC GROWTH", "valueId": "evTrafficGrowth", "description": "annual growth assumption", "group": "growth"},
+      {"key": "futureConstruction", "label": "FUTURE CHARGER CONSTRUCTION", "valueId": "evFutureConstruction", "description": "known or expected competing sites", "group": "growth"},
+      {"key": "publicFastCharging", "label": "PUBLIC FAST-CHARGING BEHAVIOR", "valueId": "evPublicFastCharging", "description": "BEV drivers expected to use public DC fast charging", "group": "growth"}
+    ],
+    "siteSnapshotMockup": {
+      "title": "How much charging demand could this site capture?",
+      "subtitle": "Page 2 established the market. Fleet growth, charging behavior and restaurant fit show what this location could capture.",
+      "outlook": {"label": "ROADWAY EXPOSURE", "value": "20% OF STATE PEAK", "description": "MID-RANGE ROADWAY EXPOSURE · 43,000 / DAY HERE", "note": "PEAK REFERENCE: I-15 AT 500/600 SOUTH, SALT LAKE CITY, UTAH · UDOT 2024"},
+      "fleet": {"label": "UTAH COUNTY'S BEV FLEET HAS NEARLY DOUBLED IN TWO YEARS", "source": "UTAH STATE TAX COMMISSION  |  FEB 2026", "stats": [{"label": "2024 BEV REGISTRATIONS", "value": "8,414", "note": "STARTING POINT"}, {"label": "2025 BEV REGISTRATIONS", "value": "12,153", "note": "+44% IN ONE YEAR"}, {"label": "2026 BEV REGISTRATIONS", "value": "16,437", "note": "+35% IN ONE YEAR"}, {"label": "TWO-YEAR GROWTH", "value": "+95%", "note": "CUSTOMER BASE NEARLY DOUBLED"}]},
+      "scenarioLabel": "YEAR 5 PLANNING SCENARIOS",
+      "scenarioMeta": "8 PORTS  |  24-MINUTE AVERAGE SESSION  |  30% GUEST-CAPTURE ASSUMPTION",
+      "scenarios": [{"key": "conservative", "label": "CONSERVATIVE", "utilization": "16.3%", "utilizationOffset": -2.8, "visits": "~78", "parties": "~23", "note": "STRESS-TEST THE DOWNSIDE", "accent": "amber"}, {"key": "expected", "label": "EXPECTED", "utilization": "19.1%", "utilizationOffset": 0, "visits": "~92", "parties": "~28", "note": "USE FOR OPERATING PLANS", "accent": "lime", "active": true}, {"key": "optimistic", "label": "OPTIMISTIC", "utilization": "27.0%", "utilizationOffset": 7.9, "visits": "~130", "parties": "~39", "note": "SIZE THE UPSIDE", "accent": "blue"}],
+      "scenarioProvenance": {"source": "Observed charging-session data + NLR/AFDC inventory + EVpin forecast", "derivedFrom": "observed market baseline, charger supply, and documented forecast model"},
+      "fit": {"label": "WHY THIS LOCATION FITS THE CHARGING USE CASE", "items": [{"label": "ROADWAY AUDIENCE", "value": "32,689 / DAY", "note": "STATEWIDE ROADWAY CONTEXT", "accent": "blue", "source": "UDOT AADT"}, {"label": "CHARGING DWELL", "value": "24 MIN", "note": "TIME TO ORDER + DINE", "accent": "lime", "source": "Independent observed charging-session data"}, {"label": "KNEADERS FIT", "value": "STRONG", "note": "FOOD + RESTROOMS + SEATING", "accent": "lime", "source": "Property plans + site verification"}]},
+      "meaning": {"label": "WHAT THIS MEANS", "headline": "Growing EV demand creates recurring guest opportunities with time to dine.", "note": "Expected case: ~28 potential guest parties per day."},
+      "sources": ["Utah State Tax Commission registration Table 5 (Feb 2024-2026)", "UDOT / Utah State University 2026 EV Adoption Study", "UDOT AADT", "Overture Maps Places (36 food-and-drink places within 1 km)", "independent site forecast"],
+      "scenarioNote": "Scenario utilization includes a +3 percentage-point planning adjustment. Potential parties apply the 30% guest-capture assumption shown above."
+    },
+    "visitorRevenueMockup": {
+      "title": "What could additional charging guests mean for restaurant sales?",
+      "subtitle": "Research supports nearby business activity. The sales range below varies two assumptions: guest capture at this business and average spending per purchasing party.",
+      "calculationLabel": "FROM CHARGING DEMAND TO RESTAURANT GUESTS",
+      "expectedLabel": "EXPECTED CHARGING VISITS",
+      "captureLabel": "GUEST-CAPTURE ASSUMPTION",
+      "partiesLabel": "POTENTIAL GUEST PARTIES",
+      "planningLabel": "BASE PLANNING CASE",
+      "planningDescription": "POTENTIAL ANNUAL RESTAURANT SALES",
+      "planningDailyLabel": "$700 / DAY",
+      "planningMonthlyLabel": "$21,000 / MONTH",
+      "meaningLabel": "WHAT THIS MEANS",
+      "meaningHeadline": "Independent studies support a practical, measurable foot-traffic opportunity.",
+      "meaningNote": "The forecast is a planning case, not a guarantee; actual results depend on site performance and guest behavior.",
+      "evidence": [{"label": "35%", "value": "PURCHASE RATE", "note": "Charging-led trips only · UC Davis"}, {"label": "4%", "value": "MONTHLY VISITS", "note": "Average lift after a Supercharger opened · Tesla study"}, {"label": "$17", "value": "MEDIAN SPEND", "note": "Among purchasing drivers · UC Davis"}],
+      "sources": ["UC Davis fast-charging driver behavior study", "Tesla Supercharger mobile-location study", "UC Davis charging-spend study"],
+      "sourceNote": "Research benchmarks describe observed behavior; the local forecast applies them conservatively and separately from charging revenue."
+    },
+    "referencePages": {
+      "about": {"title":"The experience and credentials behind the project.","subtitle":"Proven scale, licensed expertise and a strategic footprint backed by a mission to expand charging infrastructure.","cards":[["20,000+","Proven Scale","Since 2013, 1Solar has contracted with more than 20,000 customers and generated over $400 million in revenue during the past five years."],["CERTIFIED","Licensed & Certified","We are a preferred Tesla-certified installer. We are a fully licensed general contractor, and we hold master electrical and NABCEP credentials."],["UT / NV / CO","Strategic Footprint","Locations in Utah, Nevada, and Colorado - our target Supercharger markets."]],"mission":"Accelerating the EV revolution by owning and operating a network of Tesla Supercharger V4 stations, generating strong cash-flow returns for investors while expanding critical charging infrastructure across high-demand locations."},
+      "partnership": {"title":"As a Tesla-certified installer, we can do one of two options.","subtitle":"Choose either a host-lease structure or direct ownership; both create a convenient charging stop for guests."},
+      "optionOne": {"title":"Add charging guests with $0 charger investment.","subtitle":"1Solar funds, installs, owns and monitors the chargers. Kneaders provides eight stalls and receives lease income plus potential new restaurant revenue when charging drivers become Kneaders guests.","leasePerMonth":1600,"leasePerYear":19200,"combined":274700},
+      "daily": {"title":"Market data points to about $1,242 in daily charging revenue.","subtitle":"Based on nearby charging activity and the expected 92-session planning case, the station could leave about $340 per day in charging income after operating costs while bringing drivers on-site with time to order, dine or take food to go.","collected":1242,"costs":902,"remaining":340},
+      "annual": {"title":"About $124,100 in annual charging income could remain for Kneaders.","subtitle":"Kneaders owns the station and receives all available charging revenue. 1Solar stays economically aligned through per-session operations and support, creating shared accountability for utilization, reliability and long-term performance.","collected":453330,"costs":329230,"remaining":124100},
+      "roi": {"title":"Two revenue streams can support a compelling ownership case.","subtitle":"A $1.2 million station investment could create charging income for Kneaders while also bringing new guests on-site. The model keeps station income and potential restaurant sales separate so each source of value is easy to understand.","investment":1200000,"chargingIncome":124100,"guestRevenue":255500,"combined":379600}
+    },
+    "spendingCases": [
+      {"key": "conservative", "label": "LOW SPEND", "receiptStateKey": "conservativeReceipt", "value": 18, "source": "Kneaders POS data — not connected", "receiptId": "evSalesConservativeReceipt", "dailyId": "evSalesConservativeDaily", "monthlyId": "evSalesConservativeMonthly", "annualId": "evSalesConservativeAnnual"},
+      {"key": "expected", "label": "MEDIUM SPEND", "receiptStateKey": "averageReceipt", "value": 25, "source": "Kneaders POS data — not connected", "receiptId": "evSalesExpectedReceipt", "dailyId": "evSalesExpectedDaily", "monthlyId": "evSalesExpectedMonthly", "annualId": "evSalesExpectedAnnualCard"},
+      {"key": "high", "label": "HIGH SPEND", "receiptStateKey": "highReceipt", "value": 32, "source": "Kneaders POS data — not connected", "receiptId": "evSalesHighReceipt", "dailyId": "evSalesHighDaily", "monthlyId": "evSalesHighMonthly", "annualId": "evSalesHighAnnual"}
+    ],
+    "financialCards": {
+      "chargingRevenue": [
+        {"key": "visits", "label": "YEAR 5 CHARGING VISITS", "valueId": "evRevenueVisits", "description": "visits / year"},
+        {"key": "energy", "label": "ENERGY DELIVERED", "valueId": "evRevenueEnergy", "description": "kWh / year"},
+        {"key": "grossRevenue", "label": "GROSS CHARGING REVENUE", "valueId": "evChargingRevenue", "description": "per year"}
+      ],
+      "expenses": [
+        {"key": "electricity", "label": "UTILITY ENERGY EXPENSE", "valueId": "evElectricityExpense", "description": "per year"},
+        {"key": "fixed", "label": "NETWORK + MAINTENANCE", "valueId": "evFixedExpenses", "description": "per year"},
+        {"key": "total", "label": "TOTAL EV OPERATING EXPENSES", "valueId": "evOperatingExpenses", "description": "per year"}
+      ]
+    },
+    "portfolioMetrics": {
+      "storeBreakdown": [
+        {"key":"portfolio-store-number","label":"7-Eleven Store #","description":"Portfolio location identifier.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Store record","dependentVariable":"storeNumber","benefit":"Keeps each candidate site tied to the correct portfolio record."},
+        {"key":"portfolio-address","label":"Store Address","description":"Street address for the candidate site.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Store record","dependentVariable":"storeAddress","benefit":"Identifies the property being evaluated."},
+        {"key":"portfolio-city","label":"City","description":"City containing the candidate site.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Store address","dependentVariable":"city","benefit":"Supports local market and utility context."},
+        {"key":"portfolio-zip","label":"ZIP","description":"ZIP code for the candidate site.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Store address","dependentVariable":"zipCode","benefit":"Supports geographic matching and regional data retrieval."},
+        {"key":"portfolio-utility","label":"Utility","description":"Electric utility serving the site.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Site address and utility territory","dependentVariable":"utilityProvider","benefit":"Frames tariff, incentive, and interconnection conversations."},
+        {"key":"portfolio-evpin-score","label":"EVpin Score (1–5)","description":"Third-party site-fit score on a five-point scale.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"EVpin site assessment","dependentVariable":"evpinScore","benefit":"Provides an external screening signal for prioritizing sites."},
+        {"key":"portfolio-getev-score","label":"GetEV Score (1–10)","description":"Weighted GetEV site-fit score normalized to a ten-point scale.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"GetEV scorecard components and weights","dependentVariable":"getevScore","benefit":"Summarizes site fit in a sales-friendly score."},
+        {"key":"portfolio-ports","label":"Ports","description":"Number of proposed charging ports.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Charger plan","dependentVariable":"portCount","benefit":"Sets station capacity and drives revenue and utilization calculations."},
+        {"key":"portfolio-ownership","label":"Ownership Option","description":"Proposed ownership structure for the charging station.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Commercial structure selection","dependentVariable":"ownershipOption","benefit":"Makes the buyer’s investment and revenue path explicit."},
+        {"key":"portfolio-project-cost","label":"Estimated Project Cost","description":"Estimated installed project cost before incentives.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Equipment, installation, and site-improvement estimates","dependentVariable":"grossProjectCost","benefit":"Anchors financing, incentives, and payback discussions."},
+        {"key":"portfolio-lease-port-month","label":"Lease / Port / Month","description":"Monthly lease amount per charging port.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Lease Model recommended lease / port / month","dependentVariable":"leasePerPortMonth","benefit":"Shows predictable host income under a lease structure."},
+        {"key":"portfolio-total-lease-month","label":"Total Lease / Month","description":"Ports × Lease / Port / Month.","source":"Field Guide · formula definition","independentVariables":"Ports; lease per port per month","dependentVariable":"totalLeasePerMonth","benefit":"Converts a per-port offer into a monthly host-income figure."},
+        {"key":"portfolio-total-lease-year","label":"Total Lease / Year","description":"Total Lease / Month × 12.","source":"Field Guide · formula definition","independentVariables":"Total lease per month; 12 months","dependentVariable":"totalLeasePerYear","benefit":"Makes annual host income easy to compare with other property benefits."},
+        {"key":"portfolio-expected-utilization","label":"Expected Utilization","description":"Selected expected charging utilization case.","source":"Utilization Model · Expected Utilization","independentVariables":"EVpin score; GetEV score; Tesla baseline; comparable adjustment","dependentVariable":"expectedUtilization","benefit":"Connects market evidence to a transparent planning case."},
+        {"key":"portfolio-expected-visits","label":"Expected Visits / Day","description":"Expected site sessions per day across all ports.","source":"Field Guide · formula definition","independentVariables":"Expected utilization; ports; session minutes","dependentVariable":"expectedVisitsPerDay","benefit":"Translates utilization into a tangible daily demand estimate."},
+        {"key":"portfolio-kwh-session","label":"Avg kWh / Session","description":"Average energy delivered in one charging session.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Session profile assumption","dependentVariable":"averageKwhPerSession","benefit":"Drives charging revenue and utility-load estimates."},
+        {"key":"portfolio-charge-price","label":"Charge Price / kWh","description":"Customer charging price per kilowatt-hour.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Pricing assumption","dependentVariable":"chargePricePerKwh","benefit":"Makes the charging-income assumption visible and reviewable."},
+        {"key":"portfolio-charging-income","label":"Charging Income / Year","description":"Annualized charging revenue after listed daily operating costs: (Charging Revenue / Day − Operating Costs / Day) × 365.","source":"Field Guide · formula definition","independentVariables":"Visits per day; energy per session; charge price; operating costs; 365 days","dependentVariable":"chargingIncomePerYear","benefit":"Shows the station’s annual income contribution to the business case."},
+        {"key":"portfolio-store-ticket","label":"Avg Store Ticket","description":"Average restaurant ticket for a captured charging guest.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Point-of-sale or planning ticket assumption","dependentVariable":"averageStoreTicket","benefit":"Links charging dwell time to potential store sales."},
+        {"key":"portfolio-guest-capture","label":"Guest Capture","description":"Share of charging visits that become restaurant guests.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Guest-capture assumption and site experience","dependentVariable":"guestCaptureRate","benefit":"Makes the conversion from chargers to customers explicit."},
+        {"key":"portfolio-store-sales","label":"Store Sales / Year","description":"Visits / Day × Avg Store Ticket × Guest Capture × 365.","source":"Field Guide · formula definition","independentVariables":"Expected visits per day; average store ticket; guest capture; 365 days","dependentVariable":"storeSalesPerYear","benefit":"Quantifies the potential restaurant-sales opportunity separately from charger income."},
+        {"key":"portfolio-combined-value","label":"Combined Annual Value","description":"Charging Income / Year + Store Sales / Year.","source":"Field Guide · formula definition","independentVariables":"Charging income per year; store sales per year","dependentVariable":"combinedAnnualValue","benefit":"Presents the total annual value stream for buyer review."},
+        {"key":"portfolio-rmp-incentive","label":"RMP Incentive Potential","description":"Potential Rocky Mountain Power incentive amount, subject to eligibility and approval.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Utility program eligibility; project scope","dependentVariable":"rmpIncentivePotential","benefit":"Helps identify utility support that could reduce project cost."},
+        {"key":"portfolio-deq-incentive","label":"DEQ / Clean Air Incentive","description":"Potential clean-air incentive amount, subject to program eligibility and approval.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Program eligibility; project scope","dependentVariable":"deqIncentivePotential","benefit":"Surfaces additional public or state support opportunities."},
+        {"key":"portfolio-total-incentives","label":"Total Incentives","description":"RMP Incentive Potential + DEQ / Clean Air Incentive.","source":"Field Guide · formula definition","independentVariables":"Potential utility and clean-air incentives","dependentVariable":"totalIncentives","benefit":"Shows the total modeled reduction before financing or tax review."},
+        {"key":"portfolio-net-cost","label":"Net Project Cost","description":"Project Cost − Total Incentives.","source":"Field Guide · formula definition","independentVariables":"Estimated project cost; total incentives","dependentVariable":"netProjectCost","benefit":"Provides the buyer-facing cost after modeled incentives."},
+        {"key":"portfolio-payback","label":"Combined-Value Payback (Years)","description":"Net Project Cost ÷ applicable annual value.","source":"Field Guide · formula definition","independentVariables":"Net project cost; applicable annual value","dependentVariable":"combinedValuePaybackYears","benefit":"Gives salespeople a simple time-to-value conversation starter."}
+      ],
+      "scorecard": [
+        {"key":"scorecard-charging-gap","label":"Charging Gap","description":"Weighted charging-supply gap component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Nearby charging inventory and capacity","dependentVariable":"chargingGapScore","benefit":"Highlights unmet charging need near the property."},
+        {"key":"scorecard-road-audience","label":"Road Audience","description":"Weighted roadway-audience component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Roadway counts and corridor exposure","dependentVariable":"roadAudienceScore","benefit":"Shows how many potential drivers can see or reach the site."},
+        {"key":"scorecard-ev-adoption","label":"EV Adoption","description":"Weighted local EV-adoption component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"EV registrations and regional growth","dependentVariable":"evAdoptionScore","benefit":"Connects the proposal to the local EV market."},
+        {"key":"scorecard-amenities","label":"Amenities","description":"Weighted nearby-amenity component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Nearby places and customer destinations","dependentVariable":"amenitiesScore","benefit":"Supports the argument that drivers have reasons to dwell nearby."},
+        {"key":"scorecard-corridor-access","label":"Corridor Access","description":"Weighted corridor-access component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Route-to-exit and roadway access","dependentVariable":"corridorAccessScore","benefit":"Explains convenience and route visibility."},
+        {"key":"scorecard-host-fit","label":"Host Fit","description":"Weighted host-property fit component.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Site access, operating context, and host checklist","dependentVariable":"hostFitScore","benefit":"Connects the data model to practical site execution."},
+        {"key":"scorecard-getev-total","label":"GetEV Score / 100","description":"SUMPRODUCT of the six scorecard components and their weights.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Charging gap; road audience; EV adoption; amenities; corridor access; host fit; component weights","dependentVariable":"getevScore100","benefit":"Provides one comparable site-fit score for portfolio prioritization."},
+        {"key":"scorecard-label","label":"Score Label","description":"Strong, Good, Conditional, or Weak based on score thresholds and critical flags.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"GetEV score; critical red flag","dependentVariable":"scoreLabel","benefit":"Turns a numeric score into an easy sales conversation."}
+      ],
+      "utilization": [
+        {"key":"utilization-evpin-5","label":"EVpin / 5","description":"EVpin site-fit score on its source five-point scale.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"EVpin assessment","dependentVariable":"evpinScore5","benefit":"Keeps the external utilization input traceable."},
+        {"key":"utilization-combined-score","label":"Combined Site Score","description":"AVERAGE of EVpin / 100 and GetEV / 100.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"EVpin normalized score; GetEV score","dependentVariable":"combinedSiteScore","benefit":"Blends independent and internal site-fit signals."},
+        {"key":"utilization-tesla-baseline","label":"Tesla Baseline","description":"Baseline utilization assumption used in the model.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Tesla baseline assumption","dependentVariable":"teslaBaseline","benefit":"Makes the starting point for the forecast visible."},
+        {"key":"utilization-comparable-adjustment","label":"Comparable Adjustment","description":"Capped adjustment from an observed comparable station versus the baseline.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Tesla comparable; Tesla baseline","dependentVariable":"comparableAdjustment","benefit":"Allows observed nearby performance to influence the forecast transparently."},
+        {"key":"utilization-expected","label":"Expected Utilization","description":"Capped expected case from baseline, combined site score, and comparable adjustment.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Tesla baseline; combined site score; comparable adjustment","dependentVariable":"expectedUtilization","benefit":"Creates an auditable expected planning case."},
+        {"key":"utilization-conservative","label":"Conservative Utilization","description":"Expected utilization less five percentage points, floored at ten percent.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Expected utilization","dependentVariable":"conservativeUtilization","benefit":"Provides a downside case for buyer and lender discussions."},
+        {"key":"utilization-high","label":"High Utilization","description":"Expected utilization plus five percentage points, capped at thirty percent.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Expected utilization","dependentVariable":"highUtilization","benefit":"Provides an upside case without hiding the cap."},
+        {"key":"utilization-visits-expected","label":"Expected Visits / Day","description":"Expected Utilization × Ports × 1,440 ÷ Session Minutes.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Expected utilization; ports; session minutes","dependentVariable":"expectedVisitsPerDay","benefit":"Converts utilization into expected daily station activity."},
+        {"key":"utilization-visits-conservative","label":"Conservative Visits / Day","description":"Conservative Utilization × Ports × 1,440 ÷ Session Minutes.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Conservative utilization; ports; session minutes","dependentVariable":"conservativeVisitsPerDay","benefit":"Shows the lower-bound daily demand case."},
+        {"key":"utilization-visits-high","label":"High Visits / Day","description":"High Utilization × Ports × 1,440 ÷ Session Minutes.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"High utilization; ports; session minutes","dependentVariable":"highVisitsPerDay","benefit":"Shows the upper-bound daily demand case."}
+      ],
+      "financing": [
+        {"key":"financing-loan-amount","label":"Loan Amount","description":"Financed project amount used in the Sunstone model.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Financing structure and project cost","dependentVariable":"loanAmount","benefit":"Shows the debt sizing assumption behind the ownership case."},
+        {"key":"financing-monthly-payment","label":"Monthly Payment","description":"Monthly loan payment for the modeled financing amount.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Loan amount; rate; term; amortization","dependentVariable":"monthlyLoanPayment","benefit":"Shows the recurring financing obligation."},
+        {"key":"financing-yearly-payment","label":"Yearly Loan Payment","description":"Annualized monthly loan payment.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Monthly loan payment; 12 months","dependentVariable":"yearlyLoanPayment","benefit":"Lets buyers compare debt service to annual value."},
+        {"key":"financing-combined-after-year","label":"Combined Value After Loan Payment / Year","description":"Combined annual value − yearly loan payment.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Combined annual value; yearly loan payment","dependentVariable":"combinedValueAfterLoanPerYear","benefit":"Shows modeled value remaining after debt service."},
+        {"key":"financing-combined-after-month","label":"Combined Value After Loan Payment / Month","description":"Combined monthly value − monthly loan payment.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Combined monthly value; monthly loan payment","dependentVariable":"combinedValueAfterLoanPerMonth","benefit":"Makes the financing case concrete in monthly terms."}
+      ],
+      "lease": [
+        {"key":"lease-target-return","label":"Target Return","description":"Target annual return used to calculate lease capacity.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Target return assumption","dependentVariable":"targetReturn","benefit":"Shows the return hurdle behind the host lease recommendation."},
+        {"key":"lease-required-return","label":"Required Return / Year","description":"Gross project cost × target return.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Gross project cost; target return","dependentVariable":"requiredReturnPerYear","benefit":"Makes the economics required by the owner explicit."},
+        {"key":"lease-capacity","label":"Annual Lease Capacity","description":"MAX(0, Charging Income / Year − Required Return / Year).","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Charging income; required return","dependentVariable":"annualLeaseCapacity","benefit":"Shows how much host lease value the station can support."},
+        {"key":"lease-calculated-per-port","label":"Calculated Lease / Port / Month","description":"Annual Lease Capacity ÷ Ports ÷ 12.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Annual lease capacity; ports; 12 months","dependentVariable":"calculatedLeasePerPortMonth","benefit":"Translates station economics into a per-port lease figure."},
+        {"key":"lease-recommended-per-port","label":"Recommended Lease / Port / Month","description":"Rounded commercial lease offer per port per month.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Calculated lease capacity; host-floor judgment","dependentVariable":"recommendedLeasePerPortMonth","benefit":"Gives salespeople a practical host offer to discuss."},
+        {"key":"lease-post-cash-flow","label":"Post-Lease Cash Flow","description":"Charging income − recommended lease.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Charging income; recommended lease","dependentVariable":"postLeaseCashFlow","benefit":"Shows the owner’s modeled cash flow after the lease."},
+        {"key":"lease-post-return","label":"Post-Lease Return","description":"Post-Lease Cash Flow ÷ Gross Project Cost.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Post-lease cash flow; gross project cost","dependentVariable":"postLeaseReturn","benefit":"Confirms whether the lease structure preserves the target return."}
+      ],
+      "fieldGuide": [
+        {"key":"field-operating-costs","label":"Operating Costs / Day","description":"Daily Tesla fee, utility cost, 1Solar support, and processing costs.","source":"7-Eleven Charging Portfolio.xlsx · Field Guide","independentVariables":"Network fee; utility cost; support; processing","dependentVariable":"operatingCostsPerDay","benefit":"Separates station operating costs from restaurant sales."},
+        {"key":"field-proposal-status","label":"Proposal / LOI Status","description":"Workflow status used to track portfolio progress.","source":"7-Eleven Charging Portfolio.xlsx · Field Guide","independentVariables":"Sales workflow status","dependentVariable":"proposalStatus","benefit":"Helps sales teams prioritize follow-up and next actions."},
+        {"key":"field-rmp-deq","label":"RMP / DEQ Incentives","description":"Potential or approved incentive amounts with eligibility status clarified in notes.","source":"7-Eleven Charging Portfolio.xlsx · Field Guide","independentVariables":"Utility and clean-air program eligibility","dependentVariable":"incentiveTotal","benefit":"Keeps incentive claims appropriately qualified."},
+        {"key":"field-evidence-status","label":"Evidence Status","description":"Status of the supporting evidence behind a site-fit metric.","source":"7-Eleven Charging Portfolio.xlsx · Field Guide and GetEV Scorecard","independentVariables":"Source refresh and verification status","dependentVariable":"evidenceStatus","benefit":"Helps salespeople distinguish verified evidence from preliminary planning inputs."}
+      ],
+      "fields": [
+        {"key":"portfolio-monthly-value","label":"Monthly Value","description":"Combined Annual Value ÷ 12.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown","independentVariables":"Combined annual value; 12 months","dependentVariable":"monthlyValue","benefit":"Provides a monthly value view for property-owner conversations."},
+        {"key":"portfolio-decision-note","label":"Decision Note","description":"Short explanation of the modeled lease or site decision.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Modeled return and commercial constraints","dependentVariable":"decisionNote","benefit":"Keeps the recommended action understandable to a salesperson and buyer."},
+        {"key":"scorecard-critical-flag","label":"Critical Red Flag","description":"Site-level flag requiring exception review.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Host and site diligence","dependentVariable":"criticalRedFlag","benefit":"Prevents a high score from hiding an execution blocker."},
+        {"key":"scorecard-evidence-notes","label":"Evidence Notes","description":"Supporting notes for the site-fit scorecard.","source":"7-Eleven Charging Portfolio.xlsx · GetEV Scorecard","independentVariables":"Charging inventory; roadway counts; amenities; access; local demand","dependentVariable":"evidenceNotes","benefit":"Gives salespeople concise support for each score."},
+        {"key":"utilization-evpin-100","label":"EVpin / 100","description":"EVpin / 5 converted to a 100-point scale: EVpin × 20.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"EVpin / 5","dependentVariable":"evpinScore100","benefit":"Makes the external score comparable with GetEV’s 100-point score."},
+        {"key":"utilization-getev-100","label":"GetEV / 100","description":"GetEV score on a 100-point scale.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"GetEV scorecard","dependentVariable":"getevScore100","benefit":"Carries the site-fit score into utilization forecasting."},
+        {"key":"utilization-tesla-comparable","label":"Tesla Comparable","description":"Observed comparable-station utilization input when available.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Observed comparable station data","dependentVariable":"teslaComparableUtilization","benefit":"Anchors projections to nearby real-world performance."},
+        {"key":"utilization-session-min","label":"Session Min","description":"Average charging-session duration in minutes.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Charging-session profile","dependentVariable":"sessionMinutes","benefit":"Converts utilization and ports into visits per day."},
+        {"key":"utilization-ports","label":"Utilization Model Ports","description":"Ports used by the utilization model.","source":"7-Eleven Charging Portfolio.xlsx · Utilization Model","independentVariables":"Charger plan","dependentVariable":"utilizationModelPorts","benefit":"Keeps forecast capacity aligned with the proposed station."},
+        {"key":"financing-project-cost","label":"Financed Project Cost","description":"Project cost used to scale financing payments by site.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Estimated project cost","dependentVariable":"financedProjectCost","benefit":"Shows the amount being financed for each candidate site."},
+        {"key":"financing-charging-income","label":"Financed Charging Income / Year","description":"Charging income carried from the portfolio model into financing.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Charging income per year","dependentVariable":"financedChargingIncomePerYear","benefit":"Compares charger income with annual debt service."},
+        {"key":"financing-store-sales","label":"Estimated Store Sales / Year","description":"Store sales carried from captured charging guests into financing.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Store sales per year","dependentVariable":"estimatedStoreSalesPerYear","benefit":"Keeps guest revenue visible in the financing view."},
+        {"key":"financing-combined-monthly","label":"Combined Monthly Value","description":"Combined Annual Value ÷ 12.","source":"7-Eleven Charging Portfolio.xlsx · Sunstone Financing","independentVariables":"Combined annual value; 12 months","dependentVariable":"combinedMonthlyValue","benefit":"Compares monthly value to monthly debt service."},
+        {"key":"lease-evpin","label":"Lease Model EVpin","description":"EVpin score carried into the lease model.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"EVpin site assessment","dependentVariable":"leaseModelEvpin","benefit":"Keeps the commercial offer tied to site-fit evidence."},
+        {"key":"lease-getev","label":"Lease Model GetEV","description":"GetEV score carried into the lease model.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"GetEV site-fit score","dependentVariable":"leaseModelGetev","benefit":"Makes the recommended lease traceable to the site score."},
+        {"key":"lease-expected-utilization","label":"Lease Model Expected Utilization","description":"Expected utilization carried into lease economics.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Expected utilization","dependentVariable":"leaseModelExpectedUtilization","benefit":"Connects station performance assumptions to host economics."},
+        {"key":"lease-gross-cost","label":"Gross Project Cost","description":"Installed project cost before incentives.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Project cost estimate","dependentVariable":"grossProjectCost","benefit":"Shows the capital base used to calculate return."},
+        {"key":"lease-charging-income","label":"Lease Model Charging Income / Year","description":"Charging income used in lease capacity.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Expected utilization; ports; price; costs","dependentVariable":"leaseModelChargingIncomePerYear","benefit":"Shows the revenue supporting the host lease."},
+        {"key":"lease-recommended-year","label":"Recommended Lease / Year","description":"Recommended Lease / Port / Month × Ports × 12.","source":"7-Eleven Charging Portfolio.xlsx · Lease Model","independentVariables":"Recommended lease per port; ports; 12 months","dependentVariable":"recommendedLeasePerYear","benefit":"Shows annual host income in the commercial proposal."},
+        {"key":"portfolio-evidence","label":"Portfolio Evidence","description":"Short evidence note attached to a candidate site.","source":"7-Eleven Charging Portfolio.xlsx · Store breakdown and GetEV Scorecard","independentVariables":"Site sources and review notes","dependentVariable":"portfolioEvidence","benefit":"Lets the sales team explain why a site is worth pursuing."}
+      ]
+    }
+  }
+}

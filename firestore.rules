@@ -5,23 +5,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function verified() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
     function isAdmin() {
-      return signedIn() && request.auth.token.email == 'richkingsford@gmail.com';
+      return signedIn() && (request.auth.token.email == 'richkingsford@gmail.com' || request.auth.token.email == 'mckselph@gmail.com');
     }
 
     function isApproved() {
-      return isAdmin() || (signedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.verificationStatus == 'approved');
+      return isAdmin() || (verified() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.verificationStatus == 'approved');
     }
 
     match /profiles/{userId} {
-      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
-      allow create: if signedIn() && request.auth.uid == userId && (isAdmin() || request.resource.data.verificationStatus == 'pending');
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && request.resource.data.verificationStatus == resource.data.verificationStatus);
+      allow read: if isAdmin() || (verified() && request.auth.uid == userId);
+      allow create: if isAdmin() || (verified() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending');
+      allow update: if isAdmin() || (verified() && request.auth.uid == userId && request.resource.data.verificationStatus == resource.data.verificationStatus);
       allow delete: if isAdmin();
     }
 
     match /company-documents/{userId}/{documentId} {
-      allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if verified() && (request.auth.uid == userId || isAdmin());
     }
 
     match /proposals/{userId} {

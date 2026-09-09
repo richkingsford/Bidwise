@@ -1,0 +1,15 @@
+{
+  "source": "UDOT",
+  "sourceRecordId": "049-0285",
+  "segmentId": "049-0285",
+  "routeId": "0089PM",
+  "roadName": "SR 89 Orem",
+  "beginPoint": 1.753,
+  "endPoint": 2.558,
+  "sectionLengthMiles": 0.805,
+  "aadt": 43000,
+  "dataYear": 2024,
+  "reviewer": "Rich Kingsford",
+  "sourceUrl": "https://drive.usercontent.google.com/download?id=1uqy48QRgN9pKPQ7sHC4UYAxGV6pHSUG2&export=download&confirm=t",
+  "sourcePage": "https://connect.udot.utah.gov/business/traffic-data/traffic-statistics/"
+}

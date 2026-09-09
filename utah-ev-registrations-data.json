@@ -1,0 +1,12 @@
+{
+  "source": "Utah State Tax Commission",
+  "geography": "25 - UTAH",
+  "registrationYear": 2026,
+  "observationDate": "2026-02-16",
+  "fuelType": "Electric",
+  "count": 16437,
+  "sourceUrl": "https://files.tax.utah.gov/tax/esu/mv-registration/2026registrations.xlsx",
+  "sourcePage": "https://tax.utah.gov/commission/econstats/mv/registrations/",
+  "sourceTable": "Table 5: On Highway Registrations by County, Vehicle Type and Fuel Type",
+  "retrievedAt": "2026-08-20"
+}

@@ -1,0 +1,9 @@
+{
+  "source": "OpenStreetMap Overpass + NLR/AFDC",
+  "category": "Car dealerships without EV chargers",
+  "retrievedAt": "2026-08-27T00:00:00.000Z",
+  "geography": "10 miles from Kneaders Bakery & Cafe, Orem, Utah",
+  "exclusionRule": "A place is included only when no NLR/AFDC station is within 0.25 miles.",
+  "status": "pending-live-query",
+  "records": []
+}

@@ -1,0 +1,18 @@
+{
+  "source": "OpenStreetMap Overpass",
+  "retrievedAt": "2026-08-21T04:45:00Z",
+  "site": "Kneaders Bakery & Cafe | 1960 N State Street, Orem, Utah",
+  "siteCoordinates": { "latitude": 40.333002, "longitude": -111.712338 },
+  "bbox": [40.323, -111.725, 40.343, -111.7],
+  "amenityRadiusKm": 1,
+  "poiCountInBbox": 197,
+  "poiCountWithinRadius": 138,
+  "foodAndDrinkPlaceCountWithinRadius": 15,
+  "foodAndDrinkTags": ["fast_food", "restaurant", "cafe", "bar", "pub", "ice_cream", "food_court", "bakery"],
+  "sourceUrl": "https://overpass-api.de/api/interpreter",
+  "samples": [
+    { "sourceRecordId": "node/359286750", "name": "McDonald's", "poiType": "fast_food", "latitude": 40.3270908, "longitude": -111.709011, "address": "1611 North State Street", "openingHours": "Mo-Th 05:00-23:00; Fr-Sa 05:00-24:00; Su 06:00-23:00" },
+    { "sourceRecordId": "node/6050300403", "name": "Oteo", "poiType": "restaurant", "latitude": 40.334933, "longitude": -111.7122288, "address": null, "openingHours": null },
+    { "sourceRecordId": "way/1550444128", "name": "Sweeto Burrito", "poiType": "fast_food", "latitude": 40.3335365, "longitude": -111.7127653, "address": "1990 North State Street", "openingHours": "Mo-Sa 10:30-21:00" }
+  ]
+}

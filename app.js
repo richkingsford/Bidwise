@@ -1,5 +1,17 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+let proposalCardCatalog = null;
+let proposalCardCatalogDefaults = null;
+let proposalCardDefaultsApplied = false;
+let udotAadtRecord = null;
+let utahEvRegistrationRecord = null;
+let overturePlacesRecord = null;
+let osmOverpassRecord = null;
+let nlrStationsRecord = null;
+let carDealershipGapRecord = null;
+let apartmentGapRecord = null;
+let regionalDataRecord = null;
+let rockyMountainPowerRatesRecord = null;
 
 const applyProductBranding = () => {
   document.title = document.title.replace(/Bidwise/gi, 'GetEV');
@@ -15,19 +27,36 @@ const applyProductBranding = () => {
 };
 applyProductBranding();
 
-const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=slider-blue-final-20260813o'; document.head.appendChild(themeLink);
+const themeLink = document.createElement('link'); themeLink.rel = 'stylesheet'; themeLink.href = 'styles.css?v=slide7-option-cards-restored-20260910'; document.head.appendChild(themeLink);
+const editOutlineOverride = document.createElement('style'); editOutlineOverride.textContent = '.inline-editing{outline:1px dashed #59616a88!important;outline-offset:3px!important;}'; document.head.appendChild(editOutlineOverride);
 
-if (window.location.hash.startsWith('#view=')) document.body.classList.add('view-only');
+function setPresentationMode(mode) {
+  const definitions = mode === 'definitions';
+  const viewOnly = mode === 'view';
+  document.body.classList.toggle('view-only', viewOnly);
+  document.body.classList.toggle('edit-mode', !viewOnly);
+  document.body.classList.toggle('definitions-mode', definitions);
+  const definitionsView = $('#definitionsView');
+  if (definitionsView) definitionsView.hidden = !definitions;
+  const presentationMenu = $('#presentationMenu');
+  if (presentationMenu && mode !== 'print') presentationMenu.value = definitions ? 'definitions' : viewOnly ? 'view' : 'edit';
+  if (definitions) { closeConfig?.(); renderDefinitionsView(); return; }
+  if (viewOnly) {
+    $$('.inline-editing').forEach(field => { field.contentEditable = false; field.classList.remove('inline-editing'); });
+    closeConfig?.();
+  }
+  syncInlineEditing();
+}
 
 const defaults = {
   overview: { siteName: 'Kneaders Bakery & Cafe', proposalName: 'Kneaders Bakery & Cafe Orem, Utah', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 90, co2Factor: 0.72 },
   site: { footprint: 4200, utilitySpend: 48000, annualKwh: 320000, peakDemand: 165, openHours: 14, selfConsumption: 92, provider: 'Rocky Mountain Power', tariff: 'Commercial GS-2', energyRate: 0.15, demandRate: 4.35, exportRate: 0.06, onsiteValue: 0.15, latitude: 40.333002, longitude: -111.712338, mapRadius: 5 },
   solar: { arrayKw: 410, productionRatio: 2463, moduleW: 545, warranty: 25, manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10', installation: 'Fixed-tilt rooftop', chartHigh: 96, chartLow: 48, chartStd: 18, chartShape: 'Normal bell curve', dataTable: '' },
   storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, batteryEfficiency: 90, manufacturer: 'Torus', model: 'Torus Spin', ratedCapacity: 1.2, investment: 235000, controls: 'Hybrid controller + secure monitoring' },
-  ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 18713, marketProofDays: 91, sourceWindow: 'May 10-August 2, 2026', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, conservativeReceipt: 12, averageReceipt: 20, highReceipt: 30, daysPerYear: 365, energyPerSessionKwh: 42, chargingPricePerKwh: 0.42, utilityEnergyCostPerKwh: 0.12, networkCostPerPortMonth: 85, maintenanceCostPerPortYear: 550, dailyTraffic: 24000, siteVisibilityScore: 8, entryExitScore: 8, travelRouteDistance: 0.4, amenityScore: 9, competitorCongestionScore: 7, currentBevPopulation: 6200, historicalBevGrowthPct: 24, projectedBevFleet: 15000, teslaMixPct: 48, trafficGrowthPct: 2.4, futureChargerConstruction: 3, publicFastChargingBehaviorPct: 68, investmentModel: 'Lease parking space', parkingLeasePerSpotMonth: 350, managementFeePerPortMonth: 125, evpinLink: '' },
+  ev: { marketProofVisitsPerDay: 210, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 17679, marketProofDays: 84, observedCharges3m: 25114, sourceWindow: '12 complete weeks', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 19.1, restaurantCaptureRate: 30, conservativeReceipt: 18, averageReceipt: 25, highReceipt: 32, daysPerYear: 365, energyPerSessionKwh: 30, chargingPricePerKwh: 0.45, utilityEnergyCostPerKwh: 0.12, networkCostPerPortMonth: 85, maintenanceCostPerPortYear: 550, dailyTraffic: 32689, siteVisibilityScore: 8, entryExitScore: 8, travelRouteDistance: 1.7, amenityScore: 20, competitorCongestionScore: 7, currentBevPopulation: 6200, historicalBevGrowthPct: 24, projectedBevFleet: 15000, teslaMixPct: 48, trafficGrowthPct: 2.4, futureChargerConstruction: 3, publicFastChargingBehaviorPct: 68, investmentModel: 'Full ownership', parkingLeasePerSpotMonth: 200, managementFeePerPortMonth: 125, evpinLink: '' },
   bundles: { critterGuard: 27500, lighting: 41250, hvac: 93193.39, hvacBase: 71687.22, coordination: 0 },
   vpp: { demandResponse: 12000, reservePct: 20, status: 'Subject to utility approval', controls: 'Secure dispatch + monitoring', customerValue: 'Peak management, resilience, bill control', utilityValue: 'Local capacity and summer peak support', workPlan: 'Metering → cybersecurity → dispatch testing → agreement' },
-  investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 125000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
+  investment: { solar: 820000, solarModules: 139400, solarInverters: 86600, solarRacking: 93600, solarBos: 131700, solarLabor: 255800, solarEngineering: 62300, solarCommissioning: 50600, battery: 235000, ev: 1200000, siteImprovements: 110000, incentivePct: 30, ownership: 'Customer-owned', placedInService: 'Year 1', taxAdvisor: 'Tax professional / incentive review' },
   economics: { escalation: 3, period: 20, discountRate: 8, annualOpex: 18000, taxBenefitPct: 30 },
   layout: { mapZoom: 19, defaultLineColor: '#ff5b68', designNote: 'Verify stall dimensions, ADA clearances, utility locate, and final trench depth in construction documents.' },
   lender: { dealershipPrivateChargerDiscount: 0, utilityCapacityScore: 7, tariffDemandChargeScore: 6, permittingScore: 6, incentiveEligibilityScore: 7, constructionCostScore: 6, safetyVandalismScore: 7, cellularConnectivityScore: 8, uptimeMaintenanceScore: 8, debtServiceCoverageScore: 7 }
@@ -35,22 +64,32 @@ const defaults = {
 
 const bidProfiles = {
   'copper-fork-grill-american-fork': { label: 'Copper Fork Grill', locationLabel: 'AMERICAN FORK, UT', scopes: { solar: true, storage: true, ev: true }, overrides: { overview: { proposalName: 'Copper Fork Grill American Fork, Utah', siteName: 'Copper Fork Grill', location: '789 W Main Street, American Fork, Utah 84003', proposalDate: '2026-08-14', status: 'Prepared', savingsRate: 26.4 }, site: { footprint: 18500, utilitySpend: 126000, annualKwh: 840000, peakDemand: 410, openHours: 16, latitude: 40.3769, longitude: -111.7958, mapRadius: 5 }, solar: { arrayKw: 285, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 1.2, powerKw: 600, shavePct: 19, dispatchHours: 4, investment: 235000 }, ev: { dcFast: 8, level2: 4, ports: 12, averageSessionMinutes: 28, forecastYear1Utilization: 8.5, forecastYear3Utilization: 14.2, forecastYear5Utilization: 17.1, restaurantCaptureRate: 25, averageReceipt: 24, daysPerYear: 365 }, vpp: { demandResponse: 18000, reservePct: 20 }, investment: { solar: 610000, battery: 235000, ev: 285000, siteImprovements: 95000 } } },
-  'kneaders-orem': { label: 'Kneaders Bakery & Cafe', locationLabel: 'OREM, UT', scopes: { solar: false, storage: false, ev: true }, overrides: { overview: { proposalName: 'Kneaders Bakery & Cafe Orem, Utah', siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-14', status: 'Prepared' }, site: { latitude: 40.333002, longitude: -111.712338, mapRadius: 5 }, ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 18713, marketProofDays: 91, sourceWindow: 'May 10-August 2, 2026', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, conservativeReceipt: 12, averageReceipt: 20, highReceipt: 30, daysPerYear: 365 } } },
-  'kneaders-orem-ev': { label: 'Kneaders Bakery & Cafe · Orem EV', locationLabel: 'OREM, UT', scopes: { solar: false, storage: false, ev: true }, overrides: { overview: { proposalName: 'Kneaders Bakery & Cafe Orem, Utah', siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-14', status: 'Prepared' }, site: { latitude: 40.333002, longitude: -111.712338, mapRadius: 5 }, ev: { marketProofVisitsPerDay: 200, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 18713, marketProofDays: 91, sourceWindow: 'May 10-August 2, 2026', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 16.1, restaurantCaptureRate: 30, conservativeReceipt: 12, averageReceipt: 20, highReceipt: 30, daysPerYear: 365 } } },
+  'kneaders-orem': { label: 'Kneaders Bakery & Cafe', locationLabel: 'OREM, UT', scopes: { solar: false, storage: false, ev: true }, overrides: { overview: { proposalName: 'Kneaders Bakery & Cafe Orem, Utah', siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-14', status: 'Prepared' }, site: { latitude: 40.333002, longitude: -111.712338, mapRadius: 5 }, ev: { marketProofVisitsPerDay: 210, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 17679, marketProofDays: 84, observedCharges3m: 25114, sourceWindow: '12 complete weeks', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 19.1, restaurantCaptureRate: 30, conservativeReceipt: 18, averageReceipt: 25, highReceipt: 32, daysPerYear: 365, energyPerSessionKwh: 30, chargingPricePerKwh: 0.45, dailyTraffic: 43000, trafficSource: 'UDOT', trafficSourceRecordId: '049-0285', trafficRoadName: 'SR 89 Orem', trafficDataYear: 2024, trafficSourceUrl: 'https://connect.udot.utah.gov/business/traffic-data/traffic-statistics/', currentBevPopulation: 16437, evRegistrationSource: 'Utah State Tax Commission', evRegistrationYear: 2026, evRegistrationObservationDate: '2026-02-16', amenityScore: 36, amenitySource: 'Overture Maps Places', amenityRadiusKm: 1, amenityDataRelease: '2026-08-19.0', parkingLeasePerSpotMonth: 200 }, investment: { ev: 1200000 } } },
+  'kneaders-orem-ev': { label: 'Kneaders Bakery & Cafe · Orem EV', locationLabel: 'OREM, UT', scopes: { solar: false, storage: false, ev: true }, overrides: { overview: { proposalName: 'Kneaders Bakery & Cafe Orem, Utah', siteName: 'Kneaders Bakery & Cafe', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-14', status: 'Prepared' }, site: { latitude: 40.333002, longitude: -111.712338, mapRadius: 5 }, ev: { marketProofVisitsPerDay: 210, marketProofPorts: 8, marketProofAverageSessionMinutes: 24, marketProofSessions3m: 17679, marketProofDays: 84, observedCharges3m: 25114, sourceWindow: '12 complete weeks', ports: 8, averageSessionMinutes: 24, forecastYear1Utilization: 7.7, forecastYear3Utilization: 15.4, forecastYear5Utilization: 19.1, restaurantCaptureRate: 30, conservativeReceipt: 18, averageReceipt: 25, highReceipt: 32, daysPerYear: 365, energyPerSessionKwh: 30, chargingPricePerKwh: 0.45, amenityScore: 20, parkingLeasePerSpotMonth: 200 }, investment: { ev: 1200000 } } },
   'maverick-lehi-solar': { label: 'Maverik · Lehi solar', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: false, ev: false }, overrides: { overview: { proposalName: 'Maverik #412 Lehi, Utah', siteName: 'Maverik #412', location: '760 E Main Street, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 24.1 }, site: { footprint: 5200, utilitySpend: 62000, annualKwh: 412000, peakDemand: 220, latitude: 40.391617, longitude: -111.849055, mapRadius: 4 }, solar: { arrayKw: 185, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0, powerKw: 0, shavePct: 0, dispatchHours: 0, investment: 0 }, ev: { dcFast: 0, level2: 0 }, vpp: { demandResponse: 0, reservePct: 0 }, investment: { solar: 415000, battery: 0, ev: 0, siteImprovements: 42000 } } },
   'target-lehi-solar-battery': { label: 'Target · Lehi solar + battery', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: true, ev: false }, overrides: { overview: { proposalName: 'Target Store #2234 Lehi, Utah', siteName: 'Target Store #2234', location: '1250 E Timpanogos Highway, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 25.7 }, site: { footprint: 128000, utilitySpend: 98000, annualKwh: 650000, peakDemand: 310, latitude: 40.416170, longitude: -111.848840, mapRadius: 4 }, solar: { arrayKw: 210, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0.8, powerKw: 400, shavePct: 22, dispatchHours: 2, investment: 168000 }, ev: { dcFast: 0, level2: 0 }, investment: { solar: 472000, battery: 168000, ev: 0, siteImprovements: 65000 } } }
 };
+const localBidStorageKey = 'GetEV-local-bids';
+const archivedBidStorageKey = 'GetEV-archived-bids';
+const readLocalBids = () => { try { return JSON.parse(localStorage.getItem(localBidStorageKey) || '{}'); } catch { return {}; } };
+const readArchivedBids = () => { try { return new Set(JSON.parse(localStorage.getItem(archivedBidStorageKey) || '[]')); } catch { return new Set(); } };
+Object.assign(bidProfiles, readLocalBids());
 const routeParams = new URLSearchParams(window.location.search);
 const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid') : null;
 const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
+const viewOnlyUrl = window.location.hash.startsWith('#view=');
+const canonicalProposalUrl = Boolean(routeParams.get('bid') && (!routeParams.has('copy') || viewOnlyUrl));
+if (canonicalProposalUrl || viewOnlyUrl) document.body.classList.add('canonical-proposal', 'view-only');
 const decodeCopyPayload = value => { if (!value) return null; try { const normalized = value.replace(/-/g, '+').replace(/_/g, '/'); const binary = atob(normalized); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); const payload = JSON.parse(new TextDecoder().decode(bytes)); return payload?.version === 1 && payload?.bidId === activeBidId && payload?.state && typeof payload.state === 'object' ? payload : null; } catch { return null; } };
 const copiedProposal = decodeCopyPayload(routeParams.get('copy'));
 const proposalScopes = { ...activeBid.scopes, ...(copiedProposal?.scopes || {}) };
 if (proposalScopes.lenderSupport == null) proposalScopes.lenderSupport = false;
 const inlineEditStorageKey = `GetEV-inline-edits:${activeBidId || 'home'}`;
 const storedInlineEdits = (() => { try { return JSON.parse(localStorage.getItem(inlineEditStorageKey) || '{}'); } catch { return {}; } })();
-let inlineEdits = copiedProposal?.inlineEdits && typeof copiedProposal.inlineEdits === 'object' ? copiedProposal.inlineEdits : storedInlineEdits;
-const isEvOnlyBid = ['kneaders-orem', 'kneaders-orem-ev'].includes(activeBidId);
+let inlineEdits = canonicalProposalUrl ? {} : (copiedProposal?.inlineEdits && typeof copiedProposal.inlineEdits === 'object' ? copiedProposal.inlineEdits : storedInlineEdits);
+const isEvOnlyBid = ['kneaders-orem', 'kneaders-orem-ev'].includes(activeBidId) || ['kneaders-orem', 'kneaders-orem-ev'].includes(activeBid?.sourceBidId);
+// A copied proposal uses the Kneaders page structure, but it is never Kneaders-specific content.
+const isKneadersReferenceProposal = isEvOnlyBid && !copiedProposal;
 const homeBidStatuses = { 'kneaders-orem': 'Prepared', 'kneaders-orem-ev': 'Prepared', 'copper-fork-grill-american-fork': 'Prepared', 'maverick-lehi-solar': 'In review', 'target-lehi-solar-battery': 'Ready to present' };
 const dashboardCompactMoney = value => {
   const amount = Number(value || 0);
@@ -62,10 +101,12 @@ const homeBidMetrics = bidId => {
   const dailyVisits = ev.ports * 24 * (ev.forecastYear5Utilization / 100) / Math.max(0.01, ev.averageSessionMinutes / 60);
   const dailyParties = Math.round(dailyVisits * ev.restaurantCaptureRate / 100);
   const annualFootTrafficRevenue = dailyParties * ev.averageReceipt * ev.daysPerYear;
-  return [
-    ['FOOT TRAFFIC REVENUE', `${dashboardCompactMoney(annualFootTrafficRevenue)} / yr`],
-    ['MARKET PROOF CHARGES', `${dashboardNumber(ev.marketProofVisitsPerDay)} / day`],
-    ['YEAR 5 DAILY FORECAST', `${dashboardNumber(dailyVisits)} / day`]
+  const values = { footTrafficRevenue: `${dashboardCompactMoney(annualFootTrafficRevenue)} / yr`, marketProofVisits: `${dashboardNumber(ev.marketProofVisitsPerDay)} / day`, year5Visits: `${dashboardNumber(dailyVisits)} / day` };
+  const metrics = proposalCardCatalog?.dashboard?.[bidId]?.metrics;
+  return metrics?.length ? metrics.map(metric => [metric.label, metric.value ?? values[metric.valueSource] ?? '']) : [
+    ['FOOT TRAFFIC REVENUE', values.footTrafficRevenue],
+    ['MARKET PROOF CHARGES', values.marketProofVisits],
+    ['YEAR 5 DAILY FORECAST', values.year5Visits]
   ];
 };
 $$('.bid-card').forEach(card => { const status = homeBidStatuses[card.dataset.bid]; if (!status) return; const badge = card.querySelector('.bid-status'); if (badge) badge.textContent = status.toUpperCase(); });
@@ -76,10 +117,17 @@ const bidDefaults = Object.fromEntries(Object.entries(defaults).map(([section, v
 const assumptionStorageKey = `GetEV-assumptions:${activeBidId || 'home'}`;
 const savedState = (() => { try { return JSON.parse(localStorage.getItem(assumptionStorageKey) || localStorage.getItem('GetEV-assumptions') || 'null'); } catch { return null; } })();
 const importedSource = isEvOnlyBid ? 'kneaders-orem-ev-only-paren-20260802' : `bid-${activeBidId}`;
-const reusableState = copiedProposal?.state || (savedState?.meta?.bidId === (activeBidId || 'home') || (isEvOnlyBid && savedState?.meta?.source === importedSource) ? savedState : null);
+const reusableState = (!viewOnlyUrl && copiedProposal?.state) || (!canonicalProposalUrl && (savedState?.meta?.bidId === (activeBidId || 'home') || (isEvOnlyBid && savedState?.meta?.source === importedSource)) ? savedState : null);
 const state = Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values, ...(reusableState?.[section] || {}) }]));
+const legacyKneadersSpendCases = [[10, 17, 26], [12, 20, 30]];
+if (isEvOnlyBid && !reusableState?.meta?.spendCasesVersion) {
+  const currentCases = [Number(state.ev.conservativeReceipt), Number(state.ev.averageReceipt), Number(state.ev.highReceipt)];
+  if (legacyKneadersSpendCases.some(legacy => legacy.every((value, index) => value === currentCases[index]))) Object.assign(state.ev, { conservativeReceipt: 18, averageReceipt: 25, highReceipt: 32 });
+}
+if (isEvOnlyBid && !reusableState?.meta?.guestRevenueVersion && Number(state.ev.forecastYear5Utilization) <= 17.1) state.ev.forecastYear5Utilization = 19.1;
 const storedCompanyBranding = (() => { try { return JSON.parse(localStorage.getItem('GetEV-company-branding') || '{}'); } catch { return {}; } })();
-state.brand = { companyName: 'GetEV Energy', tagline: 'Commercial energy projects, made decision-ready.', proposalSlogan: 'One accountable installation team.', companyLogo: '', ...(storedCompanyBranding || {}), ...(reusableState?.brand || {}) };
+state.brand = { companyName: 'GetEV Energy', tagline: 'Commercial energy projects, made decision-ready.', proposalSlogan: 'One accountable installation team.', companyLogo: 'assets/getev-placeholder-logo.svg', companyPhoto: '', ...(storedCompanyBranding || {}), ...(reusableState?.brand || {}) };
+state.brand.companyLogo ||= 'assets/getev-placeholder-logo.svg';
 const evInvestmentModels = ['Lease parking space', '50/50', 'Full ownership'];
 if (proposalScopes.ev && !evInvestmentModels.includes(state.ev.investmentModel)) state.ev.investmentModel = 'Lease parking space';
 const standardProposalName = () => `${state.overview.siteName} ${state.overview.location.split(',').slice(-2).join(',').trim()}`;
@@ -87,14 +135,285 @@ if (!state.overview.proposalName || /Energy Proposal|Solar Proposal|Solar \+ Bat
 if (activeBidId) state.overview.savingsRate = 90;
 if (activeBidId === 'maverick-lehi-solar') state.economics.annualOpex = 5200;
 if (activeBidId === 'target-lehi-solar-battery') state.economics.annualOpex = 8100;
-state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home', scenarios: { ...(reusableState?.meta?.scenarios || {}) }, expandedAssumptions: { ...(reusableState?.meta?.expandedAssumptions || {}) } };
+state.meta = { source: copiedProposal ? `copy-${activeBidId}` : importedSource, bidId: activeBidId || 'home', spendCasesVersion: isEvOnlyBid ? 1 : undefined, guestRevenueVersion: isEvOnlyBid ? 1 : undefined, scenarios: { ...(reusableState?.meta?.scenarios || {}) }, expandedAssumptions: { ...(reusableState?.meta?.expandedAssumptions || {}) } };
 const saveState = () => { const serialized = JSON.stringify(state); localStorage.setItem(assumptionStorageKey, serialized); localStorage.setItem('GetEV-assumptions', serialized); };
 const money = (n, digits = 0) => `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
 const compactMoney = (n) => Math.abs(n) >= 1e6 ? `${money(n / 1e6, 2)}M` : `${money(n / 1e3, 1)}K`;
 const roundedMoney = (n, increment = 100) => money(Math.round(Number(n || 0) / increment) * increment);
 const approximateMoney = n => money(Math.round(Number(n || 0) / 1000) * 1000);
 const number = (n, digits = 0) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
-const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+const esc = (value) => String(value ?? '')
+  .replace(/EDITABLE PLANNING INPUTS\s*[·•|:-]*\s*REPLACE WITH ACTUAL AVERAGE PARTY TICKET WHEN AVAILABLE/gi, '')
+  .replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+const sourceHref = label => {
+  const text = String(label || '').toLowerCase();
+  if (text.includes('nlr') || text.includes('alternative fuels data center')) return 'https://developer.nlr.gov/docs/transportation/alt-fuel-stations-v1/nearest/';
+  if (text.includes('udot')) return 'https://connect.udot.utah.gov/business/traffic-data/traffic-statistics/';
+  if (text.includes('tax commission')) return 'https://tax.utah.gov/commission/econstats/mv/registrations/';
+  if (text.includes('overture')) return 'https://docs.overturemaps.org/guides/places/';
+  if (text.includes('openstreetmap')) return 'https://dev.overpass-api.de/overpass-doc/en/';
+  if (text.includes('rocky mountain power') || text.includes('rmp') || text.includes('utility tariff')) return 'https://www.rockymountainpower.net/about/rates-regulation/utah-rates-tariffs.html';
+  if (text.includes('kneaders menu') || text.includes('official kneaders')) return 'https://www.kneaders.com/menu';
+  return '';
+};
+const sourceReliability = label => {
+  const text = String(label || '').toLowerCase();
+  if (text.includes('udot')) return 'Official annual roadway count published by UDOT; reliable for the stated road segment and observation year, not a live traffic feed.';
+  if (text.includes('tax commission')) return 'Official Utah registration record; reliable for the stated geography, vehicle category, and reporting snapshot.';
+  if (text.includes('overture')) return 'Open geospatial place inventory with release metadata; useful for bounded amenity counts, but place coverage and categories can change.';
+  if (text.includes('openstreetmap') || text.includes('overpass')) return 'Open volunteered geographic data; useful as a transparent fallback, but coverage and freshness vary by place.';
+  if (text.includes('nlr') || text.includes('alternative fuels')) return 'U.S. DOE/NLR station inventory; useful for public station infrastructure, power, access, and network details. It does not provide utilization.';
+  if (text.includes('observed') || text.includes('session')) return 'Observed charging-session dataset supplied for this proposal; useful for the stated observation window, but it is not a live utilization feed.';
+  if (text.includes('rocky mountain power') || text.includes('rmp') || text.includes('utility tariff')) return 'Rocky Mountain Power’s official Utah tariff and price-summary materials; useful for published energy and demand-rate schedules, not a customer’s actual bill.';
+  if (text.includes('kneaders menu') || text.includes('official kneaders')) return 'Kneaders’ official public menu; useful as a product-price reference, not as the restaurant’s average transaction value.';
+  if (text.includes('pos') || text.includes('point-of-sale')) return 'Kneaders POS data is not connected. An owner-provided transaction export is required to calculate a defensible average party spend.';
+  if (text.includes('property') || text.includes('site visit') || text.includes('site access')) return 'Owner property records and site verification are not connected. These inputs require plans, a site walk, or owner confirmation.';
+  if (text.includes('quote') || text.includes('agreement') || text.includes('vendor')) return 'Vendor quotes and executed agreements are not connected. These inputs require project-specific commercial documents.';
+  if (text.includes('configured') || text.includes('project input') || text.includes('forecast')) return 'Configured proposal input or forecast; no external record is connected for this value.';
+  if (text.includes('independent') || text.includes('forecast') || text.includes('assumption')) return 'Model input or forecast; review the underlying assumption and replace it with project-specific evidence when available.';
+  return 'Source metadata and reliability notes are available for review.';
+};
+const sourceLabelMarkup = label => { if (!document.body.classList.contains('definitions-mode')) return ''; const href = sourceHref(label); const note = esc(sourceReliability(label)); return href ? `<a class="card-source-link" href="${href}" target="_blank" rel="noreferrer" title="${note}">${esc(label)} ↗</a>` : `<span class="source-note" title="${note}" data-tooltip="${note}" role="button" tabindex="0">${esc(label)} <span class="source-info" aria-hidden="true">?</span></span>`; };
+const manualInputMarkup = (resources = 'site documents, vendor quotes, utility records, and operating data') => {
+  const text = String(resources || '').toLowerCase();
+  const sources = [];
+  const add = (label, detail = label) => { if (!sources.some(item => item.label === label)) sources.push({ label, detail }); };
+  if (text.includes('udot')) add('UDOT AADT');
+  if (text.includes('nlr') || text.includes('afdc')) add('NLR/AFDC');
+  if (text.includes('overture')) add('Overture Maps Places');
+  if (text.includes('openstreetmap') || text.includes('overpass')) add('OpenStreetMap / Overpass');
+  if (text.includes('observed') || text.includes('session')) add('Supplied observed charging-session data');
+  if (text.includes('utility') || text.includes('tariff') || text.includes('rocky mountain')) add('Rocky Mountain Power tariff');
+  if (text.includes('kneaders') && text.includes('menu')) add('Official Kneaders menu');
+  if (text.includes('pos') || text.includes('point-of-sale') || text.includes('party-spend') || text.includes('party spend')) add('Kneaders POS data — not connected');
+  if (text.includes('property') || text.includes('site visit') || text.includes('site-fit') || text.includes('site access') || text.includes('operating-team')) add('Owner property records — not connected');
+  if (text.includes('quote') || text.includes('agreement') || text.includes('vendor')) add('Project/vendor documents — not connected');
+  if (text.includes('forecast') || text.includes('assumption') || text.includes('input')) add('Configured forecast input');
+  if (!sources.length) add(resources);
+  return sources.map(item => sourceLabelMarkup(item.label)).join(' · ');
+};
+document.addEventListener('click', event => { const trigger = event.target.closest('.source-note,.manual-input-note'); if (!trigger) { $$('.source-note.is-open,.manual-input-note.is-open').forEach(item => item.classList.remove('is-open')); return; } event.preventDefault(); $$('.source-note.is-open,.manual-input-note.is-open').filter(item => item !== trigger).forEach(item => item.classList.remove('is-open')); trigger.classList.toggle('is-open'); });
+document.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; const trigger = event.target.closest('.source-note,.manual-input-note'); if (!trigger) return; event.preventDefault(); trigger.click(); });
+
+const proposalCardsReady = fetch(`proposal-cards.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(catalog => { proposalCardCatalog = catalog?.version ? catalog : null; proposalCardCatalogDefaults = proposalCardCatalog ? JSON.parse(JSON.stringify(proposalCardCatalog)) : null; return proposalCardCatalog; })
+  .catch(() => null);
+const udotAadtReady = fetch(`udot-aadt-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { udotAadtRecord = record?.source === 'UDOT' && Number.isFinite(Number(record.aadt)) ? record : null; return udotAadtRecord; })
+  .catch(() => null);
+const utahEvRegistrationsReady = fetch(`utah-ev-registrations-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { utahEvRegistrationRecord = record?.source === 'Utah State Tax Commission' && Number.isFinite(Number(record.count)) ? record : null; return utahEvRegistrationRecord; })
+  .catch(() => null);
+const overturePlacesReady = fetch(`overture-places-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { overturePlacesRecord = record?.source === 'Overture Maps Places' && Number.isFinite(Number(record.foodAndDrinkPlaceCountWithinRadius)) ? record : null; return overturePlacesRecord; })
+  .catch(() => null);
+const osmOverpassReady = fetch(`osm-overpass-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { osmOverpassRecord = record?.source === 'OpenStreetMap Overpass' && Number.isFinite(Number(record.foodAndDrinkPlaceCountWithinRadius)) ? record : null; return osmOverpassRecord; })
+  .catch(() => null);
+const nlrStationsReady = activeBidId && proposalScopes.ev ? fetch(`https://us-central1-bidwise-production.cloudfunctions.net/nlrStations?latitude=${encodeURIComponent(state.site.latitude)}&longitude=${encodeURIComponent(state.site.longitude)}&radius=10`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { nlrStationsRecord = record?.source === 'NLR/AFDC' && Array.isArray(record.stations) ? record : null; return nlrStationsRecord; })
+  .catch(() => null) : Promise.resolve(null);
+const carDealershipGapReady = fetch(`car-dealerships-without-ev-chargers-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { carDealershipGapRecord = record?.category === 'Car dealerships without EV chargers' && Array.isArray(record.records) ? record : null; return carDealershipGapRecord; })
+  .catch(() => null);
+const apartmentGapReady = fetch(`apartment-complexes-without-chargers-data.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { apartmentGapRecord = record?.category === 'Apartment complexes without chargers' && Array.isArray(record.records) ? record : null; return apartmentGapRecord; })
+  .catch(() => null);
+const regionalDataReady = fetch(`regional-data-sources.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { regionalDataRecord = Array.isArray(record?.states) ? record : null; return regionalDataRecord; })
+  .catch(() => null);
+const rockyMountainPowerRatesReady = fetch(`rocky-mountain-power-utah-rates.json?v=${Date.now()}`, { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(record => { rockyMountainPowerRatesRecord = record?.source === 'Rocky Mountain Power' && Number.isFinite(Number(record.annualWeightedEnergyRatePerKwh)) ? record : null; return rockyMountainPowerRatesRecord; })
+  .catch(() => null);
+
+const stateCodeFromLocation = location => String(location || '').match(/(?:,|\s)([A-Z]{2})(?:\s|$)/i)?.[1]?.toUpperCase() || '';
+const regionalSourceForLocation = location => regionalDataRecord?.states?.find(item => item.state === stateCodeFromLocation(location)) || null;
+const applyRegionalSourceContext = () => {
+  const source = regionalSourceForLocation(state.overview.location);
+  if (!source || stateCodeFromLocation(state.overview.location) === 'UT') return false;
+  const alreadyMapped = state.ev.regionalSourceState === source.state && state.ev.regionalTrafficSourceUrl === source.traffic.url;
+  Object.assign(state.ev, { regionalSourceState: source.state, regionalTrafficSource: source.traffic.name, regionalTrafficSourceUrl: source.traffic.url, regionalEvRegistrationSource: source.evRegistrations.name, regionalEvRegistrationSourceUrl: source.evRegistrations.url, regionalImportStatus: 'ready-for-import' });
+  return !alreadyMapped;
+};
+const refreshRegionalSourceLabels = () => {
+  const source = regionalSourceForLocation(state.overview.location); if (!source || stateCodeFromLocation(state.overview.location) === 'UT') return;
+  const trafficCard = $('#evDailyTraffic')?.closest('article'); const trafficNote = trafficCard?.querySelector('small'); if (trafficNote) trafficNote.textContent = state.ev.regionalImportStatus === 'live' ? `${state.ev.trafficSource} · ${state.ev.trafficDataYear || 'current'}` : `${source.traffic.name} · import pending`;
+  const growthCard = $('#evCurrentBevPopulation')?.closest('article'); const growthNote = growthCard?.querySelector('small'); if (growthNote) growthNote.textContent = `${source.evRegistrations.name} · import pending`;
+};
+const regionalTrafficReady = activeBidId && ['CO', 'NV', 'AZ', 'OR', 'ID'].includes(stateCodeFromLocation(state.overview.location)) ? fetch(`https://us-central1-bidwise-production.cloudfunctions.net/regionalTraffic?state=${encodeURIComponent(stateCodeFromLocation(state.overview.location))}&latitude=${encodeURIComponent(state.site.latitude)}&longitude=${encodeURIComponent(state.site.longitude)}`, { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null) : Promise.resolve(null);
+const applyRegionalTrafficRecord = record => {
+  if (!record || !Number.isFinite(Number(record.aadt))) return false;
+  const unchanged = state.ev.trafficSourceRecordId === String(record.sourceRecordId) && Number(state.ev.dailyTraffic) === Number(record.aadt);
+  Object.assign(state.ev, { dailyTraffic: Number(record.aadt), trafficSource: record.source, trafficSourceRecordId: String(record.sourceRecordId), trafficRoadName: record.roadName || '', trafficDataYear: record.dataYear || null, trafficSourceUrl: record.sourceUrl || '', regionalImportStatus: 'live' });
+  return !unchanged;
+};
+const applyRockyMountainPowerRates = record => {
+  if (!record || !Number.isFinite(Number(record.annualWeightedEnergyRatePerKwh))) return false;
+  const rate = Number(record.annualWeightedEnergyRatePerKwh);
+  const changed = Number(state.ev.utilityEnergyCostPerKwh) !== rate || state.ev.utilityEnergyCostSource !== record.tariff;
+  Object.assign(state.ev, { utilityEnergyCostPerKwh: rate, utilityEnergyCostSource: `${record.source} · ${record.tariff}`, utilityEnergyCostEffectiveDate: record.effectiveDate, utilityEnergyCostSourceUrl: record.rateSummaryUrl });
+  return changed;
+};
+
+function cardCatalog(path, fallback = []) {
+  return path.split('.').reduce((value, key) => value?.[key], proposalCardCatalog) || fallback;
+}
+function definitionIsEnabled(section, index) {
+  const hidden = proposalCardCatalog?.ev?._hiddenDefinitionCards || {};
+  return hidden[`${section}:${index}`] !== true;
+}
+function enabledCardSpecs(specs, section) {
+  const enabled = section === 'financialCards.chargingRevenue'
+    ? (specs || []).filter((_, index) => definitionIsEnabled('financialCards.chargingRevenue', index))
+    : section === 'financialCards.expenses'
+      ? (specs || []).filter((_, index) => definitionIsEnabled('financialCards.expenses', index))
+      : (specs || []).filter((_, index) => definitionIsEnabled(section, index));
+  return enabled.length ? enabled : (specs || []);
+}
+function renderJsonFinancialCards(container, specs, section = 'financialCards') {
+  if (!container || !specs?.length) return;
+  container.innerHTML = enabledCardSpecs(specs, section).map(spec => `<article data-card-key="${esc(spec.key)}"><span>${esc(spec.label)}</span><strong id="${esc(spec.valueId)}">${esc(spec.value || '—')}</strong><small>${esc(spec.description || '')}${spec.source ? ` · ${sourceLabelMarkup(spec.source)}` : spec.manual ? ` · ${manualInputMarkup(spec.resources)}` : ''}</small></article>`).join('');
+}
+function renderJsonSpendingCards(container, specs) {
+  if (!container || !specs?.length) return;
+  container.innerHTML = specs.map((spec, index) => definitionIsEnabled('spendingCases', index) ? `<article data-card-key="${esc(spec.key)}"><span>${esc(spec.label)}</span><strong id="${esc(spec.receiptId)}">${esc(spec.value || '—')}</strong><small>AVERAGE PARTY SPEND · ${spec.source ? sourceLabelMarkup(spec.source) : manualInputMarkup(spec.resources)}</small><div class="spend-periods"><span><small>DAY</small><b id="${esc(spec.dailyId)}">${esc(spec.daily || '—')}</b></span><span><small>MONTH</small><b id="${esc(spec.monthlyId)}">${esc(spec.monthly || '—')}</b></span><span><small>YEAR</small><b id="${esc(spec.annualId)}">${esc(spec.annual || '—')}</b></span></div></article>` : '').join('');
+}
+function renderJsonLocationMetrics(container, specs) {
+  if (!container || !specs?.length) return;
+  container.innerHTML = specs.map((spec, index) => { if (!definitionIsEnabled('locationMetrics', index)) return ''; const scale = spec.scale ? `<div class="metric-scale"><i></i><i></i><i></i></div><small><span>${esc(spec.scale.low || '')}</span><span>${esc(spec.scale.typical || '')}</span><b>${esc(spec.scale.high || '')}</b></small>` : ''; const action = spec.action ? `<b>${esc(spec.action)}</b>` : ''; const provenance = spec.source ? `<small class="metric-source">${sourceLabelMarkup(spec.source)}</small>` : spec.manual ? `<small class="metric-source">${manualInputMarkup(spec.resources)}</small>` : ''; return `<article class="ev-location-metric${spec.active ? ' active' : ''}" data-card-key="${esc(spec.key)}"><div><span>${esc(spec.label)}</span>${action}</div><strong id="${esc(spec.valueId)}">${esc(spec.value || '—')}</strong>${spec.descriptionId ? `<em id="${esc(spec.descriptionId)}"></em>` : `<em>${esc(spec.description || '')}</em>`}${spec.footnote ? `<p>${esc(spec.footnote)}</p>` : scale}${provenance}</article>`; }).join('');
+}
+function renderJsonScoreCards(container, specs) {
+  if (!container || !specs?.length) return;
+  container.innerHTML = specs.map(spec => `<article data-card-key="${esc(spec.key)}"><span>${esc(spec.label)}</span><strong id="${esc(spec.valueId)}"></strong><small>${esc(spec.description || '')}${spec.source ? ` · ${sourceLabelMarkup(spec.source)}` : spec.manual ? ` · ${manualInputMarkup(spec.resources)}` : ''}</small></article>`).join('');
+}
+function siteSnapshotMarkup(spec = {}) {
+  const outlook = spec.outlook || { label: 'STATE BENCHMARK', value: 'CONTEXT PENDING', description: 'COMPARE A VERIFIED STATEWIDE METRIC', note: 'PLANNING SCENARIOS TRANSLATE DEMAND INTO DAILY VISITS' };
+  const fleet = spec.fleet || { label: "UTAH COUNTY'S BEV FLEET HAS NEARLY DOUBLED IN TWO YEARS", source: 'UTAH STATE TAX COMMISSION  |  FEB 2026', stats: [] };
+  const scenarios = (spec.scenarios || []).filter((scenario, index) => definitionIsEnabled('siteSnapshotMockup.scenarios', index));
+  const fit = spec.fit || { label: 'WHY THIS LOCATION FITS THE CHARGING USE CASE', items: [] };
+  const meaning = spec.meaning || { label: 'WHAT THIS MEANS', headline: '', note: '' };
+  const scenarioProvenance = spec.scenarioProvenance?.source ? sourceLabelMarkup(spec.scenarioProvenance.source) : manualInputMarkup(spec.scenarioProvenance?.resources);
+  return `<div class="ev-site-snapshot-mockup"><div class="site-snapshot-top"><article class="site-capture-outlook"><div><span>${esc(outlook.label)}</span><b>VIEW METHOD ›</b></div><strong id="evSnapshotOutlook">${esc(outlook.value)}</strong><em>${esc(outlook.description)}</em><small>${esc(outlook.note)} · ${manualInputMarkup('UDOT AADT, NLR/AFDC inventory, observed session data, and site-fit review')}</small></article><article class="site-fleet-card"><div><span>${esc(fleet.label)}</span><small>${sourceLabelMarkup(fleet.source)}</small></div><div class="site-fleet-stats">${(fleet.stats || []).map(stat => `<div><span>${esc(stat.label)}</span><strong>${esc(stat.value)}</strong><small>${esc(stat.note)}</small></div>`).join('')}</div></article></div><div class="site-snapshot-scenario-head"><span>${esc(spec.scenarioLabel || 'YEAR 5 PLANNING SCENARIOS')}</span><small>${esc(spec.scenarioMeta || '')} · ${scenarioProvenance}</small></div><div class="site-snapshot-scenarios">${scenarios.map(scenario => `<article class="site-scenario-card ${scenario.active ? 'active' : ''} accent-${esc(scenario.accent || 'blue')}" data-site-scenario="${esc(scenario.key)}"><div><span>${esc(scenario.label)}</span><small>YEAR 5</small></div><strong id="evSnapshot${esc(scenario.key)}Visits">${esc(scenario.visits || '')}</strong><em>CHARGING VISITS / DAY</em><div class="site-scenario-detail"><span><b id="evSnapshot${esc(scenario.key)}Util">${esc(scenario.utilization || '')}</b><small>UTILIZATION</small></span><span><b id="evSnapshot${esc(scenario.key)}Parties">${esc(scenario.parties || '')}</b><small>POTENTIAL PARTIES / DAY</small></span></div><small>${esc(scenario.note || '')} · ${manualInputMarkup('observed charging demand, NLR/AFDC inventory, and executed charging agreements')}</small></article>`).join('')}</div><div class="site-snapshot-bottom"><article class="site-fit-card"><div><span>${esc(fit.label)}</span><b>VIEW EVIDENCE ›</b></div><div class="site-fit-items">${(fit.items || []).filter((item, index) => definitionIsEnabled('siteSnapshotMockup.fit.items', index)).map(item => `<div><span>${esc(item.label)}</span><strong${item.valueId ? ` id="${esc(item.valueId)}"` : ''}>${esc(item.value)}</strong><small class="accent-${esc(item.accent || 'blue')}">${esc(item.note)} · ${item.source ? sourceLabelMarkup(item.source) : item.manual ? manualInputMarkup(item.resources) : ''}</small></div>`).join('')}</div></article><article class="site-meaning-card"><span>${esc(meaning.label)}</span><h4>${esc(meaning.headline)}</h4><small>${esc(meaning.note)} · ${manualInputMarkup('site visit, property plans, and operating-team review')}</small></article></div><div class="site-snapshot-sources"><p>Sources: ${(spec.sources || []).map(sourceLabelMarkup).join(' | ')}.</p><p>${esc(spec.scenarioNote || '')}</p></div></div>`;
+}
+function guestSalesProfile() {
+  const type = state.overview.locationType || inferNewProposalLocationType(state.overview.siteName);
+  const profiles = cardCatalog('ev.guestSalesProfiles', {});
+  return { type, ...(profiles[type] || profiles['Commercial property'] || { spend: [10, 20, 30], capture: [10, 20, 30] }) };
+}
+function applyGuestSalesDefaults() {
+  if (!proposalCardCatalog?.ev?.guestSalesProfiles) return;
+  const profile = guestSalesProfile();
+  if (state.ev.guestSalesProfileType === profile.type) return;
+  [state.ev.conservativeReceipt, state.ev.averageReceipt, state.ev.highReceipt] = profile.spend;
+  [state.ev.lowGuestCaptureRate, state.ev.restaurantCaptureRate, state.ev.highGuestCaptureRate] = profile.capture;
+  state.ev.guestSalesProfileType = profile.type;
+}
+function guestSalesCases() {
+  const profile = guestSalesProfile();
+  const spends = [state.ev.conservativeReceipt, state.ev.averageReceipt, state.ev.highReceipt];
+  // Slide 4 isolates the spending sensitivity: every case uses the same expected
+  // party count, so only average party spend changes between cards.
+  const capture = Math.max(0, Math.min(100, Number(state.ev.restaurantCaptureRate ?? profile.capture?.[1] ?? 30)));
+  return ['conservative', 'expected', 'high'].map((key, index) => {
+    const spend = Math.max(0, Number(spends[index] ?? profile.spend[index]));
+    const parties = Math.round(calc.evForecastVisits(5) * capture / 100);
+    const daily = parties * spend;
+    return { key, label: ['LOW CASE', 'MEDIUM CASE', 'HIGH CASE'][index], capture, spend, parties, daily, monthly: daily * 30.42, annual: daily * state.ev.daysPerYear };
+  });
+}
+function guestSalesCardMarkup(item) {
+  const scenario = guestSalesCases().find(value => value.key === item.key);
+  if (!scenario) return `<article class="visitor-spend-card" data-card-key="${esc(item.key)}"><div><span>${esc(item.label)}</span></div><strong>${esc(item.value || 'Add value')}</strong><em>${esc(item.description || 'Customize in Edit Mode')}</em></article>`;
+  return `<article class="visitor-spend-card ${scenario.key === 'expected' ? 'active' : ''} accent-${scenario.key === 'conservative' ? 'amber' : scenario.key === 'expected' ? 'lime' : 'blue'}" data-guest-sales-case="${scenario.key}" data-card-key="${esc(item.key)}"><div><span>${scenario.label}</span><small data-guest-case-field="parties"></small></div><strong data-guest-case-field="spend"></strong><em>AVERAGE PARTY SPEND</em><p data-guest-case-field="capture"></p><div class="visitor-spend-periods"><span><small>DAY</small><b data-guest-case-field="daily"></b></span><span><small>MONTH</small><b data-guest-case-field="monthly"></b></span><span><small>YEAR</small><b data-guest-case-field="annual"></b></span></div><b class="visitor-spend-foot">POTENTIAL GROSS SALES</b></article>`;
+}
+function renderGuestSalesCases() {
+  guestSalesCases().forEach(scenario => {
+    document.querySelectorAll(`[data-guest-sales-case="${scenario.key}"]`).forEach(card => {
+      const values = { spend: money(scenario.spend), capture: `${number(scenario.capture)}% GUEST CAPTURE · ASSUMED`, parties: `~${number(scenario.parties)} PARTIES / DAY`, daily: money(scenario.daily), monthly: money(scenario.monthly), annual: money(scenario.annual) };
+      Object.entries(values).forEach(([key, value]) => { const node = card.querySelector(`[data-guest-case-field="${key}"]`); if (node) node.textContent = value; });
+    });
+  });
+}
+function visitorRevenueMarkup(spec = {}) {
+  const cases = cardCatalog('ev.spendingCases', []);
+  const scenarioCases = [
+    ['Conservative', 'evRevenueScenarioConservativeParties', 'evRevenueScenarioConservativeMonthly', 'evRevenueScenarioConservativeAnnual', 'amber'],
+    ['Expected', 'evRevenueScenarioExpectedParties', 'evRevenueScenarioExpectedMonthly', 'evRevenueScenarioExpectedAnnual', 'lime'],
+    ['Optimistic', 'evRevenueScenarioOptimisticParties', 'evRevenueScenarioOptimisticMonthly', 'evRevenueScenarioOptimisticAnnual', 'blue']
+  ];
+  return `<div class="ev-visitor-revenue-mockup"><div class="visitor-revenue-top"><article class="visitor-calculation-card"><div><span class="chart-label">${esc(spec.calculationLabel || 'FROM CHARGING DEMAND TO RESTAURANT GUESTS')}</span></div><div class="visitor-calculation-flow"><span><small>${esc(spec.expectedLabel || 'EXPECTED CHARGING VISITS')}</small><strong id="evCaptureVisits"></strong><em>YEAR 5 FORECAST</em></span><i>×</i><span><small>${esc(spec.captureLabel || 'GUEST-CAPTURE ASSUMPTION')}</small><strong id="evCaptureRate"></strong><em>UC Davis Fast Charging Study: 35% of charging-led trips included a purchase.</em></span><i>≈</i><span><small>${esc(spec.partiesLabel || 'POTENTIAL GUEST PARTIES')}</small><strong id="evCaptureParties"></strong><em>Potential business visits from the local forecast.</em></span></div></article><article class="visitor-base-card"><span class="chart-label">${esc(spec.planningLabel || 'BASE PLANNING CASE')}</span><strong id="evSalesExpectedAnnual"></strong><small>${esc(spec.planningDescription || 'POTENTIAL ANNUAL RESTAURANT SALES')}</small><b><span id="evSalesExpectedDaily"></span> / DAY &nbsp;|&nbsp; <span id="evSalesExpectedMonthly"></span> / MONTH</b></article></div><div class="visitor-revenue-label"><span>GUEST CAPTURE × PARTY SPEND</span></div><div class="visitor-spend-grid">${cases.filter((item, index) => definitionIsEnabled('spendingCases', index)).map(guestSalesCardMarkup).join('')}</div><article class="visitor-meaning-card visitor-meaning-full"><span class="chart-label">${esc(spec.meaningLabel || 'WHAT THIS MEANS')}</span><h4>${esc(spec.meaningHeadline || 'Independent studies support a practical, measurable foot-traffic opportunity.')}</h4><small>${esc(spec.meaningNote || 'The forecast is a planning case, not a guarantee.')} Monthly figures use 30.42 days per month.</small></article></div>`;
+}
+function renderDashboardCardsFromJson(showArchived = false) {
+  const grid = $('.bid-grid'); if (!grid || !proposalCardCatalog?.dashboard) return;
+  const archived = readArchivedBids();
+  const localCards = Object.fromEntries(Object.entries(readLocalBids()).map(([bidId, profile]) => [bidId, { title: profile.label, location: profile.locationLabel, avatar: (profile.label || 'P').slice(0, 1).toUpperCase(), avatarClass: '', scopes: Object.entries(profile.scopes || {}).filter(([, enabled]) => enabled).map(([scope]) => scope === 'storage' ? 'Battery storage' : scope === 'ev' ? 'EV charging' : 'Solar'), metrics: proposalCardCatalog.dashboard[profile.sourceBidId || 'copper-fork-grill-american-fork']?.metrics || [] }]));
+  const cards = Object.entries({ ...proposalCardCatalog.dashboard, ...localCards }).filter(([bidId]) => showArchived ? archived.has(bidId) : !archived.has(bidId));
+  grid.innerHTML = cards.map(([bidId, card]) => `<article class="bid-card" data-bid="${esc(bidId)}"><div class="bid-card-top"><span class="bid-status ${homeBidStatuses[bidId] === 'Prepared' ? 'ready' : homeBidStatuses[bidId] === 'Draft' ? 'draft' : 'review'}">${esc((homeBidStatuses[bidId] || 'Prepared').toUpperCase())}</span><span class="bid-owner">Proposal team</span></div><div class="bid-card-title"><span class="store-avatar ${esc(card.avatarClass || '')}">${esc(card.avatar || '')}</span><div><h2>${esc(card.title)}</h2><p>${esc(card.location)}</p></div></div><div class="bid-scope">${(card.scopes || []).map(scope => `<span>${esc(scope)}</span>`).join('')}</div><div class="bid-metrics">${(card.metrics || []).map(metric => `<div><small>${esc(metric.label)}</small><strong></strong></div>`).join('')}</div><div class="bid-card-actions"><button class="bid-manage" type="button" data-copy-bid="${esc(bidId)}">Copy bid</button><button class="bid-manage" type="button" data-archive-bid="${esc(bidId)}">Archive</button></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>`).join('');
+  $$('.bid-card').forEach(card => { const metrics = homeBidMetrics(card.dataset.bid); card.querySelectorAll('.bid-metrics > div').forEach((metric, index) => { const item = metrics[index]; if (!item) return; metric.querySelector('small').textContent = item[0]; metric.querySelector('strong').textContent = item[1]; }); });
+  const homeTitle = document.querySelector('#homeTitle'); if (homeTitle) homeTitle.textContent = showArchived ? 'Your archived bids.' : 'Your active bids.';
+  const homeFooterCount = document.querySelector('.home-footer span:first-child'); if (homeFooterCount) homeFooterCount.innerHTML = `<i class="live-dot"></i> ${cards.length} ${showArchived ? 'archived' : 'active'} proposals`;
+  const footer = document.querySelector('.home-footer'); if (footer) { footer.querySelector('[data-archived-toggle]')?.remove(); const archivedToggle = document.createElement('a'); archivedToggle.href = '#archived'; archivedToggle.dataset.archivedToggle = 'true'; archivedToggle.textContent = showArchived ? 'Show active' : 'Show archived'; archivedToggle.addEventListener('click', event => { event.preventDefault(); renderDashboardCardsFromJson(!showArchived); }); footer.insertBefore(archivedToggle, footer.lastElementChild); }
+  grid.querySelectorAll('[data-copy-bid]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); const sourceId = button.dataset.copyBid; const source = bidProfiles[sourceId]; if (!source) return; const copyId = `${sourceId}-copy-${Date.now()}`; const copy = JSON.parse(JSON.stringify({ ...source, label: `${source.label || source.overrides?.overview?.siteName || 'Proposal'} copy`, sourceBidId: sourceId })); const copies = readLocalBids(); copies[copyId] = copy; localStorage.setItem(localBidStorageKey, JSON.stringify(copies)); window.location.assign(`?bid=${encodeURIComponent(copyId)}`); }));
+  grid.querySelectorAll('[data-archive-bid]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); const archivedIds = readArchivedBids(); archivedIds.add(button.dataset.archiveBid); localStorage.setItem(archivedBidStorageKey, JSON.stringify([...archivedIds])); renderDashboardCardsFromJson(); }));
+  bindDashboardCards();
+}
+function applyJsonProposalCards() {
+  if (!proposalCardCatalog?.ev) return;
+  if (!proposalCardDefaultsApplied && isEvOnlyBid && !reusableState?.meta?.jsonCardValuesVersion) {
+    // Location-type spending defaults are applied by applyGuestSalesDefaults().
+    state.meta.jsonCardValuesVersion = proposalCardCatalog.version;
+    proposalCardDefaultsApplied = true;
+  }
+  renderJsonLocationMetrics($('#ev-report-1 .ev-location-metrics'), cardCatalog('ev.locationMetrics'));
+  const locationSupport = $('#ev-report-1 .ev-location-support');
+  if (locationSupport && !locationSupport.textContent.includes('BUSINESS HOURS')) locationSupport.insertAdjacentHTML('beforeend', `<article><strong>${/kneaders/i.test(state.overview.siteName) ? 'MON–SAT 7:00 AM–10:00 PM · SUNDAY CLOSED' : 'BUSINESS HOURS PENDING VERIFICATION'}</strong><span>BUSINESS HOURS <button class="metric-help" title="Published store hours establish the usable charging and guest-service window.">?</button></span><small>${/kneaders/i.test(state.overview.siteName) ? 'KNEADERS LOCATION DIRECTORY' : 'VERIFY WITH BUSINESS'}</small></article>`);
+  renderJsonSpendingCards($('#ev-report-3 .ev-financial-grid'), cardCatalog('ev.spendingCases'));
+  ensureCustomCardProvenance();
+}
+
+function ensureCustomCardProvenance() {
+  const annotations = {
+    evLocationTraffic: sourceLabelMarkup('UDOT AADT'),
+    evLocationRoute: manualInputMarkup('site access review, property plans, and final site walk'),
+    evLocationAmenities: sourceLabelMarkup('Overture Maps Places'),
+    evRevenueVisits: manualInputMarkup('observed charging-session export and executed charging agreements'),
+    evRevenueEnergy: manualInputMarkup('charger specification, session duration, and operating assumptions'),
+    evChargingRevenue: manualInputMarkup('charging price, utilization forecast, and executed network agreement'),
+    evElectricityExpense: manualInputMarkup('utility tariff, charger load profile, and operating agreement'),
+    evFixedExpenses: manualInputMarkup('network quote, maintenance quote, and executed service agreement'),
+    evOperatingExpenses: manualInputMarkup('utility tariff, network quote, maintenance quote, and operating agreement')
+  };
+  Object.entries(annotations).forEach(([id, markup]) => {
+    if (!markup) return;
+    const value = document.getElementById(id);
+    const card = value?.closest('article');
+    if (!card || card.querySelector('.metric-source,.card-provenance')) return;
+    const note = document.createElement('small');
+    note.className = 'metric-source card-provenance';
+    note.innerHTML = markup;
+    card.appendChild(note);
+  });
+  $$('#ev .reference-option, #ev .reference-highlight, #ev .bundle-card, #ev .ev-big-numbers article, #ev .ev-output-grid article, #ev .ev-financial-grid article, #ev .ev-lender-summary article').forEach(card => {
+    if (card.querySelector('.metric-source,.card-provenance,.source-note,.manual-input-note,.card-source-link')) return;
+    if (!/[$%]|\d/.test(card.textContent)) return;
+    const markup = manualInputMarkup('site documents, vendor quotes, utility records, and executed agreements');
+    if (!markup) return;
+    const note = document.createElement('small');
+    note.className = 'metric-source card-provenance';
+    note.innerHTML = markup;
+    card.appendChild(note);
+  });
+}
 
 const calc = {
   totalInvestment: () => state.investment.solar + state.investment.battery + state.investment.ev + state.investment.siteImprovements,
@@ -115,7 +434,7 @@ const calc = {
   evForecastParties: year => calc.evForecastVisits(year) * state.ev.restaurantCaptureRate / 100,
   evRoundedParties: year => Math.round(calc.evForecastParties(year)),
   evRestaurantSales: receipt => calc.evRoundedParties(5) * receipt,
-  evRestaurantSalesMonthly: receipt => calc.evRestaurantSales(receipt) * state.ev.daysPerYear / 12,
+  evRestaurantSalesMonthly: receipt => calc.evRestaurantSales(receipt) * 30.42,
   evRestaurantSalesAnnual: receipt => calc.evRestaurantSales(receipt) * state.ev.daysPerYear,
   evAnnualSessions: () => calc.evForecastVisits(5) * state.ev.daysPerYear,
   evChargingRevenueAnnual: () => calc.evAnnualSessions() * state.ev.energyPerSessionKwh * state.ev.chargingPricePerKwh,
@@ -127,7 +446,9 @@ const calc = {
   evProjectedValueAnnual: () => calc.evChargingMarginAnnual() + calc.evRestaurantSalesAnnual(state.ev.averageReceipt),
   lenderBankabilityScore: () => ['utilityCapacityScore', 'tariffDemandChargeScore', 'permittingScore', 'incentiveEligibilityScore', 'constructionCostScore', 'safetyVandalismScore', 'cellularConnectivityScore', 'uptimeMaintenanceScore', 'debtServiceCoverageScore'].reduce((total, key) => total + Number(state.lender[key] || 0), 0) / 9 * 10,
   locationCaptureScore: () => { const sessionsPerPort = state.ev.marketProofVisitsPerDay / Math.max(1, state.ev.marketProofPorts); const utilization = state.ev.marketProofVisitsPerDay * state.ev.marketProofAverageSessionMinutes / Math.max(1, state.ev.marketProofPorts * 24 * 60) * 100; return Math.min(100, Math.min(1, sessionsPerPort / 30) * 50 + Math.min(1, utilization / 50) * 50); },
-  siteCaptureScore: () => Math.min(100, state.ev.dailyTraffic / 30000 * 25 + state.ev.siteVisibilityScore / 10 * 15 + state.ev.entryExitScore / 10 * 15 + Math.max(0, 1 - state.ev.travelRouteDistance / 5) * 15 + state.ev.amenityScore / 10 * 15 + state.ev.competitorCongestionScore / 10 * 15),
+  siteCaptureScore: () => Math.min(100, state.ev.dailyTraffic / 30000 * 30 + state.ev.siteVisibilityScore / 10 * 15 + state.ev.entryExitScore / 10 * 20 + Math.max(0, 1 - state.ev.travelRouteDistance / 5) * 20 + state.ev.competitorCongestionScore / 10 * 15),
+  getevScore: () => Math.min(100, Math.max(0, (state.ev.competitorCongestionScore / 10 * 100) * .20 + Math.min(100, state.ev.dailyTraffic / 700 * 2) * .25 + Math.min(100, state.ev.currentBevPopulation / 75) * .15 + Math.max(0, 100 - state.ev.travelRouteDistance * 20) * .15 + Math.min(100, state.ev.entryExitScore * 10) * .25)),
+  scorecardMonthlyPayment: () => 6604.77 * (state.investment.ev / 500000),
   futureGrowthScore: () => Math.min(100, state.ev.currentBevPopulation / 10000 * 25 + state.ev.historicalBevGrowthPct / 30 * 15 + state.ev.projectedBevFleet / 20000 * 20 + (1 - Math.abs(50 - state.ev.teslaMixPct) / 50) * 10 + state.ev.trafficGrowthPct / 4 * 10 + state.ev.futureChargerConstruction / 6 * 5 + state.ev.publicFastChargingBehaviorPct / 100 * 15),
   currentDemandScore: () => (calc.locationCaptureScore() + calc.siteCaptureScore() + calc.futureGrowthScore() + calc.lenderBankabilityScore()) / 4,
   evPorts: () => state.ev.ports,
@@ -151,19 +472,45 @@ const calc = {
 
 // Imported from the workbook's Metadata + Weekly tabs: unique nearby station locations and their observed 3-month demand.
 const demandStations = [
-  { name: 'Orem, UT - Tesla Supercharger', network: 'Tesla', lat: 40.272608, lon: -111.704992, ports: 8, charges: 18713 },
-  { name: 'RMP Midtown 360 (Orem, UT)', network: 'Rocky Mountain Power', lat: 40.292770, lon: -111.693440, ports: 4, charges: 2411 },
-  { name: 'WinCo Foods - Tesla Supercharger', network: 'Tesla', lat: 40.312900, lon: -111.721024, ports: 16, charges: 1210 },
-  { name: 'CC Station1 Orem City DC 4', network: 'ChargePoint', lat: 40.297465, lon: -111.693144, ports: 1, charges: 1020 },
-  { name: 'Unique Auto Body - DCFC', network: 'Blink', lat: 40.372490, lon: -111.785045, ports: 4, charges: 562 },
-  { name: 'Walmart EV Charging - Lindon', network: 'Walmart', lat: 40.348499, lon: -111.731817, ports: 8, charges: 411 },
-  { name: 'Walmart EV Charging - Orem', network: 'Walmart', lat: 40.272656, lon: -111.710217, ports: 8, charges: 397 },
-  { name: 'Murdock Lindon Hyundai F2', network: 'ChargePoint', lat: 40.328821, lon: -111.731898, ports: 1, charges: 288 },
-  { name: 'Murdock Genesis Sales South', network: 'ChargePoint', lat: 40.329342, lon: -111.733807, ports: 1, charges: 90 },
-  { name: 'AF Ford Power Link 1', network: 'ChargePoint', lat: 40.357198, lon: -111.783924, ports: 2, charges: 12 },
-  { name: 'Ken Garff Nissan - Orem', network: 'ChargePoint', lat: 40.273330, lon: -111.702080, ports: 1, charges: 0 },
-  { name: 'Doug Smith Kia', network: 'ChargePoint', lat: 40.329843, lon: -111.730039, ports: 5, charges: 0 }
+  { name: 'Orem, UT - Tesla Supercharger', network: 'Tesla', lat: 40.272608, lon: -111.704992, ports: 8, charges: 18713, capabilityKw: 250 },
+  { name: 'RMP Midtown 360 (Orem, UT)', network: 'Rocky Mountain Power', lat: 40.292770, lon: -111.693440, ports: 4, charges: 2411, capabilityKw: 150 },
+  { name: 'WinCo Foods - Tesla Supercharger', network: 'Tesla', lat: 40.312900, lon: -111.721024, ports: 16, charges: 1210, capabilityKw: 250 },
+  { name: 'CC Station1 Orem City DC 4', network: 'ChargePoint', lat: 40.297465, lon: -111.693144, ports: 1, charges: 1020, capabilityKw: 62 },
+  { name: 'Unique Auto Body - DCFC', network: 'Blink', lat: 40.372490, lon: -111.785045, ports: 4, charges: 562, capabilityKw: 50 },
+  { name: 'Walmart EV Charging - Lindon', network: 'Walmart', lat: 40.348499, lon: -111.731817, ports: 8, charges: 411, capabilityKw: 150 },
+  { name: 'Walmart EV Charging - Orem', network: 'Walmart', lat: 40.272656, lon: -111.710217, ports: 8, charges: 397, capabilityKw: 150 },
+  { name: 'Murdock Lindon Hyundai F2', network: 'ChargePoint', lat: 40.328821, lon: -111.731898, ports: 1, charges: 288, capabilityKw: 62 },
+  { name: 'Murdock Genesis Sales South', network: 'ChargePoint', lat: 40.329342, lon: -111.733807, ports: 1, charges: 90, capabilityKw: 62 },
+  { name: 'AF Ford Power Link 1', network: 'ChargePoint', lat: 40.357198, lon: -111.783924, ports: 2, charges: 12, capabilityKw: 180 },
+  { name: 'Ken Garff Nissan - Orem', network: 'ChargePoint', lat: 40.273330, lon: -111.702080, ports: 1, charges: 0, capabilityKw: 62 },
+  { name: 'Doug Smith Kia', network: 'ChargePoint', lat: 40.329843, lon: -111.730039, ports: 5, charges: 0, capabilityKw: 62 }
 ];
+
+const chargerCapability = station => {
+  const kw = Number(station.capabilityKw || 0);
+  if (kw >= 200) return { key: 'ultra', label: 'Ultra-fast · 200+ kW', color: '#d8ed4f' };
+  if (kw >= 100) return { key: 'high', label: 'Fast · 100–199 kW', color: '#ff8b4d' };
+  return { key: 'standard', label: 'Lower-power DC · under 100 kW', color: '#70b7ff' };
+};
+const stationUsagePerPort = station => Number(station.charges || 0) / Math.max(1, Number(station.ports || 1));
+const stationDotSize = station => {
+  const scores = demandStations.map(item => Math.log1p(stationUsagePerPort(item)));
+  const score = Math.log1p(stationUsagePerPort(station));
+  const min = Math.min(...scores), max = Math.max(...scores);
+  return Math.round(9 + ((score - min) / Math.max(0.001, max - min)) * 17);
+};
+const nlrInventoryStations = () => Array.isArray(nlrStationsRecord?.stations) ? nlrStationsRecord.stations.filter(station => Number.isFinite(Number(station.latitude)) && Number.isFinite(Number(station.longitude))) : [];
+const milesBetween = (aLat, aLon, bLat, bLon) => {
+  const latMiles = (Number(aLat) - Number(bLat)) * 69;
+  const lonMiles = (Number(aLon) - Number(bLon)) * 69 * Math.cos(Number(aLat) * Math.PI / 180);
+  return Math.sqrt(latMiles ** 2 + lonMiles ** 2);
+};
+const matchingNlrStation = station => nlrInventoryStations().find(item => milesBetween(station.lat, station.lon, item.latitude, item.longitude) <= 0.15) || null;
+const nlrCapability = station => chargerCapability({ capabilityKw: station.maxPowerKw });
+const nlrDetailsMarkup = station => station ? `<br><small>Source: NLR/AFDC · ${esc(station.chargingType)} · ${number(station.portCount)} ports · ${number(station.maxPowerKw || 0)} kW max · ${esc(station.status || 'status unavailable')} · ${esc(station.access || 'access unavailable')}</small>` : '';
+const unmatchedNlrStations = () => nlrInventoryStations().filter(station => !demandStations.some(observed => matchingNlrStation(observed)?.sourceRecordId === station.sourceRecordId));
+const gapSites = (record, label) => (record?.records || []).filter(site => Number.isFinite(Number(site.latitude)) && Number.isFinite(Number(site.longitude))).map(site => ({ ...site, layerLabel: label }));
+const gapSitePopup = site => `<b>${esc(site.name || site.layerLabel)}</b><br>${esc(site.address || 'Address unavailable')}<br><small>${esc(site.layerLabel)} · Source: OpenStreetMap Overpass + NLR/AFDC</small>`;
 
 const regionalEvBenchmark = { location: 'St. George, UT', ports: 53, stations: 9, charges3m: 39210, utilization: 18.3, avgKwh: 26.8, sourceWindow: '2026-05-07 to 2026-08-02 · 88 daily observations' };
 
@@ -201,12 +548,12 @@ const configSchemas = {
   ] },
   ev: { title: 'EV customer value', fields: [
     ['ports', 'Proposed site charging ports', 'number'], ['averageSessionMinutes', 'Average session duration (minutes)', 'number'],
-    ['forecastYear1Utilization', 'Year 1 EVpin utilization (%)', 'number'], ['forecastYear3Utilization', 'Year 3 EVpin utilization (%)', 'number'], ['forecastYear5Utilization', 'Year 5 EVpin utilization (%)', 'number'], ['restaurantCaptureRate', 'Restaurant capture rate (%)', 'number'], ['conservativeReceipt', 'Conservative average receipt ($)', 'number'], ['averageReceipt', 'Expected average receipt ($)', 'number'], ['highReceipt', 'High average receipt ($)', 'number'], ['daysPerYear', 'Operating days per year', 'number'], ['energyPerSessionKwh', 'Energy delivered per charging session (kWh)', 'number'], ['chargingPricePerKwh', 'Charging price ($/kWh)', 'number'], ['utilityEnergyCostPerKwh', 'Utility energy cost ($/kWh)', 'number'], ['networkCostPerPortMonth', 'Network cost per port / month ($)', 'number'], ['maintenanceCostPerPortYear', 'Maintenance per port / year ($)', 'number'], ['dailyTraffic', 'Daily traffic (vehicles)', 'number'], ['siteVisibilityScore', 'Site visibility (1-10)', 'number'], ['entryExitScore', 'Ease of entry and exit (1-10)', 'number'], ['travelRouteDistance', 'Distance from major travel route (miles)', 'number'], ['amenityScore', 'Food, restrooms, seating and Wi-Fi (1-10)', 'number'], ['competitorCongestionScore', 'Competitive charger congestion (1-10)', 'number'], ['currentBevPopulation', 'Current BEV population', 'number'], ['historicalBevGrowthPct', 'Historical BEV growth (%)', 'number'], ['projectedBevFleet', 'Projected BEV fleet', 'number'], ['teslaMixPct', 'Tesla share of BEV fleet (%)', 'number'], ['trafficGrowthPct', 'Traffic growth (%)', 'number'], ['futureChargerConstruction', 'Future charger construction (sites)', 'number'], ['publicFastChargingBehaviorPct', 'Public fast-charging behavior (%)', 'number'], ['investmentModel', 'Investment model', 'select', ['Lease parking space', '50/50', 'Full ownership']], ['parkingLeasePerSpotMonth', 'Parking lease per spot / month ($)', 'number'], ['managementFeePerPortMonth', 'Management fee per port / month ($)', 'number'], ['evpinLink', 'EVpin forecast link', 'text']
+    ['forecastYear1Utilization', 'Year 1 EVpin utilization (%)', 'number'], ['forecastYear3Utilization', 'Year 3 EVpin utilization (%)', 'number'], ['forecastYear5Utilization', 'Year 5 EVpin utilization (%)', 'number'], ['restaurantCaptureRate', 'Restaurant capture rate (%)', 'number'], ['conservativeReceipt', 'Conservative average receipt ($)', 'number'], ['averageReceipt', 'Expected average receipt ($)', 'number'], ['highReceipt', 'High average receipt ($)', 'number'], ['daysPerYear', 'Operating days per year', 'number'], ['energyPerSessionKwh', 'Energy delivered per charging session (kWh)', 'number'], ['chargingPricePerKwh', 'Charging price ($/kWh)', 'number'], ['utilityEnergyCostPerKwh', 'Utility energy cost ($/kWh) · utility tariff', 'number'], ['networkCostPerPortMonth', 'Network cost per port / month ($)', 'number'], ['maintenanceCostPerPortYear', 'Maintenance per port / year ($)', 'number'], ['dailyTraffic', 'Daily traffic (vehicles)', 'number'], ['siteVisibilityScore', 'Site visibility (1-10)', 'number'], ['entryExitScore', 'Ease of entry and exit (1-10)', 'number'], ['travelRouteDistance', 'Distance from major travel route (miles)', 'number'], ['competitorCongestionScore', 'Competitive charger congestion (1-10)', 'number'], ['currentBevPopulation', 'Current BEV population', 'number'], ['historicalBevGrowthPct', 'Historical BEV growth (%)', 'number'], ['projectedBevFleet', 'Projected BEV fleet', 'number'], ['teslaMixPct', 'Tesla share of BEV fleet (%)', 'number'], ['trafficGrowthPct', 'Traffic growth (%)', 'number'], ['futureChargerConstruction', 'Future charger construction (sites)', 'number'], ['publicFastChargingBehaviorPct', 'Public fast-charging behavior (%)', 'number'], ['investmentModel', 'Investment model', 'select', ['Lease parking space', '50/50', 'Full ownership']], ['parkingLeasePerSpotMonth', 'Parking lease per spot / month ($)', 'number'], ['managementFeePerPortMonth', 'Management fee per port / month ($)', 'number'], ['evpinLink', 'EVpin forecast link', 'text']
   ], formulas: [
     ['Charging visits / day', 'Ports × 24 hours × utilization ÷ average session length in hours', () => `Y1 ${number(calc.evForecastVisits(1))} · Y3 ${number(calc.evForecastVisits(3))} · Y5 ${number(calc.evForecastVisits(5))}`],
     ['Additional customer parties / day', 'Year 5 charging visits × restaurant capture rate', () => number(calc.evRoundedParties(5))],
     ['Daily restaurant sales', 'Rounded daily parties × average receipt', () => money(calc.evRestaurantSales(state.ev.averageReceipt))],
-    ['Monthly restaurant sales', 'Daily restaurant sales × operating days ÷ 12', () => roundedMoney(calc.evRestaurantSalesMonthly(state.ev.averageReceipt))],
+    ['Monthly restaurant sales', 'Daily restaurant sales × 30.42 days', () => roundedMoney(calc.evRestaurantSalesMonthly(state.ev.averageReceipt))],
     ['Annual restaurant sales', 'Daily restaurant sales × operating days', () => roundedMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt))],
     ['Annual charging revenue', 'Year 5 visits × days × kWh/session × charging price', () => roundedMoney(calc.evChargingRevenueAnnual())],
     ['Annual EV operating expenses', 'Energy expense + network expense + maintenance', () => roundedMoney(calc.evOperatingExpensesAnnual())],
@@ -231,9 +578,10 @@ function formulaMarkup(schema) {
 }
 
 const sliderRanges = {
+  lowGuestCaptureRate: [0, 100, 1], highGuestCaptureRate: [0, 100, 1],
   savingsRate: [0, 100, 1], co2Factor: [0, 2, 0.01], footprint: [500, 500000, 100], utilitySpend: [0, 2000000, 1000], annualKwh: [0, 10000000, 10000], peakDemand: [0, 5000, 5], openHours: [1, 24, 1], selfConsumption: [0, 100, 1], energyRate: [0, 1, 0.01], demandRate: [0, 100, 0.25], exportRate: [0, 0.5, 0.01], onsiteValue: [0, 1, 0.01], latitude: [-90, 90, 0.000001], longitude: [-180, 180, 0.000001], mapRadius: [0.5, 50, 0.5],
   arrayKw: [1, 10000, 5], productionRatio: [500, 3500, 10], moduleW: [100, 800, 5], warranty: [1, 40, 1], chartHigh: [0, 150, 1], chartLow: [0, 150, 1], chartStd: [0.1, 60, 0.1], capacityMwh: [0, 100, 0.1], powerKw: [0, 10000, 25], shavePct: [0, 80, 1], dispatchHours: [0, 24, 0.5], batteryEfficiency: [50, 100, 1], ratedCapacity: [0, 100, 0.1], investment: [0, 10000000, 5000],
-  marketProofVisitsPerDay: [0, 5000, 1], marketProofPorts: [1, 100, 1], marketProofAverageSessionMinutes: [10, 90, 1], ports: [1, 32, 1], averageSessionMinutes: [10, 90, 1], forecastYear1Utilization: [0, 40, 0.1], forecastYear3Utilization: [0, 40, 0.1], forecastYear5Utilization: [0, 40, 0.1], restaurantCaptureRate: [0, 75, 1], conservativeReceipt: [1, 100, 1], averageReceipt: [1, 100, 1], highReceipt: [1, 100, 1], daysPerYear: [250, 366, 1], energyPerSessionKwh: [10, 120, 1], chargingPricePerKwh: [0.1, 1.5, 0.01], utilityEnergyCostPerKwh: [0.04, 0.5, 0.01], networkCostPerPortMonth: [0, 500, 5], maintenanceCostPerPortYear: [0, 5000, 25], dailyTraffic: [0, 100000, 500], siteVisibilityScore: [1, 10, 0.5], entryExitScore: [1, 10, 0.5], travelRouteDistance: [0, 25, 0.1], amenityScore: [1, 10, 0.5], competitorCongestionScore: [1, 10, 0.5], currentBevPopulation: [0, 100000, 100], historicalBevGrowthPct: [0, 100, 1], projectedBevFleet: [0, 250000, 500], teslaMixPct: [0, 100, 1], trafficGrowthPct: [0, 20, 0.1], futureChargerConstruction: [0, 50, 1], publicFastChargingBehaviorPct: [0, 100, 1], parkingLeasePerSpotMonth: [0, 2000, 25], managementFeePerPortMonth: [0, 1000, 25],
+  marketProofVisitsPerDay: [0, 5000, 1], marketProofPorts: [1, 100, 1], marketProofAverageSessionMinutes: [10, 90, 1], ports: [1, 32, 1], averageSessionMinutes: [10, 90, 1], forecastYear1Utilization: [0, 40, 0.1], forecastYear3Utilization: [0, 40, 0.1], forecastYear5Utilization: [0, 40, 0.1], restaurantCaptureRate: [0, 75, 1], conservativeReceipt: [1, 100, 1], averageReceipt: [1, 100, 1], highReceipt: [1, 100, 1], daysPerYear: [250, 366, 1], energyPerSessionKwh: [10, 120, 1], chargingPricePerKwh: [0.1, 1.5, 0.01], utilityEnergyCostPerKwh: [0.04, 0.5, 0.01], networkCostPerPortMonth: [0, 500, 5], maintenanceCostPerPortYear: [0, 5000, 25], dailyTraffic: [0, 100000, 500], entryExitScore: [1, 10, 0.5], travelRouteDistance: [0, 25, 0.1], competitorCongestionScore: [1, 10, 0.5], currentBevPopulation: [0, 100000, 100], historicalBevGrowthPct: [0, 100, 1], projectedBevFleet: [0, 250000, 500], teslaMixPct: [0, 100, 1], trafficGrowthPct: [0, 20, 0.1], futureChargerConstruction: [0, 50, 1], publicFastChargingBehaviorPct: [0, 100, 1], parkingLeasePerSpotMonth: [0, 2000, 25], managementFeePerPortMonth: [0, 1000, 25],
   critterGuard: [0, 1000000, 5000], lighting: [0, 1000000, 5000], hvac: [0, 2000000, 5000], hvacBase: [0, 2000000, 5000], coordination: [0, 1000000, 5000], demandResponse: [0, 1000000, 5000], reservePct: [0, 80, 1], solar: [0, 20000000, 5000], solarModules: [0, 10000000, 5000], solarInverters: [0, 10000000, 5000], solarRacking: [0, 10000000, 5000], solarBos: [0, 10000000, 5000], solarLabor: [0, 10000000, 5000], solarEngineering: [0, 5000000, 5000], solarCommissioning: [0, 5000000, 5000], battery: [0, 10000000, 5000], ev: [0, 10000000, 5000], siteImprovements: [0, 5000000, 5000], incentivePct: [0, 50, 1], escalation: [0, 15, 0.25], period: [1, 40, 1], discountRate: [0, 30, 0.25], annualOpex: [0, 2000000, 1000], taxBenefitPct: [0, 50, 1], mapZoom: [15, 22, 1], dealershipPrivateChargerDiscount: [0, 40, 1], utilityCapacityScore: [1, 10, 1], tariffDemandChargeScore: [1, 10, 1], permittingScore: [1, 10, 1], incentiveEligibilityScore: [1, 10, 1], constructionCostScore: [1, 10, 1], safetyVandalismScore: [1, 10, 1], cellularConnectivityScore: [1, 10, 1], uptimeMaintenanceScore: [1, 10, 1], debtServiceCoverageScore: [1, 10, 1]
 };
 const scenarioModes = ['Pessimistic', 'Realistic', 'Optimistic'];
@@ -254,7 +602,6 @@ function applyScenario(sectionId, mode) {
   saveState();
 }
 function markScenarioCustom(sectionId) { state.meta.scenarios[sectionId] = 'Custom'; saveState(); }
-function scenarioMarkup(sectionId, extraClass = '') { const selected = state.meta.scenarios?.[sectionId] || 'Realistic'; return `<div class="scenario-picker ${extraClass}" aria-label="Assumption scenario"><div><b>ASSUMPTION SCENARIO</b><small>Applies a saved range to the editable inputs below.</small></div><div class="scenario-buttons">${scenarioModes.map(mode => `<button type="button" class="scenario-button ${selected === mode ? 'selected' : ''}" data-scenario="${mode}" data-scenario-section="${sectionId}">${mode}</button>`).join('')}</div>${selected === 'Custom' ? '<small class="scenario-custom">Custom inputs saved</small>' : ''}</div>`; }
 const sliderDigits = step => String(step).includes('.') ? String(step).split('.')[1].length : 0;
 const sliderValueLabel = (label, value, step) => { const digits = Math.max(sliderDigits(step), String(value).includes('.') ? String(value).split('.')[1].length : 0); if (label.includes('$')) return money(value); if (label.includes('%')) return `${number(value, digits)}%`; return number(value, digits); };
 const paintRange = input => { const min = Number(input.min), max = Number(input.max), value = Number(input.value); const pct = max === min ? 0 : Math.max(0, Math.min(1, (value - min) / (max - min))); const control = input.parentElement; const track = control.querySelector('.config-range-track'); const fill = control.querySelector('.config-range-fill'); const dial = control.querySelector('.config-range-dial'); if (track) { track.style.cssText = 'display:block!important;position:absolute!important;z-index:1;left:9px!important;right:9px!important;top:6px!important;height:7px!important;border-radius:8px;background:#30323a;overflow:visible'; if (fill) { fill.style.cssText = `display:block;width:${pct * 100}%;height:100%;border-radius:8px;background:var(--electric)`; } if (dial) { dial.style.cssText = `display:block!important;position:absolute!important;z-index:3;top:50%!important;left:${pct * 100}%!important;width:18px;height:18px;transform:translate(-50%,-50%);border-radius:50%;background:var(--lime);border:3px solid var(--navy);box-shadow:0 0 0 2px #d8ed4f44;pointer-events:none`; } } };
@@ -262,7 +609,7 @@ function fieldMarkup([key, label, type, options]) {
   const value = state[activeConfigSection][key] ?? '';
   if (type === 'textarea') return `<label class="config-field"><span>${esc(label)}</span><textarea data-key="${key}" rows="7" placeholder="Month,Value\nJAN,48\nFEB,55">${esc(value)}</textarea></label>`;
   if (type === 'select') return `<label class="config-field"><span>${esc(label)}</span><select data-key="${key}">${options.map(option => `<option ${option === value ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></label>`;
-  if (type === 'number') { const [min, max, step] = sliderRanges[key] || [0, Math.max(100, Number(value) * 2 || 100), 1]; return `<label class="config-field config-slider-field"><div class="config-slider-head"><span>${esc(label)}</span></div><div class="config-slider-row"><div class="config-range-control"><span class="config-range-track"><i class="config-range-fill"></i><b class="config-range-dial"></b></span><input class="config-range" data-key="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${esc(value)}" aria-label="${esc(label)}" /></div><input class="config-number" data-key="${key}" type="number" min="${min}" max="${max}" step="${step}" value="${esc(value)}" aria-label="${esc(label)} value" /></div></label>`; }
+  if (type === 'number') { const [min, max, step] = sliderRanges[key] || [0, Math.max(100, Number(value) * 2 || 100), 1]; return `<label class="config-field"><span>${esc(label)}</span><input class="config-number" data-key="${key}" type="number" min="${min}" max="${max}" step="${step}" value="${esc(value)}" aria-label="${esc(label)}" /></label>`; }
   return `<label class="config-field"><span>${esc(label)}</span><input data-key="${key}" type="${type}" value="${esc(value)}" /></label>`;
 }
 
@@ -305,21 +652,60 @@ const configBody = $('#configBody');
 let activeConfigSection = 'overview';
 
 function refreshFormulaBox() { const box = $('.formula-box'); if (box) box.outerHTML = formulaMarkup(configSchemas[activeConfigSection]); }
+function dialBounds(field, value) {
+  const label = field[1].toLowerCase();
+  if (label.includes('%')) return { min: 0, max: 100, step: 1 };
+  if (label.includes('hours')) return { min: 0, max: 24, step: 1 };
+  if (label.includes('ports')) return { min: 1, max: 32, step: 1 };
+  const max = Math.max(10, Math.ceil(Math.max(1, Number(value) || 1) * 2));
+  return { min: 0, max, step: max > 100 ? 1 : 0.1 };
+}
+function toggleInlineConfig(section, sectionId) {
+  if (!section || document.body.classList.contains('view-only')) return;
+  const current = section.querySelector('.inline-config-dials');
+  if (current) { current.remove(); return; }
+  const schema = configSchemas[sectionId];
+  if (!schema) return;
+  const fields = schema.fields.filter(field => field[2] === 'number').slice(0, 12);
+  const tray = document.createElement('div');
+  tray.className = 'inline-config-dials';
+  tray.innerHTML = `<div class="inline-config-head"><span>CONFIGS</span></div><div class="inline-config-grid">${fields.map(field => { const value = Number(state[sectionId]?.[field[0]]) || 0; const bounds = dialBounds(field, value); return `<label class="inline-dial"><span>${esc(field[1])}</span><input type="number" min="${bounds.min}" max="${bounds.max}" step="${bounds.step}" value="${value}" data-inline-config-section="${sectionId}" data-inline-config-key="${field[0]}" /></label>`; }).join('')}</div>${sectionId === 'overview' ? inlineProposalVisualControls() : ''}`;
+  section.querySelector('.section-heading, .ev-report-head, .hero-copy')?.appendChild(tray);
+  tray.querySelectorAll('.proposal-visual-file').forEach(input => input.addEventListener('change', event => handleProposalVisualUpload(event.target.files[0], input.dataset.proposalVisual)));
+  tray.querySelectorAll('.visual-control').forEach(input => input.addEventListener('input', event => updateProposalVisualSetting(event.target.dataset.visualKind, event.target.dataset.visualSetting, Number(event.target.value))));
+  tray.querySelectorAll('input[data-inline-config-section]').forEach(input => input.addEventListener('input', event => {
+    const control = event.target;
+    state[sectionId][control.dataset.inlineConfigKey] = Number(control.value);
+    saveState();
+    renderReport();
+  }));
+}
+function proposalVisualControls() {
+  const fields = [['photo', 'Property image'], ['logo', 'Logo']];
+  return `<div class="visual-adjustments"><div class="config-input-title">IMAGE FRAMING <small>Crop, resize, or reposition either image.</small></div>${fields.map(([kind, label]) => { const settings = getProposalVisualSettings(kind); return `<div class="visual-adjustment" data-visual-adjustment="${kind}"><strong>${label}</strong><label><span>Scale</span><input class="visual-control" type="number" min="100" max="180" step="1" value="${settings.scale}" data-visual-kind="${kind}" data-visual-setting="scale" /></label><label><span>Horizontal position</span><input class="visual-control" type="number" min="0" max="100" step="1" value="${settings.x}" data-visual-kind="${kind}" data-visual-setting="x" /></label><label><span>Vertical position</span><input class="visual-control" type="number" min="0" max="100" step="1" value="${settings.y}" data-visual-kind="${kind}" data-visual-setting="y" /></label></div>`; }).join('')}</div>`;
+}
+function inlineProposalVisualControls() {
+  const fields = [['photo', 'Property image'], ['logo', 'Logo']];
+  return `<div class="inline-visual-controls"><div class="inline-config-head"><span>HEADER IMAGES</span><small>Replace, crop, resize, or reposition either image.</small></div>${fields.map(([kind, label]) => { const settings = getProposalVisualSettings(kind); return `<div class="inline-visual-adjustment"><label class="inline-file-label"><span>${label}</span><input class="proposal-visual-file" data-proposal-visual="${kind}" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="inline-visual-dials"><label><span>Scale</span><input class="visual-control" type="number" min="100" max="180" step="1" value="${settings.scale}" data-visual-kind="${kind}" data-visual-setting="scale" /></label><label><span>Horizontal</span><input class="visual-control" type="number" min="0" max="100" step="1" value="${settings.x}" data-visual-kind="${kind}" data-visual-setting="x" /></label><label><span>Vertical</span><input class="visual-control" type="number" min="0" max="100" step="1" value="${settings.y}" data-visual-kind="${kind}" data-visual-setting="y" /></label></div></div>`; }).join('')}</div>`;
+}
+function inlineAboutUsLogoControl() {
+  return `<div class="inline-visual-controls about-us-logo-config"><div class="inline-config-head"><span>CONFIGS</span><small>Replace the installer logo shown in About Us.</small></div><div class="inline-visual-adjustment"><label class="inline-file-label"><span>Installer logo</span><input class="about-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" /></label></div></div>`;
+}
 function openConfig(sectionId) {
   activeConfigSection = sectionId;
   const schema = configSchemas[sectionId] || configSchemas.overview;
   configTitle.textContent = schema.title;
   const scopeConfig = sectionId === 'overview' ? `<div class="config-scope-box"><div class="config-input-title">PROPOSAL SCOPE <small>Choose what appears in this bid.</small></div><label><span>EV Chargers</span><input type="checkbox" class="config-scope-toggle" data-scope="ev" /></label><label><span>Solar</span><input type="checkbox" class="config-scope-toggle" data-scope="solar" /></label><label><span>Batteries</span><input type="checkbox" class="config-scope-toggle" data-scope="storage" /></label><label><span>Lender support</span><input type="checkbox" class="config-scope-toggle" data-scope="lenderSupport" /></label></div>` : '';
-  const visualFields = sectionId === 'overview' ? `<div class="config-input-title">PROPOSAL VISUALS <small>Replace either placeholder independently.</small></div><label class="config-field config-file-field"><span>Background photo</span><input class="proposal-visual-file" data-proposal-visual="photo" type="file" accept="image/png,image/jpeg,image/webp" /></label><label class="config-field config-file-field"><span>Overlay logo</span><input class="proposal-visual-file" data-proposal-visual="logo" type="file" accept="image/png,image/jpeg,image/webp" /></label>` : `<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label>`;
-  configBody.innerHTML = `<div class="config-tabs"><button type="button" class="config-tab selected" data-config-tab="section">This section</button><button type="button" class="config-tab" data-config-tab="all">All report sections</button></div>${scopeConfig}${scenarioMarkup(sectionId)}<div class="config-input-title">ASSUMPTIONS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}${visualFields}<div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
+  const visualFields = sectionId === 'overview' ? `<div class="config-input-title">PROPOSAL VISUALS <small>Default property image: Esri World Imagery aerial source. Replace either image independently.</small></div><label class="config-field config-file-field"><span>Property image</span><input class="proposal-visual-file" data-proposal-visual="photo" type="file" accept="image/png,image/jpeg,image/webp" /></label><label class="config-field config-file-field"><span>Logo</span><input class="proposal-visual-file" data-proposal-visual="logo" type="file" accept="image/png,image/jpeg,image/webp" /></label>` : `<label class="config-field config-file-field"><span>Visual replacement image</span><input class="config-file" type="file" accept="image/png,image/jpeg,image/webp" /></label>`;
+  configBody.innerHTML = `<div class="config-tabs"><button type="button" class="config-tab selected" data-config-tab="section">This section</button><button type="button" class="config-tab" data-config-tab="all">All report sections</button></div>${scopeConfig}<div class="config-input-title">ASSUMPTIONS <small>Only these values are editable.</small></div>${schema.fields.map(fieldMarkup).join('')}${formulaMarkup(schema)}${visualFields}${sectionId === 'overview' ? proposalVisualControls() : ''}<div class="config-help"><span>i</span><p>Derived outputs are read-only. Change an input and apply to recalculate this section and connected sections.</p></div>`;
   configBody.querySelectorAll('.config-scope-toggle').forEach(toggle => { toggle.checked = proposalScopes[toggle.dataset.scope] === true; if (['solar', 'storage', 'ev'].includes(toggle.dataset.scope) && proposalScopes[toggle.dataset.scope] !== false) toggle.checked = true; toggle.addEventListener('change', () => { proposalScopes[toggle.dataset.scope] = toggle.checked; updateScopeUI(); applyScopeCopy(); if (toggle.dataset.scope === 'lenderSupport') renderReport(); }); });
   configBody.querySelector('[data-config-tab="all"]')?.addEventListener('click', () => { configBody.querySelectorAll('.config-tab').forEach(tab => tab.classList.toggle('selected', tab.dataset.configTab === 'all')); configBody.querySelector('.config-input-title').innerHTML = 'ALL REPORT INPUTS <small>Choose a section below to edit its independent assumptions.</small>'; const selector = document.createElement('select'); selector.className = 'config-section-picker'; selector.innerHTML = Object.entries(configSchemas).map(([key, item]) => `<option value="${key}">${esc(item.title)}</option>`).join(''); selector.value = activeConfigSection; configBody.insertBefore(selector, configBody.querySelector('.config-input-title').nextSibling); selector.addEventListener('change', event => openConfig(event.target.value)); });
-  configBody.querySelectorAll('.scenario-button').forEach(button => button.addEventListener('click', () => { applyScenario(sectionId, button.dataset.scenario); renderReport(); openConfig(sectionId); toast(`${button.dataset.scenario} assumptions applied.`); }));
   configBody.querySelectorAll('.config-range').forEach(paintRange);
   configBody.querySelectorAll('[data-key]').forEach(input => input.addEventListener('input', () => { const key = input.dataset.key; const value = input.type === 'range' || input.type === 'number' ? Number(input.value) : input.value; const error = validateConfigValue(activeConfigSection, key, value); input.classList.toggle('invalid', Boolean(error)); input.title = error; if (error) return; state[activeConfigSection][key] = value; if (input.type === 'range' || input.type === 'number') markScenarioCustom(activeConfigSection); else saveState(); if (input.classList.contains('config-range')) paintRange(input); configBody.querySelectorAll(`[data-key="${key}"]`).forEach(peer => { if (peer !== input) { peer.value = input.value; if (peer.classList.contains('config-range')) paintRange(peer); } }); const output = configBody.querySelector(`[data-output="${key}"]`); if (output) output.textContent = sliderValueLabel(configSchemas[activeConfigSection].fields.find(field => field[0] === key)?.[1] || '', Number(input.value), Number(input.step) || 1); refreshFormulaBox(); }));
   configBody.querySelectorAll('select[data-key]').forEach(select => select.addEventListener('change', () => select.dispatchEvent(new Event('input', { bubbles: true }))));
   configBody.querySelector('.config-file')?.addEventListener('change', event => handleImageUpload(event.target.files[0], sectionId));
   configBody.querySelectorAll('.proposal-visual-file').forEach(input => input.addEventListener('change', event => handleProposalVisualUpload(event.target.files[0], input.dataset.proposalVisual)));
+  configBody.querySelectorAll('.visual-control').forEach(input => input.addEventListener('input', event => updateProposalVisualSetting(event.target.dataset.visualKind, event.target.dataset.visualSetting, Number(event.target.value))));
   configPanel.classList.add('open'); configBackdrop.classList.add('open');
 }
 
@@ -328,12 +714,21 @@ function handleImageUpload(file, sectionId) {
   const reader = new FileReader(); reader.onload = () => { localStorage.setItem(`GetEV-image-${sectionId}`, reader.result); applyImage(sectionId, reader.result); }; reader.readAsDataURL(file);
 }
 function proposalVisualStorageKey(kind) { return `GetEV-proposal-${activeBidId || 'default'}-${kind}`; }
-function applyProposalVisual(kind, imageUrl) { const target = kind === 'photo' ? $('#proposalPhoto') : $('#proposalLogo'); if (target && imageUrl) target.src = imageUrl; }
+function proposalVisualSettingsKey(kind) { return `${proposalVisualStorageKey(kind)}-settings`; }
+function getProposalVisualSettings(kind) { try { return { scale: 100, x: 50, y: 50, ...(JSON.parse(localStorage.getItem(proposalVisualSettingsKey(kind)) || '{}')) }; } catch { return { scale: 100, x: 50, y: 50 }; } }
+function applyProposalVisualSettings(kind) { const target = kind === 'photo' ? $('#proposalPhoto') : $('#proposalLogo'); if (!target) return; const settings = getProposalVisualSettings(kind); target.style.setProperty('--visual-scale', settings.scale / 100); target.style.setProperty('--visual-x', settings.x); target.style.setProperty('--visual-y', settings.y); target.style.objectPosition = `${settings.x}% ${settings.y}%`; }
+function updateProposalVisualSetting(kind, setting, value) { const settings = getProposalVisualSettings(kind); settings[setting] = value; localStorage.setItem(proposalVisualSettingsKey(kind), JSON.stringify(settings)); applyProposalVisualSettings(kind); }
+function applyProposalVisual(kind, imageUrl) { const target = kind === 'photo' ? $('#proposalPhoto') : $('#proposalLogo'); if (target && imageUrl) target.src = imageUrl; applyProposalVisualSettings(kind); }
 function handleProposalVisualUpload(file, kind) {
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader(); reader.onload = () => { localStorage.setItem(proposalVisualStorageKey(kind), reader.result); applyProposalVisual(kind, reader.result); }; reader.readAsDataURL(file);
 }
-['photo', 'logo'].forEach(kind => { const saved = localStorage.getItem(proposalVisualStorageKey(kind)); if (saved) applyProposalVisual(kind, saved); });
+function handleAboutUsLogoUpload(file) {
+  if (!file) return;
+  const reader = new FileReader(); reader.onload = () => { state.brand.companyLogo = reader.result; saveState(); renderReport(); };
+  reader.readAsDataURL(file);
+}
+['photo', 'logo'].forEach(kind => { const saved = localStorage.getItem(proposalVisualStorageKey(kind)); if (saved) applyProposalVisual(kind, saved); else applyProposalVisualSettings(kind); });
 function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), layout: $('#layoutMap'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
 let leafletPromise;
 function loadLeaflet() {
@@ -352,8 +747,24 @@ function mountInteractiveDemandMap() {
   loadLeaflet().then(L => {
     const map = L.map(canvas, { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView([state.site.latitude, state.site.longitude], 12.8);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.62 }).addTo(map);
-    L.circleMarker([state.site.latitude, state.site.longitude], { radius: 9, color: '#ffffff', weight: 3, fillColor: '#d8ed4f', fillOpacity: 1 }).addTo(map).bindPopup(`<b>${esc(state.overview.siteName)}</b><br>${esc(state.overview.location)}<br><small>Proposal site</small>`);
-    demandStations.forEach(station => L.circleMarker([station.lat, station.lon], { radius: Math.max(4, Math.min(9, 4 + Math.log10(station.charges + 1))), color: '#ffffff', weight: 1.5, fillColor: '#ff4f69', fillOpacity: 0.9 }).addTo(map).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)}<br>${number(station.ports)} ports · ${number(station.charges)} observed charges`));
+    const layers = {};
+    layers.target = L.layerGroup([L.circleMarker([state.site.latitude, state.site.longitude], { radius: 9, color: '#ffffff', weight: 3, fillColor: '#57e3a5', fillOpacity: 1 }).bindPopup(`<b>${esc(state.overview.siteName)}</b><br>${esc(state.overview.location)}<br><small>Proposal site</small>`)]).addTo(map);
+    layers.l2 = L.layerGroup(); layers.l3 = L.layerGroup(); layers.tesla = L.layerGroup();
+    demandStations.forEach(station => { const capability = chargerCapability(station); const usagePerPort = stationUsagePerPort(station); const nlrStation = matchingNlrStation(station); const distance = milesBetween(state.site.latitude, state.site.longitude, station.lat, station.lon); const marker = L.circleMarker([station.lat, station.lon], { radius: stationDotSize(station) / 2, color: '#ffffff', weight: 1.5, fillColor: capability.color, fillOpacity: 0.9 }).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)} · ${number(distance, 1)} mi from proposal site<br>${capability.label}<br>${number(station.ports)} ports · ${number(station.charges)} observed charges<br>${number(usagePerPort, 1)} observed charges / port${nlrDetailsMarkup(nlrStation)}`); marker.addTo(String(station.network).toLowerCase().includes('tesla') ? layers.tesla : layers.l3); });
+    unmatchedNlrStations().forEach(station => { const capability = nlrCapability(station); const radius = Math.max(3.5, Math.min(7, 3 + Math.sqrt(Number(station.portCount || 1)))); const distance = milesBetween(state.site.latitude, state.site.longitude, station.latitude, station.longitude); const marker = L.circleMarker([station.latitude, station.longitude], { radius, color: '#ffffffaa', weight: 1, fillColor: capability.color, fillOpacity: 0.55 }).bindPopup(`<b>${esc(station.name)}</b><br>${esc(station.network)} · ${number(distance, 1)} mi from proposal site<br>${capability.label}<br>${number(station.portCount)} ports · ${number(station.maxPowerKw || 0)} kW max<br>${esc(station.status || 'Status unavailable')} · ${esc(station.access || 'Access unavailable')}<br><small>Source: NLR/AFDC · utilization not provided</small>`); marker.addTo(String(station.network || '').toLowerCase().includes('tesla') ? layers.tesla : /level.?2|l2/i.test(String(station.chargingType || '')) ? layers.l2 : layers.l3); });
+    layers.l2.addTo(map); layers.l3.addTo(map); layers.tesla.addTo(map);
+    const capabilityLegend = L.control({ position: 'bottomleft' });
+    capabilityLegend.onAdd = () => {
+      const legend = L.DomUtil.create('div', 'demand-map-legend');
+      legend.innerHTML = '<b>MAP LEGEND</b><span><i class="legend-site"></i>Proposed site</span><span><i class="legend-standard"></i>Lower-power DC</span><span><i class="legend-fast"></i>Fast DC</span><span><i class="legend-ultra"></i>Ultra-fast DC</span><small>Dot size = observed use / port</small>';
+      L.DomEvent.disableClickPropagation(legend); L.DomEvent.disableScrollPropagation(legend);
+      return legend;
+    };
+    capabilityLegend.addTo(map);
+    const viewRadiusMiles = 2.25; const latitudeDelta = viewRadiusMiles / 69; const longitudeDelta = viewRadiusMiles / (69 * Math.cos(state.site.latitude * Math.PI / 180)); const prospectBounds = L.latLngBounds([[state.site.latitude - latitudeDelta, state.site.longitude - longitudeDelta], [state.site.latitude + latitudeDelta, state.site.longitude + longitudeDelta]]); map.fitBounds(prospectBounds, { maxZoom: 14, animate: false });
+    const mapWrap = mapCard.closest('.ev-market-map-wrap');
+    if (mapWrap && !mapWrap.querySelector('.location-map-layers')) mapWrap.insertAdjacentHTML('afterbegin', '<div class="location-map-layers" aria-label="Map layers"><b>MAP LAYERS</b><label><input type="checkbox" data-map-layer="target" checked> Proposed site</label><label><input type="checkbox" data-map-layer="l2" checked> Level 2 chargers</label><label><input type="checkbox" data-map-layer="l3" checked> Level 3 / DC fast chargers</label><label><input type="checkbox" data-map-layer="tesla" checked> Tesla chargers</label></div>');
+    mapWrap?.querySelectorAll('[data-map-layer]').forEach(input => input.addEventListener('change', () => { const layer = layers[input.dataset.mapLayer]; if (!layer) return; if (input.checked) layer.addTo(map); else map.removeLayer(layer); }));
     window.GetEVDemandMap = map; mapCard.dataset.leafletReady = 'true'; const fallbackDots = mapCard.querySelector('.demand-map'); if (fallbackDots) fallbackDots.hidden = true; setTimeout(() => map.invalidateSize(), 250);
   }).catch(() => { /* The red-dot fallback remains visible if the map tile library is unavailable. */ });
 }
@@ -401,12 +812,18 @@ function mountLayoutMap() {
 }
 function renderDemandMap() {
   const map = $('#evMarketMap'); if (!map) return;
-  const minLat = Math.min(...demandStations.map(station => station.lat)); const maxLat = Math.max(...demandStations.map(station => station.lat));
-  const minLon = Math.min(...demandStations.map(station => station.lon)); const maxLon = Math.max(...demandStations.map(station => station.lon));
+  const inventory = unmatchedNlrStations();
+  const mapPoints = [...demandStations.map(station => ({ lat: station.lat, lon: station.lon })), ...inventory.map(station => ({ lat: station.latitude, lon: station.longitude }))];
+  const minLat = Math.min(...mapPoints.map(station => station.lat)); const maxLat = Math.max(...mapPoints.map(station => station.lat));
+  const minLon = Math.min(...mapPoints.map(station => station.lon)); const maxLon = Math.max(...mapPoints.map(station => station.lon));
   let layer = map.querySelector('.demand-map'); if (!layer) { layer = document.createElement('div'); layer.className = 'demand-map'; map.appendChild(layer); }
-  layer.innerHTML = demandStations.map(station => { const left = ((station.lon - minLon) / (maxLon - minLon)) * 86 + 7; const top = (1 - ((station.lat - minLat) / (maxLat - minLat))) * 76 + 12; const intensity = Math.min(12, 5 + Math.log10(station.charges + 1) * 1.5); return `<span class="demand-dot" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--dot-size:${intensity.toFixed(1)}px" title="${esc(station.name)} · ${esc(station.network)} · ${number(station.charges)} observed charges"></span>`; }).join('');
+  const targetLeft = ((state.site.longitude - minLon) / (maxLon - minLon)) * 86 + 7; const targetTop = (1 - ((state.site.latitude - minLat) / (maxLat - minLat))) * 76 + 12;
+  layer.innerHTML = `<span class="demand-target" style="left:${targetLeft.toFixed(2)}%;top:${targetTop.toFixed(2)}%" title="${esc(state.overview.siteName)} · Proposed site"></span>` + demandStations.map(station => { const left = ((station.lon - minLon) / (maxLon - minLon)) * 86 + 7; const top = (1 - ((station.lat - minLat) / (maxLat - minLat))) * 76 + 12; const dotSize = stationDotSize(station); const capability = chargerCapability(station); const usagePerPort = stationUsagePerPort(station); const nlrStation = matchingNlrStation(station); return `<span class="demand-dot capability-${capability.key}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--dot-size:${dotSize}px;--dot-color:${capability.color}" title="${esc(station.name)} · ${esc(station.network)} · ${capability.label} · ${number(station.ports)} ports · ${number(station.charges)} observed charges · ${number(usagePerPort, 1)} observed charges / port${nlrStation ? ` · NLR: ${number(nlrStation.portCount)} ports, ${number(nlrStation.maxPowerKw || 0)} kW max` : ''}"></span>`; }).join('') + inventory.map(station => { const left = ((station.longitude - minLon) / (maxLon - minLon)) * 86 + 7; const top = (1 - ((station.latitude - minLat) / (maxLat - minLat))) * 76 + 12; const capability = nlrCapability(station); const dotSize = Math.max(7, Math.min(14, 5 + Math.sqrt(Number(station.portCount || 1)))); return `<span class="nlr-inventory-dot capability-${capability.key}" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--dot-size:${dotSize.toFixed(1)}px;--dot-color:${capability.color}" title="${esc(station.name)} · ${esc(station.network)} · ${capability.label} · ${number(station.portCount)} ports · ${number(station.maxPowerKw || 0)} kW max · NLR/AFDC"></span>`; }).join('');
   let legend = map.querySelector('.demand-map-label'); if (!legend) { legend = document.createElement('div'); legend.className = 'demand-map-label'; map.appendChild(legend); }
   legend.innerHTML = `<b>NEARBY EV DEMAND</b><span>${number(demandStations.length)} locations · ${number(demandStations.reduce((total, station) => total + station.ports, 0))} ports · ${number(demandStations.reduce((total, station) => total + station.charges, 0))} observed charges / 3 mo</span>`;
+  legend.remove();
+  const footer = map.closest('.ev-market-map-wrap')?.querySelector('.location-map-footer');
+  if (footer) footer.innerHTML = `<span>NEARBY EV CHARGERS<br><small>SIZE: OBSERVED USE / PORT<br/><b class="map-key key-target"></b>KNEADERS <b class="map-key key-ultra"></b>ULTRA-FAST <b class="map-key key-high"></b>FAST <b class="map-key key-standard"></b>LOWER-POWER DC${state.ev.nlrStationCount ? '<br/><b class="map-key key-nlr"></b>NLR INVENTORY' : ''}</small></span><strong>NEARBY EV DEMAND<br>${number(demandStations.length)} LOCATIONS · ${number(demandStations.reduce((total, station) => total + station.ports, 0))} PORTS · ${number(demandStations.reduce((total, station) => total + station.charges, 0))} OBSERVED CHARGES / 3 MONTHS${state.ev.nlrStationCount ? `<br/><small>NLR INVENTORY: ${number(state.ev.nlrStationCount)} ELECTRIC STATIONS WITHIN 10 MILES · <a class="map-source-link" href="https://developer.nlr.gov/docs/transportation/alt-fuel-stations-v1/nearest/" target="_blank" rel="noreferrer">SOURCE ↗</a></small>` : ''}</strong>`;
   mountInteractiveDemandMap();
 }
 function applyImage(sectionId, imageUrl) { const target = visualTarget(sectionId); if (target) { target.style.backgroundImage = `linear-gradient(#0b1f3333,#0b1f3333), url("${imageUrl}")`; target.style.backgroundSize = 'cover'; target.style.backgroundPosition = 'center'; } }
@@ -425,13 +842,73 @@ function seasonalBars() {
 function renderSolarChart() { const data = seasonalBars(); $('#solarChart').innerHTML = data.map((row, index) => { const load = 64 + ((index % 4) * 4); const solar = Math.max(8, Math.min(load, row.value)); const grid = Math.max(0, load - solar); return `<i title="${esc(row.label)}: ${number(solar, 1)}% solar served + ${number(grid, 1)}% grid supplied" aria-label="${esc(row.label)}: ${number(solar, 1)} percent solar served and ${number(grid, 1)} percent grid supplied"><span class="bar-segment grid-segment" style="height:${grid}%"></span><span class="bar-segment solar-segment" style="height:${solar}%"></span></i>`; }).join(''); }
 
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
+function applyUdotAadtRecord() {
+  if (!udotAadtRecord || !isEvOnlyBid) return false;
+  const aadt = Number(udotAadtRecord.aadt);
+  if (!Number.isFinite(aadt)) return false;
+  const alreadyMapped = state.ev.trafficSource === 'UDOT' && state.ev.trafficSourceRecordId === String(udotAadtRecord.sourceRecordId);
+  if (alreadyMapped && Number(state.ev.dailyTraffic) === aadt) return false;
+  state.ev.dailyTraffic = aadt;
+  state.ev.trafficSource = 'UDOT';
+  state.ev.trafficSourceRecordId = String(udotAadtRecord.sourceRecordId);
+  state.ev.trafficRoadName = udotAadtRecord.roadName || '';
+  state.ev.trafficDataYear = Number(udotAadtRecord.dataYear) || null;
+  state.ev.trafficSourceUrl = udotAadtRecord.sourcePage || udotAadtRecord.sourceUrl || '';
+  return true;
+}
+function applyUtahEvRegistrationRecord() {
+  if (!utahEvRegistrationRecord || !isEvOnlyBid) return false;
+  const count = Number(utahEvRegistrationRecord.count);
+  if (!Number.isFinite(count)) return false;
+  const alreadyMapped = state.ev.evRegistrationSource === 'Utah State Tax Commission' && Number(state.ev.evRegistrationYear) === Number(utahEvRegistrationRecord.registrationYear);
+  if (alreadyMapped && Number(state.ev.currentBevPopulation) === count) return false;
+  state.ev.currentBevPopulation = count;
+  state.ev.evRegistrationSource = 'Utah State Tax Commission';
+  state.ev.evRegistrationYear = Number(utahEvRegistrationRecord.registrationYear) || null;
+  state.ev.evRegistrationObservationDate = utahEvRegistrationRecord.observationDate || '';
+  state.ev.evRegistrationSourceUrl = utahEvRegistrationRecord.sourcePage || utahEvRegistrationRecord.sourceUrl || '';
+  return true;
+}
+function applyAmenityPlaceRecord() {
+  const record = overturePlacesRecord || osmOverpassRecord;
+  if (!record || !isEvOnlyBid) return false;
+  const count = Number(record.foodAndDrinkPlaceCountWithinRadius);
+  if (!Number.isFinite(count)) return false;
+  const source = record.source;
+  const release = record.release || record.retrievedAt || '';
+  const alreadyMapped = state.ev.amenitySource === source && state.ev.amenityDataRelease === release;
+  if (alreadyMapped && Number(state.ev.amenityScore) === count) return false;
+  state.ev.amenityScore = count;
+  state.ev.amenitySource = source;
+  state.ev.amenityRadiusKm = Number(record.amenityRadiusKm) || null;
+  state.ev.amenityDataRelease = release;
+  state.ev.amenitySourceUrl = record.sourceUrl || '';
+  return true;
+}
+function applyNlrStationsRecord() {
+  if (!nlrStationsRecord || !isEvOnlyBid) return false;
+  const stations = nlrStationsRecord.stations;
+  const byType = stations.reduce((result, station) => { result[station.chargingType] = (result[station.chargingType] || 0) + 1; return result; }, {});
+  const values = {
+    nlrStationCount: stations.length,
+    nlrHighCapacityDcFastCount: byType['high-capacity-dc-fast'] || 0,
+    nlrDcFastCount: byType['dc-fast'] || 0,
+    nlrLevel2Count: byType['level-2'] || 0,
+    nlrInventoryRetrievedAt: nlrStationsRecord.retrievedAt || '',
+    nlrInventorySource: 'NLR/AFDC',
+    nlrInventoryRadiusMiles: 10,
+  };
+  const changed = Object.entries(values).some(([key, value]) => state.ev[key] !== value);
+  Object.assign(state.ev, values);
+  return changed;
+}
 function normalizePresentationLabels() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
     const label = node.nodeValue.trim();
     if (label === 'INDEPENDENT INPUTS') node.nodeValue = node.nodeValue.replace('INDEPENDENT INPUTS', 'ASSUMPTIONS');
-    if (label === 'DEPENDENT OUTPUTS') node.parentElement?.remove();
+    if (label === 'DEPENDENT OUTPUTS') node.textContent = '';
   });
 }
 function refreshDerivedMetrics() {
@@ -462,21 +939,35 @@ function renderEvCustomerStory() {
 }
 
 function renderEvCustomerValues() {
-  const y1 = calc.evForecastVisits(1), y3 = calc.evForecastVisits(3), y5 = calc.evForecastVisits(5), parties = calc.evRoundedParties(5), monthlyParties = parties * 30, annualParties = parties * state.ev.daysPerYear;
-  const sessionsPerPort = state.ev.marketProofVisitsPerDay / Math.max(1, state.ev.marketProofPorts);
-  const existingUtilization = state.ev.marketProofVisitsPerDay * state.ev.marketProofAverageSessionMinutes / Math.max(1, state.ev.marketProofPorts * 24 * 60) * 100;
+  const y1 = calc.evForecastVisits(1), y3 = calc.evForecastVisits(3), y5 = calc.evForecastVisits(5), parties = calc.evRoundedParties(5), monthlyParties = parties * 30.42, annualParties = parties * state.ev.daysPerYear;
+  const observedVisitsPerDay = Number(state.ev.marketProofSessions3m) > 0 && Number(state.ev.marketProofDays) > 0 ? Number(state.ev.marketProofSessions3m) / Number(state.ev.marketProofDays) : Number(state.ev.marketProofVisitsPerDay);
+  const sessionsPerPort = observedVisitsPerDay / Math.max(1, state.ev.marketProofPorts);
+  const existingUtilization = observedVisitsPerDay * state.ev.marketProofAverageSessionMinutes / Math.max(1, state.ev.marketProofPorts * 24 * 60) * 100;
   const locationCaptureScore = calc.locationCaptureScore();
   const siteCaptureScore = calc.siteCaptureScore();
   const futureGrowthScore = calc.futureGrowthScore();
   const currentDemandScore = calc.currentDemandScore();
-  setText('#evMarketProof', number(state.ev.marketProofVisitsPerDay)); setText('#evObservedProof', `${number(state.ev.marketProofVisitsPerDay)} / day`); setText('#evProjectedVisits', number(y5)); setText('#evProjectedParties', number(parties)); setText('#evProjectedSales', approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt)));
-  setText('#evCurrentDemandScore', `${number(currentDemandScore, 0)} / 100`); setText('#evCurrentDemandVerdict', currentDemandScore >= 75 ? 'Strong overall site case' : currentDemandScore >= 60 ? 'Promising site case' : 'Needs more diligence'); setText('#evLocationCaptureScore', `${number(locationCaptureScore)} / 100`); setText('#evLocationSessions', `${number(state.ev.marketProofVisitsPerDay)} / day`); setText('#evSessionsPerPort', `${number(sessionsPerPort, 1)} / day`); setText('#evExistingUtilization', `${number(existingUtilization, 1)}%`);
-  setText('#evSiteCaptureScore', `${number(siteCaptureScore)} / 100`); setText('#evDailyTraffic', number(state.ev.dailyTraffic)); setText('#evVisibilityScore', `${number(state.ev.siteVisibilityScore, 1)} / 10`); setText('#evEntryExitScore', `${number(state.ev.entryExitScore, 1)} / 10`); setText('#evTravelRouteDistance', `${number(state.ev.travelRouteDistance, 1)} mi`); setText('#evAmenityScore', `${number(state.ev.amenityScore, 1)} / 10`); setText('#evCongestionScore', `${number(state.ev.competitorCongestionScore, 1)} / 10`);
+  setText('#evMarketProof', number(observedVisitsPerDay)); setText('#evObservedProof', `${number(observedVisitsPerDay)} visits per day`); setText('#evProjectedVisits', number(y5)); setText('#evProjectedParties', number(parties)); setText('#evProjectedSales', approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt)));
+  setText('#evCurrentDemandScore', `${number(currentDemandScore, 0)} / 100`); setText('#evCurrentDemandVerdict', currentDemandScore >= 75 ? '2.6x the high-demand threshold' : currentDemandScore >= 60 ? 'Promising site case' : 'Needs more diligence'); setText('#evLocationCaptureScore', `${number(locationCaptureScore)} / 100`); setText('#evSnapshotOutlook', 'STATE CONTEXT'); setText('#evLocationSessions', `~${number(observedVisitsPerDay)} VISITS / DAY`); setText('#evSessionsPerPort', `~${number(sessionsPerPort, 0)} / PORT / DAY`); setText('#evExistingUtilization', `${number(existingUtilization, 1)}%`); setText('#evDwellMinutes', `~${number(state.ev.marketProofAverageSessionMinutes)} MINUTES`); setText('#evLocationTraffic', `${number(state.ev.dailyTraffic)} VEHICLES / DAY`); setText('#evLocationRoute', `${number(state.ev.travelRouteDistance, 1)} MI TO HIGHWAY EXIT`);
+  setText('#evSiteCaptureScore', `${number(siteCaptureScore)} / 100`); setText('#evDailyTraffic', number(state.ev.dailyTraffic)); setText('#evVisibilityScore', `${number(state.ev.siteVisibilityScore, 1)} / 10`); setText('#evEntryExitScore', `${number(state.ev.entryExitScore, 1)} / 10`); setText('#evTravelRouteDistance', `${number(state.ev.travelRouteDistance, 1)} mi`); setText('#evCongestionScore', `${number(state.ev.competitorCongestionScore, 1)} / 10`);
+  const siteSnapshotSpec = cardCatalog('ev.siteSnapshotMockup', null);
+  if (siteSnapshotSpec?.scenarios) siteSnapshotSpec.scenarios.forEach(scenario => { const utilization = Number(state.ev.forecastYear5Utilization) + Number(scenario.utilizationOffset || 0); const visits = state.ev.ports * 24 * (utilization / 100) / Math.max(0.01, state.ev.averageSessionMinutes / 60); const parties = Math.round(visits * state.ev.restaurantCaptureRate / 100); setText(`#evSnapshot${scenario.key}Util`, `${number(utilization, 1)}%`); setText(`#evSnapshot${scenario.key}Visits`, `~${number(visits, 0)}`); setText(`#evSnapshot${scenario.key}Parties`, `~${number(parties, 0)}`); });
   setText('#evFutureGrowthScore', `${number(futureGrowthScore)} / 100`); setText('#evCurrentBevPopulation', number(state.ev.currentBevPopulation)); setText('#evHistoricalBevGrowth', `${number(state.ev.historicalBevGrowthPct)}%`); setText('#evProjectedBevFleet', number(state.ev.projectedBevFleet)); setText('#evTeslaMix', `${number(state.ev.teslaMixPct)}%`); setText('#evTrafficGrowth', `${number(state.ev.trafficGrowthPct, 1)}%`); setText('#evFutureConstruction', number(state.ev.futureChargerConstruction)); setText('#evPublicFastCharging', `${number(state.ev.publicFastChargingBehaviorPct)}%`);
   [[1, y1], [3, y3], [5, y5]].forEach(([year, visits]) => { setText(`#evY${year}Util`, `${number(state.ev[`forecastYear${year}Utilization`], 1)}%`); setText(`#evY${year}Visits`, number(visits)); });
-  setText('#evCaptureVisits', number(y5)); setText('#evCaptureRate', `${number(state.ev.restaurantCaptureRate)}%`); setText('#evCaptureParties', number(parties)); setText('#evCaptureMonthly', number(monthlyParties)); setText('#evCaptureAnnual', number(annualParties));
-  [['Conservative', state.ev.conservativeReceipt], ['Expected', state.ev.averageReceipt], ['High', state.ev.highReceipt]].forEach(([key, receipt]) => { const daily = calc.evRestaurantSales(receipt), prefix = `#evSales${key}`; setText(`${prefix}Receipt`, money(receipt)); setText(`${prefix}Daily`, money(daily)); setText(`${prefix}Monthly`, roundedMoney(calc.evRestaurantSalesMonthly(receipt))); setText(`${prefix}Annual`, roundedMoney(calc.evRestaurantSalesAnnual(receipt))); });
+  setText('#evCaptureVisits', `~${number(y5)} / DAY`); setText('#evCaptureRate', `${number(state.ev.restaurantCaptureRate)}%`); setText('#evCaptureParties', `~${number(parties)} / DAY`); setText('#evCaptureMonthly', number(monthlyParties)); setText('#evCaptureAnnual', number(annualParties));
+  [['Conservative', state.ev.conservativeReceipt], ['Expected', state.ev.averageReceipt], ['High', state.ev.highReceipt]].forEach(([key, receipt]) => { const daily = calc.evRestaurantSales(receipt), prefix = `#evSales${key}`; setText(`${prefix}Receipt`, money(receipt)); setText(`${prefix}Daily`, money(daily)); setText(`${prefix}Monthly`, money(calc.evRestaurantSalesMonthly(receipt))); setText(`${prefix}Annual`, money(calc.evRestaurantSalesAnnual(receipt))); });
+  renderGuestSalesCases();
+  setText('#evSalesExpectedAnnualCard', money(calc.evRestaurantSalesAnnual(state.ev.averageReceipt)));
+  setText('#evSalesExpectedCardDaily', money(calc.evRestaurantSales(state.ev.averageReceipt)));
+  setText('#evSalesExpectedCardMonthly', money(calc.evRestaurantSalesMonthly(state.ev.averageReceipt)));
   setText('#evSalesQuote', `Approximately ${number(parties)} additional customer parties per day could produce roughly ${approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt))} in incremental annual restaurant sales.`);
+  const sensitivityParties = [Math.max(1, Math.round(parties * 23 / 28)), parties, Math.max(1, Math.round(parties * 39 / 28))];
+  ['Conservative', 'Expected', 'Optimistic'].forEach((label, index) => {
+    const sensitivityDaily = sensitivityParties[index] * 25;
+    setText(`#evRevenueScenario${label}Parties`, `${number(sensitivityParties[index])} PARTIES / DAY`);
+    setText(`#evRevenueScenario${label}Monthly`, money(sensitivityDaily * 30.42));
+    setText(`#evRevenueScenario${label}Annual`, money(sensitivityDaily * state.ev.daysPerYear));
+  });
 }
 
 const evFaceInputs = [
@@ -508,19 +999,19 @@ function evFaceValue(value, format) {
 function evFaceInputMarkup([key, label, source, format]) {
   const [min, max, step] = sliderRanges[key];
   const value = Number(state.ev[key]);
-  const fill = Math.max(0, Math.min(100, (value - min) / Math.max(0.0001, max - min) * 100));
-  return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><div><input class="ev-face-input" data-ev-key="${key}" data-ev-format="${format}" type="range" min="${min}" max="${max}" step="${step}" value="${value}" style="--ev-fill:${fill}%" aria-label="${esc(label)}" /><output>${esc(evFaceValue(value, format))}</output></div></label>`;
+  return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><input class="ev-face-input" data-ev-key="${key}" data-ev-format="${format}" type="number" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(label)}" /></label>`;
 }
 
 const evSectionInputGroups = {
   1: [['ev', 'marketProofVisitsPerDay', 'Forecast visits / day', '3rd party data', 'number'], ['ev', 'marketProofPorts', 'Observed station ports', '3rd party data', 'number'], ['ev', 'marketProofAverageSessionMinutes', 'Observed session duration', '3rd party data', 'minutes']],
-  2: [],
-  3: [['ev', 'dailyTraffic', 'Daily traffic', 'Site assumption', 'number'], ['ev', 'siteVisibilityScore', 'Site visibility', 'Site assessment', 'score'], ['ev', 'entryExitScore', 'Ease of entry + exit', 'Site assessment', 'score'], ['ev', 'travelRouteDistance', 'Distance from major route', 'Site assessment', 'miles'], ['ev', 'amenityScore', 'Food, restrooms, seating + Wi-Fi', 'Site assessment', 'score'], ['ev', 'competitorCongestionScore', 'Competitive charger congestion', 'Site assessment', 'score'], ['ev', 'currentBevPopulation', 'Current BEV population', 'Market assumption', 'number'], ['ev', 'historicalBevGrowthPct', 'Historical BEV growth', 'Market assumption', 'percent'], ['ev', 'projectedBevFleet', 'Projected BEV fleet', 'Market assumption', 'number'], ['ev', 'publicFastChargingBehaviorPct', 'Public fast-charging behavior', 'Market assumption', 'percent'], ['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'averageSessionMinutes', 'Average session duration', 'Operator assumption', 'minutes'], ['ev', 'forecastYear1Utilization', 'Year 1 utilization', 'EVpin forecast', 'percent'], ['ev', 'forecastYear3Utilization', 'Year 3 utilization', 'EVpin forecast', 'percent'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'daysPerYear', 'Days of operation / year', 'Operator assumption', 'number']],
-  4: [['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'averageSessionMinutes', 'Average session duration', 'Operator assumption', 'minutes'], ['ev', 'daysPerYear', 'Days of operation / year', 'Operator assumption', 'number'], ['ev', 'energyPerSessionKwh', 'Energy per charging session', 'Operator assumption', 'number'], ['ev', 'chargingPricePerKwh', 'Charging price / kWh', 'Operator assumption', 'money']],
-  5: [['ev', 'restaurantCaptureRate', 'Restaurant capture rate', 'Business assumption', 'percent'], ['ev', 'conservativeReceipt', 'Conservative receipt', 'Business assumption', 'money'], ['ev', 'averageReceipt', 'Expected receipt', 'Business assumption', 'money'], ['ev', 'highReceipt', 'High receipt', 'Business assumption', 'money'], ['ev', 'daysPerYear', 'Days of operation / year', 'Operator assumption', 'number']],
-  6: [['ev', 'investmentModel', 'Investment model', 'Commercial structure', 'select'], ['ev', 'parkingLeasePerSpotMonth', 'Parking lease / spot / month', 'Commercial assumption', 'money'], ['ev', 'utilityEnergyCostPerKwh', 'Utility energy cost / kWh', 'Operator assumption', 'money'], ['ev', 'networkCostPerPortMonth', 'Network cost / port / month', 'Operator assumption', 'money'], ['ev', 'maintenanceCostPerPortYear', 'Maintenance / port / year', 'Operator assumption', 'money'], ['ev', 'managementFeePerPortMonth', 'Management fee / port / month', 'Commercial assumption', 'money']],
-  7: [['economics', 'escalation', 'Annual escalation', 'Financial assumption', 'percent']],
-  8: [['lender', 'dealershipPrivateChargerDiscount', 'Dealership / private-charger discount', 'Commercial assumption', 'percent'], ['lender', 'utilityCapacityScore', 'Utility and available capacity', 'Utility diligence', 'score'], ['lender', 'tariffDemandChargeScore', 'Tariff and demand charges', 'Utility diligence', 'score'], ['lender', 'permittingScore', 'AHJ and permitting difficulty', 'Development diligence', 'score'], ['lender', 'incentiveEligibilityScore', 'Incentive eligibility', 'Incentive diligence', 'score'], ['lender', 'constructionCostScore', 'Construction cost', 'Engineering diligence', 'score'], ['lender', 'safetyVandalismScore', 'Safety and vandalism exposure', 'Site diligence', 'score'], ['lender', 'cellularConnectivityScore', 'Cellular connectivity', 'Operations diligence', 'score'], ['lender', 'uptimeMaintenanceScore', 'Uptime and maintenance plan', 'Operations diligence', 'score'], ['lender', 'debtServiceCoverageScore', 'Debt-service coverage', 'Financial diligence', 'score']]
+  2: [['ev', 'dailyTraffic', 'Roadway audience / day', 'Site evidence', 'number'], ['ev', 'entryExitScore', 'Ease of entry and exit', 'Site fit', 'score'], ['ev', 'travelRouteDistance', 'Distance from major route', 'Site fit', 'miles'], ['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'averageSessionMinutes', 'Average session duration', 'Operator assumption', 'minutes'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'restaurantCaptureRate', 'Guest-capture assumption', 'Business assumption', 'percent']],
+  3: [['ev', 'lowGuestCaptureRate', 'Low guest capture (%)', 'Planning assumption', 'percent'], ['ev', 'highGuestCaptureRate', 'High guest capture (%)', 'Planning assumption', 'percent'], ['ev', 'restaurantCaptureRate', 'Medium guest capture (%)', 'Business assumption', 'percent'], ['ev', 'conservativeReceipt', 'Low average party spend', 'Business assumption', 'money'], ['ev', 'averageReceipt', 'Expected average party spend', 'Business assumption', 'money'], ['ev', 'highReceipt', 'High average party spend', 'Business assumption', 'money'], ['ev', 'daysPerYear', 'Days of operation / year', 'Operator assumption', 'number']],
+  4: [],
+  5: [['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'energyPerSessionKwh', 'Energy per charging session', 'EVpin forecast', 'number'], ['ev', 'chargingPricePerKwh', 'Charging price / kWh', 'Operator assumption', 'money']],
+  6: [['ev', 'parkingLeasePerSpotMonth', 'Parking lease / spot / month', 'Commercial assumption', 'money'], ['ev', 'restaurantCaptureRate', 'Guest-capture assumption', 'Business assumption', 'percent'], ['ev', 'averageReceipt', 'Expected average party spend', 'Business assumption', 'money']],
+  7: [['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'energyPerSessionKwh', 'Energy per charging session', 'EVpin forecast', 'number'], ['ev', 'chargingPricePerKwh', 'Charging price / kWh', 'Operator assumption', 'money'], ['ev', 'utilityEnergyCostPerKwh', 'Utility energy cost / kWh', 'Operator assumption', 'money']],
+  8: [['ev', 'ports', 'Charging ports', 'Operator assumption', 'number'], ['ev', 'forecastYear5Utilization', 'Year 5 utilization', 'EVpin forecast', 'percent'], ['ev', 'energyPerSessionKwh', 'Energy per charging session', 'EVpin forecast', 'number'], ['ev', 'chargingPricePerKwh', 'Charging price / kWh', 'Operator assumption', 'money']],
+  9: [['investment', 'ev', 'Estimated project investment', 'Capital assumption', 'money'], ['ev', 'averageReceipt', 'Expected average party spend', 'Business assumption', 'money']]
 };
 function evSectionInputValue(value, format) {
   if (format === 'score') return `${number(value, 1)} / 10`;
@@ -529,8 +1020,8 @@ function evSectionInputValue(value, format) {
 }
 function evSectionInputMarkup([sectionName, key, label, source, format]) {
   if (format === 'select') return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><select class="ev-section-select" data-state-section="${sectionName}" data-state-key="${key}" aria-label="${esc(label)}"><option${state[sectionName][key] === 'Lease parking space' ? ' selected' : ''}>Lease parking space</option><option${state[sectionName][key] === '50/50' ? ' selected' : ''}>50/50</option><option${state[sectionName][key] === 'Full ownership' ? ' selected' : ''}>Full ownership</option></select></label>`;
-  const [min, max, step] = sliderRanges[key]; const value = Number(state[sectionName][key]); const fill = Math.max(0, Math.min(100, (value - min) / Math.max(.0001, max - min) * 100));
-  return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><div><input class="ev-section-input" data-state-section="${sectionName}" data-state-key="${key}" data-state-format="${format}" type="range" min="${min}" max="${max}" step="${step}" value="${value}" style="--ev-fill:${fill}%" aria-label="${esc(label)}" /><output>${esc(evSectionInputValue(value, format))}</output></div></label>`;
+  const [min, max, step] = (sliderRanges[key] || [0, 10000000, 0.01]); const value = Number(state[sectionName][key]);
+  return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><input class="ev-section-input" data-state-section="${sectionName}" data-state-key="${key}" data-state-format="${format}" type="number" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(label)}" /></label>`;
 }
 const evOutputFormulas = {
   'LOCATION CAPTURE SCORE': '50% sessions per port score + 50% existing utilization score.', 'SESSIONS / PORT / DAY': 'Observed successful sessions per day ÷ observed charging ports.', 'EXISTING UTILIZATION': 'Observed sessions × average session minutes ÷ (ports × 24 hours × 60 minutes).', 'SITE CAPTURE SCORE': 'Weighted traffic, visibility, entry/exit, route proximity, amenities, and competitor-congestion inputs.', 'FUTURE GROWTH SCORE': 'Weighted BEV population, adoption growth, fleet projection, vehicle mix, traffic growth, charger construction, and public fast-charging inputs.', 'YEAR 5 CHARGING VISITS': 'Ports × 24 hours × Year 5 utilization ÷ average session length in hours × operating days.', 'ENERGY DELIVERED': 'Year 5 charging visits × energy delivered per session.', 'GROSS CHARGING REVENUE': 'Year 5 charging visits × energy per session × charging price per kWh.', 'UTILITY ENERGY EXPENSE': 'Year 5 charging visits × energy per session × utility energy cost per kWh.', 'NETWORK + MAINTENANCE': 'Ports × network cost per month × 12 + ports × maintenance cost per year.', 'TOTAL EV OPERATING EXPENSES': 'Utility energy expense + network expense + maintenance expense.', 'YEAR 1 BUSINESS VALUE': 'Foot-traffic revenue plus the revenue stream allowed by the selected investment model.', '20-YEAR FORECASTED ROI': 'Twenty years of model-specific annual value, escalated annually, less the location out-of-pocket investment, divided by that investment.', 'CHARGING OPERATING MARGIN': 'Gross charging revenue − EV operating expenses.', 'EXPECTED RESTAURANT SALES': 'Additional customer parties per day × expected receipt × operating days.', 'ANNUAL DECISION-VIEW VALUE': 'Charging operating margin + expected restaurant gross sales; this is not a single-company profit figure.', 'CHARGING VISITS / DAY': 'Ports × 24 hours × utilization ÷ average session length in hours.', 'DAILY GROSS': 'Additional customer parties per day × average receipt.', 'MONTHLY GROSS': 'Daily gross sales × operating days ÷ 12.', 'ANNUAL GROSS': 'Daily gross sales × operating days.'
@@ -538,20 +1029,20 @@ const evOutputFormulas = {
 evOutputFormulas['DELIVERY + BANKABILITY SCORE'] = 'Average of the nine delivery and bankability diligence scores × 10.';
 evOutputFormulas['CURRENT DEMAND SCORE'] = '25% location capture score + 25% site capture score + 25% future growth score + 25% delivery and bankability score.';
 function renderEvSectionInputOutputPanels() {
+  // The reviewed EV proposal has its own section-specific content. Its edit controls are
+  // attached by syncInlineEditing instead of the legacy numeric section-index map.
+  if (isEvOnlyBid) return;
   Object.entries(evSectionInputGroups).forEach(([index, fields]) => {
-    if (index === '2') return;
     const reportSection = $(`#ev-report-${index}`); if (!reportSection || reportSection.querySelector('.ev-section-inputs')) return;
     const outputNodes = [...reportSection.children].filter(node => !node.classList.contains('ev-report-head'));
     const outputs = document.createElement('div'); outputs.className = 'ev-section-outputs'; outputNodes.forEach(node => outputs.appendChild(node));
     const inputs = document.createElement('div'); inputs.className = 'ev-section-inputs';
-    const scenarioSection = fields.find(([sectionName]) => configSchemas[sectionName])?.[0] || 'ev';
-    const snapshotPrimaryKeys = new Set(['dailyTraffic', 'travelRouteDistance', 'currentBevPopulation']);
-    const isSiteSnapshot = index === '3';
-    const primaryFields = isSiteSnapshot ? fields.filter(([, key]) => snapshotPrimaryKeys.has(key)) : fields;
-    const extraFields = isSiteSnapshot ? fields.filter(([, key]) => !snapshotPrimaryKeys.has(key)) : [];
-    const snapshotExpanded = Boolean(state.meta.expandedAssumptions?.['ev-report-3']);
-    const moreAssumptions = isSiteSnapshot ? `<button class="ev-more-assumptions" type="button" aria-expanded="${snapshotExpanded}" data-assumption-section="ev-report-3"><span>${snapshotExpanded ? 'Show fewer assumptions' : `${extraFields.length} more assumptions`}</span><i aria-hidden="true">${snapshotExpanded ? '−' : '+'}</i></button><div class="ev-more-assumptions-body" ${snapshotExpanded ? '' : 'hidden'}><div class="ev-section-input-scroll">${extraFields.map(evSectionInputMarkup).join('')}</div></div>` : '';
-    inputs.innerHTML = fields.length ? `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>Adjust the assumptions that drive this section.</small></div>${scenarioMarkup(scenarioSection, 'ev-scenario-picker')}<div class="ev-section-input-scroll">${primaryFields.map(evSectionInputMarkup).join('')}</div>${moreAssumptions}` : `<div class="ev-section-panel-head"><span class="chart-label">ASSUMPTIONS</span><small>This narrative section uses the installer company profile; it has no calculated variables.</small></div>`;
+    if (index === '4') {
+      inputs.className += ' about-us-configs'; inputs.innerHTML = inlineAboutUsLogoControl();
+      reportSection.querySelector('.ev-report-head')?.after(inputs); inputs.after(outputs); return;
+    }
+    const primaryFields = fields;
+    inputs.innerHTML = fields.length ? `<div class="ev-section-panel-head"><span class="chart-label">CONFIGS</span><small>Adjust the values that drive this section.</small></div><div class="ev-section-input-scroll">${primaryFields.map(evSectionInputMarkup).join('')}</div>` : `<div class="ev-section-panel-head"><span class="chart-label">CONFIGS</span><small>This narrative section uses the installer company profile; it has no calculated variables.</small></div>`;
     reportSection.querySelector('.ev-report-head')?.after(inputs); inputs.after(outputs);
   });
   $$('#ev .ev-section-outputs article > span, #ev .ev-section-outputs th').forEach(node => {
@@ -561,11 +1052,11 @@ function renderEvSectionInputOutputPanels() {
 }
 function bindEvSectionInputs() {
   $$('.ev-section-input').forEach(input => {
-    const update = () => { const sectionName = input.dataset.stateSection, key = input.dataset.stateKey; state[sectionName][key] = Number(input.value); markScenarioCustom(sectionName); const [min, max] = sliderRanges[key]; input.style.setProperty('--ev-fill', `${Math.max(0, Math.min(100, (Number(input.value) - min) / Math.max(.0001, max - min) * 100))}%`); input.parentElement.querySelector('output').textContent = evSectionInputValue(state[sectionName][key], input.dataset.stateFormat); renderEvCustomerValues(); renderUniversalEvOutputs(); renderEvFinancialValues(); saveState(); };
+    const update = () => { const sectionName = input.dataset.stateSection, key = input.dataset.stateKey; state[sectionName][key] = Number(input.value); markScenarioCustom(sectionName); const output = input.parentElement.querySelector('output'); if (output) output.textContent = evSectionInputValue(state[sectionName][key], input.dataset.stateFormat); renderEvCustomerValues(); renderUniversalEvOutputs(); renderEvFinancialValues(); saveState(); };
     input.addEventListener('input', update); input.addEventListener('change', () => { update(); renderReport(); });
   });
   $$('.ev-section-select').forEach(select => select.addEventListener('change', () => { state[select.dataset.stateSection][select.dataset.stateKey] = select.value; saveState(); renderReport(); }));
-  $$('.ev-scenario-picker .scenario-button').forEach(button => button.addEventListener('click', () => { applyScenario(button.dataset.scenarioSection, button.dataset.scenario); renderReport(); toast(`${button.dataset.scenario} assumptions applied.`); }));
+  $$('.about-logo-file').forEach(input => input.addEventListener('change', event => handleAboutUsLogoUpload(event.target.files[0])));
   $$('.ev-more-assumptions').forEach(button => button.addEventListener('click', () => { const sectionId = button.dataset.assumptionSection; state.meta.expandedAssumptions[sectionId] = !state.meta.expandedAssumptions[sectionId]; saveState(); renderReport(); }));
 }
 
@@ -579,7 +1070,7 @@ function renderUniversalEvCustomerStory() {
 
 function renderUniversalEvOutputs() {
   const y1 = calc.evForecastVisits(1), y3 = calc.evForecastVisits(3), y5 = calc.evForecastVisits(5);
-  const parties = calc.evRoundedParties(5), monthlyParties = parties * 30, annualParties = parties * state.ev.daysPerYear;
+  const parties = calc.evRoundedParties(5), monthlyParties = parties * 30.42, annualParties = parties * state.ev.daysPerYear;
   setText('#evOutputY1', number(y1)); setText('#evOutputY3', number(y3)); setText('#evOutputY5', number(y5));
   setText('#evOutputPartiesDay', number(parties)); setText('#evOutputPartiesMonth', number(monthlyParties)); setText('#evOutputPartiesYear', number(annualParties));
   setText('#evOutputSalesDay', money(calc.evRestaurantSales(state.ev.averageReceipt)));
@@ -588,21 +1079,48 @@ function renderUniversalEvOutputs() {
 }
 
 function evReportSection(numberLabel, title, subtitle, body, className = '') {
-  return `<section class="ev-report-section ${className}"><div class="ev-report-head"><div><span class="chart-label">${numberLabel}</span><h3>${title}</h3></div><p>${subtitle}</p></div>${body}</section>`;
+  const locationShort = state.overview.location.split(',').slice(-2).join(',').trim().toUpperCase();
+  const locationMeta = isEvOnlyBid && numberLabel === '02 / LOCATION OVERVIEW' ? `<span class="location-report-meta">${esc(state.overview.siteName.toUpperCase())} &nbsp;|&nbsp; ${esc(locationShort)}</span>` : '';
+  return `<section class="ev-report-section ${className}"><div class="ev-report-head"><div><span class="chart-label">${numberLabel}</span><h3>${title}</h3></div>${locationMeta}<p>${subtitle}</p></div>${body}</section>`;
 }
+
+function personalizeKneadersTemplate(root) {
+  if (isKneadersReferenceProposal || !root) return;
+  const hostName = state.overview.siteName || 'the host business';
+  const hostUpper = hostName.toUpperCase();
+  const companyName = state.brand.companyName || 'the installer';
+  const city = state.overview.location.split(',').map(part => part.trim()).filter(Boolean)[1] || state.overview.location;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes = []; while (walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach(node => {
+    node.nodeValue = node.nodeValue
+      .replaceAll('KNEADERS BAKERY & CAFE', hostUpper)
+      .replaceAll('KNEADERS', hostUpper)
+      .replaceAll('Kneaders', hostName)
+      .replaceAll('1SOLAR', companyName.toUpperCase())
+      .replaceAll('1Solar', companyName)
+      .replaceAll('Orem', city);
+  });
+}
+
+function renderKneadersReferenceStory(section) {
+  renderReviewedProposal(section);
+}
+
 
 function renderStructuredEvCustomerStory() {
   const section = $('#ev'); if (!section) return;
+  if (isEvOnlyBid) { renderKneadersReferenceStory(section); return; }
   const retainedLayoutTool = $('#evLayoutToolMount .layout-tool') || $('#layout .layout-tool');
   const hostName = state.overview.siteName;
   const city = state.overview.location.split(',').map(part => part.trim())[1] || state.overview.location;
   const upperHost = esc(hostName.toUpperCase());
   const executiveSummary = `<div class="ev-story-hero"><div class="ev-story-intro"><span class="chart-label">${upperHost} CUSTOMER-VALUE STORY</span><h3>More charging visits. More reasons to stop.</h3><p>Observed demand, a third-party forecast, and editable business assumptions are separated so the opportunity is easy to understand.</p></div><div class="ev-story-source-note"><b>SOURCES</b><span>Paren · observed local performance</span><span>EVpin · third-party utilization forecast</span><a id="evpinSourceLink" href="" target="_blank" rel="noreferrer" hidden>Open EVpin forecast ↗</a></div></div><div class="ev-big-numbers"><article><span>OBSERVED MARKET PROOF</span><strong id="evMarketProof"></strong><small>nearby Tesla visits / day</small></article><article><span>PROJECTED AT THIS SITE</span><strong id="evProjectedVisits"></strong><small>charging visits / day by Year 5</small></article><article><span>${upperHost} CAPTURE</span><strong id="evProjectedParties"></strong><small>additional customer parties / day</small></article><article><span>ANNUAL SALES OPPORTUNITY</span><strong id="evProjectedSales"></strong><small>potential gross restaurant sales</small></article></div>`;
-  const marketSaturation = `<div class="ev-market-grid"><div class="ev-market-map-wrap"><div class="ev-market-map-title"><b>NEARBY EV CHARGERS</b><span>Red dots are observed locations · click for details</span></div><div id="evMarketMap" class="map-card ev-market-map"></div></div><aside class="ev-panel ev-market-proof"><span class="chart-label">PAREN OBSERVED MARKET DATA</span><h4>${esc(city)} has proven fast-charging demand.</h4><p>A nearby ${number(state.ev.marketProofPorts)}-port Tesla station served roughly <b id="evObservedProof"></b> successful sessions per day, with an average session of ${number(state.ev.marketProofAverageSessionMinutes)} minutes.</p><small>Market proof only — not the forecast for this proposal.</small></aside></div>`;
+  const marketSaturation = `<div class="ev-market-grid location-market-grid"><div class="ev-market-map-wrap"><div class="ev-market-map-title"><b>NEARBY EV CHARGERS</b><span><i class="location-legend-kneaders"></i> KNEADERS <i class="location-legend-station"></i> OBSERVED STATION <small>Select a red dot for details</small></span></div><div id="evMarketMap" class="map-card ev-market-map"></div><div class="location-map-footer"><span>NEARBY EV DEMAND</span><strong>${number(demandStations.length)} LOCATIONS · ${number(demandStations.reduce((total, station) => total + station.ports, 0))} PORTS · ${number(state.ev.observedCharges3m)} OBSERVED CHARGES / 3 MONTHS</strong></div></div><aside class="ev-panel ev-market-proof location-market-proof"><div><span class="chart-label">OBSERVED MARKET EVIDENCE</span><b>VIEW DETAILS ›</b></div><h4>${esc(city)} has proven fast-charging demand.</h4><p>A nearby mature ${number(state.ev.marketProofPorts)}-port station recorded ${number(state.ev.marketProofSessions3m)} successful charging sessions over ${number(state.ev.marketProofDays)} complete weeks — approximately <strong id="evObservedProof"></strong>.</p></aside></div>`;
   const forecast = `<div class="ev-story-grid ev-model-grid"><div class="ev-panel forecast-panel"><div class="ev-panel-head"><div><span class="chart-label">THIRD-PARTY FORECAST RAMP</span><h4>Utilization becomes visits.</h4></div><span class="source-chip">EVpin forecast</span></div><table class="ev-forecast-table"><thead><tr><th>Year</th><th>Utilization</th><th>Charging visits / day</th><th>Formula</th></tr></thead><tbody><tr><td>Year 1</td><td id="evY1Util"></td><td id="evY1Visits"></td><td>Ports × 24 × utilization ÷ session hours</td></tr><tr><td>Year 3</td><td id="evY3Util"></td><td id="evY3Visits"></td><td>Ports × 24 × utilization ÷ session hours</td></tr><tr><td>Year 5</td><td id="evY5Util"></td><td id="evY5Visits"></td><td>Ports × 24 × utilization ÷ session hours</td></tr></tbody></table><div class="ev-formula-note">Charging visits / day = Ports × 24 hours × utilization ÷ average session length in hours.</div></div><aside class="ev-panel ev-assumptions-panel"><div class="ev-panel-head"><div><span class="chart-label">INDEPENDENT INPUTS</span><h4>Working assumptions</h4></div><span class="source-chip">Live inputs</span></div><p>Scroll to inspect and change every driver. The values elsewhere in this report are calculated from these inputs.</p><div class="ev-assumption-scroll">${evFaceInputs.map(evFaceInputMarkup).join('')}</div></aside></div>`;
-  const chargingRevenue = `<div class="ev-financial-grid"><article><span>YEAR 5 CHARGING VISITS</span><strong id="evRevenueVisits"></strong><small>visits / year</small></article><article><span>ENERGY DELIVERED</span><strong id="evRevenueEnergy"></strong><small>kWh / year</small></article><article><span>GROSS CHARGING REVENUE</span><strong id="evChargingRevenue"></strong><small>per year</small></article></div><p class="ev-formula-note">Gross charging revenue = Year 5 visits/day × operating days × energy/session × charging price. This is separate from visitor sales.</p>`;
-  const visitorRevenue = `<div class="ev-story-grid"><div class="ev-panel capture-panel"><span class="chart-label">VISITOR CAPTURE</span><h4>Visits can become customer parties.</h4><div class="capture-flow"><span><b id="evCaptureVisits"></b> visits/day</span><i>×</i><span><b id="evCaptureRate"></b> capture</span><i>≈</i><span><b id="evCaptureParties"></b> parties/day</span></div><div class="capture-periods"><span><b id="evCaptureMonthly"></b> parties / month</span><span><b id="evCaptureAnnual"></b> parties / year</span></div></div><div class="ev-panel visitor-note"><span class="chart-label">IMPORTANT</span><h4>Gross sales, not profit.</h4><p>Restaurant sales are a host-business opportunity. They do not include charging revenue, host profit sharing, food cost, or restaurant operating expense.</p></div></div><div class="ev-panel sales-panel"><div class="ev-panel-head"><div><span class="chart-label">RESTAURANT SALES OPPORTUNITY</span><h4>Low, expected, and high receipt cases.</h4></div><span class="source-chip">Business assumption</span></div><table class="ev-sales-table"><thead><tr><th>Case</th><th>Average receipt</th><th>Daily gross</th><th>Monthly gross</th><th>Annual gross</th></tr></thead><tbody><tr><td>Conservative</td><td id="evSalesConservativeReceipt"></td><td id="evSalesConservativeDaily"></td><td id="evSalesConservativeMonthly"></td><td id="evSalesConservativeAnnual"></td></tr><tr><td>Expected</td><td id="evSalesExpectedReceipt"></td><td id="evSalesExpectedDaily"></td><td id="evSalesExpectedMonthly"></td><td id="evSalesExpectedAnnual"></td></tr><tr><td>High</td><td id="evSalesHighReceipt"></td><td id="evSalesHighDaily"></td><td id="evSalesHighMonthly"></td><td id="evSalesHighAnnual"></td></tr></tbody></table><p class="ev-story-quote" id="evSalesQuote"></p></div>`;
-  const expenses = `<div class="ev-financial-grid"><article><span>UTILITY ENERGY EXPENSE</span><strong id="evElectricityExpense"></strong><small>per year</small></article><article><span>NETWORK + MAINTENANCE</span><strong id="evFixedExpenses"></strong><small>per year</small></article><article><span>TOTAL EV OPERATING EXPENSES</span><strong id="evOperatingExpenses"></strong><small>per year</small></article></div><p class="ev-formula-note">EV operating expenses = electricity for Year 5 sessions + network cost per port + maintenance per port. Installation capital cost is intentionally not included here.</p>`;
+  const chargingRevenue = `<div class="ev-financial-grid">${enabledCardSpecs(cardCatalog('ev.financialCards.chargingRevenue', []), 'financialCards.chargingRevenue').map(spec => `<article><span>${esc(spec.label)}</span><strong id="${esc(spec.valueId)}"></strong><small>${esc(spec.description || '')}</small></article>`).join('')}</div>`;
+  const visitorRevenue = `<div class="ev-panel visitor-note"><span class="chart-label">BASE PLANNING CASE</span><h4 id="evSalesExpectedAnnual"></h4><p>POTENTIAL ANNUAL RESTAURANT SALES</p><strong><span id="evSalesExpectedDaily"></span> / DAY &nbsp;|&nbsp; <span id="evSalesExpectedMonthly"></span> / MONTH</strong></div><div class="ev-financial-grid"><article><span>LOW SPEND</span><strong id="evSalesConservativeReceipt"></strong><small>AVERAGE PARTY SPEND</small><div class="spend-periods"><span><small>DAY</small><b id="evSalesConservativeDaily"></b></span><span><small>MONTH</small><b id="evSalesConservativeMonthly"></b></span><span><small>YEAR</small><b id="evSalesConservativeAnnual"></b></span></div></article><article><span>MEDIUM SPEND</span><strong id="evSalesExpectedReceipt"></strong><small>AVERAGE PARTY SPEND</small><div class="spend-periods"><span><small>DAY</small><b id="evSalesExpectedDaily"></b></span><span><small>MONTH</small><b id="evSalesExpectedMonthly"></b></span><span><small>YEAR</small><b id="evSalesExpectedAnnualCard"></b></span></div></article><article><span>HIGH SPEND</span><strong id="evSalesHighReceipt"></strong><small>AVERAGE PARTY SPEND</small><div class="spend-periods"><span><small>DAY</small><b id="evSalesHighDaily"></b></span><span><small>MONTH</small><b id="evSalesHighMonthly"></b></span><span><small>YEAR</small><b id="evSalesHighAnnual"></b></span></div></article></div><p class="ev-formula-note" id="evSalesQuote">Potential guest parties = Year 5 charging visits × guest-capture assumption. Restaurant sales = guest parties × average party spend × operating days.</p>`;
+  const expenses = `<div class="ev-financial-grid">${enabledCardSpecs(cardCatalog('ev.financialCards.expenses', []), 'financialCards.expenses').map(spec => `<article><span>${esc(spec.label)}</span><strong id="${esc(spec.valueId)}"></strong><small>${esc(spec.description || '')}</small></article>`).join('')}</div>`;
   const lenderSupport = `<div class="ev-lender-summary"><article><span>DELIVERY + BANKABILITY SCORE</span><strong>${number(calc.lenderBankabilityScore(), 0)} / 100</strong><small>Weighted equally across nine lender-diligence inputs.</small></article><article><span>DEALERSHIP / PRIVATE-CHARGER DISCOUNT</span><strong>${number(state.lender.dealershipPrivateChargerDiscount)}%</strong><small>Commercial discount assumption; not included in the base economics.</small></article></div><div class="ev-lender-grid"><article><span>UTILITY + AVAILABLE CAPACITY</span><strong>${number(state.lender.utilityCapacityScore)} / 10</strong></article><article><span>TARIFF + DEMAND CHARGES</span><strong>${number(state.lender.tariffDemandChargeScore)} / 10</strong></article><article><span>AHJ + PERMITTING DIFFICULTY</span><strong>${number(state.lender.permittingScore)} / 10</strong></article><article><span>INCENTIVE ELIGIBILITY</span><strong>${number(state.lender.incentiveEligibilityScore)} / 10</strong></article><article><span>CONSTRUCTION COST</span><strong>${number(state.lender.constructionCostScore)} / 10</strong></article><article><span>SAFETY + VANDALISM EXPOSURE</span><strong>${number(state.lender.safetyVandalismScore)} / 10</strong></article><article><span>CELLULAR CONNECTIVITY</span><strong>${number(state.lender.cellularConnectivityScore)} / 10</strong></article><article><span>UPTIME + MAINTENANCE PLAN</span><strong>${number(state.lender.uptimeMaintenanceScore)} / 10</strong></article><article><span>DEBT-SERVICE COVERAGE</span><strong>${number(state.lender.debtServiceCoverageScore)} / 10</strong></article></div><p class="ev-formula-note">This diligence summary is designed for lender review. Scores are editable working assumptions until confirmed by EVpin, the utility, engineering, permitting, and project finance diligence.</p>`;
   const selectedModel = state.ev.investmentModel;
   const economicsOutOfPocket = selectedModel === 'Lease parking space' ? 0 : state.investment.ev * (selectedModel === '50/50' ? 0.5 : 1);
@@ -622,17 +1140,36 @@ function renderStructuredEvCustomerStory() {
   };
   const roi20 = economicsOutOfPocket ? ((Array.from({ length: 20 }, (_, index) => annualEconomicValue * Math.pow(1 + state.economics.escalation / 100, index)).reduce((sum, value) => sum + value, 0) - economicsOutOfPocket) / economicsOutOfPocket) * 100 : null;
   const economics = `<div class="ev-economics-summary"><article><span>SELECTED MODEL</span><strong>${esc(selectedModel)}</strong><small>One model governs this EV investment.</small></article><article><span>LOCATION OUT-OF-POCKET</span><strong>${money(economicsOutOfPocket)}</strong><small>Initial EV equipment and installation contribution.</small></article><article><span>YEAR 1 BUSINESS VALUE</span><strong>${roundedMoney(annualEconomicValue)}</strong><small>${selectedModel === 'Lease parking space' ? 'foot traffic revenue + lease revenue' : 'foot traffic revenue + charger economics'}</small></article><article><span>20-YEAR FORECASTED ROI</span><strong>${roi20 == null ? 'No capital outlay' : `${number(roi20, 0)}%`}</strong><small>Uses the selected model and ${number(state.economics.escalation, 1)}% annual escalation.</small></article></div><div class="ev-economics-card"><div><span class="chart-label">20-YEAR FORECASTED ROI</span><h4>Your 20-year value outlook.</h4><p>${selectedModel === 'Lease parking space' ? 'This model shows only foot traffic revenue and parking-space lease revenue.' : selectedModel === '50/50' ? 'This model shows foot traffic revenue plus 50% of charger revenue.' : 'This model shows foot traffic revenue plus charging operating margin after EV operating expenses.'}</p><div class="ev-economics-legend">${economicsStreams.map(stream => `<span><i class="${stream.className}"></i>${esc(stream.label)}</span>`).join('')}</div></div>${forecastBars(economicsStreams, economicsOutOfPocket)}</div>${selectedModel !== 'Lease parking space' ? `<div class="ev-economics-card ev-charger-revenue-card"><div><span class="chart-label">ALL-CHARGER REVENUE</span><h4>Gross revenue from all chargers.</h4><p>This companion view is shown for ${esc(selectedModel)} and keeps total charger revenue visible before the ownership allocation.</p><div class="ev-economics-legend"><span><i class="charger-revenue"></i>Gross charger revenue</span></div></div>${forecastBars([{ label: 'Gross charger revenue', value: annualChargerRevenue, className: 'charger-revenue' }])}</div>` : ''}<p class="ev-formula-note">The 20-year forecast applies the configured annual escalation to the displayed revenue streams. Foot traffic revenue is gross restaurant sales, not restaurant profit.</p>`;
-  const locationOverview = `<div class="ev-score-grid ev-location-score-grid"><article class="ev-current-demand-score"><span>CURRENT DEMAND SCORE</span><strong id="evCurrentDemandScore"></strong><small id="evCurrentDemandVerdict"></small></article><article><span>LOCATION CAPTURE SCORE</span><strong id="evLocationCaptureScore"></strong><small>Observed demand strength and local charging utilization</small></article><article><span>SUCCESSFUL SESSIONS / DAY</span><strong id="evLocationSessions"></strong><small>Nearby Tesla market proof</small></article><article><span>SESSIONS / PORT / DAY</span><strong id="evSessionsPerPort"></strong><small>Observed station throughput</small></article><article><span>EXISTING UTILIZATION</span><strong id="evExistingUtilization"></strong><small>Based on successful sessions and average session duration</small></article></div>${marketSaturation}`;
+  const locationOverview = `<div class="ev-location-metrics"><article class="ev-location-metric active"><div><span>MARKET TRAFFIC</span><b>VIEW DETAILS ›</b></div><strong id="evLocationSessions"></strong><em id="evCurrentDemandVerdict"></em><div class="metric-scale"><i></i><i></i><i></i></div><small>LOW &lt;64 <span>TYPICAL 64-80</span> <b>HIGH &gt;80</b></small></article><article class="ev-location-metric"><div><span>PORT PRODUCTIVITY</span><b>VIEW DETAILS ›</b></div><strong id="evSessionsPerPort"></strong><em>~10.4 active hours per port each day</em><div class="metric-scale"><i></i><i></i><i></i></div><small>LOW &lt;8 <span>TYPICAL 8-10</span> <b>HIGH &gt;10</b></small></article><article class="ev-location-metric"><div><span>DWELL OPPORTUNITY</span><b>VIEW DETAILS ›</b></div><strong id="evDwellMinutes"></strong><em>~84 driver-hours of dwell time per day</em><p>Enough time to order, dine, or take food to go</p></article></div>${marketSaturation}<div class="ev-location-support"><article><strong id="evLocationTraffic"></strong><span>ROADWAY COMPARISON</span><small>UDOT AADT · STATE PEAK CONTEXT</small></article><article><strong id="evLocationRoute"></strong><span>GOOD CORRIDOR ACCESS</span><small>VIEW BENCHMARK ›</small></article></div>`;
   const companyInitials = state.brand.companyName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'EV';
   const companyLogo = state.brand.companyLogo ? `<img src="${esc(state.brand.companyLogo)}" alt="${esc(state.brand.companyName)} logo" />` : `<span>${esc(companyInitials)}</span>`;
   const aboutUs = `<div class="ev-story-grid"><article class="ev-panel"><span class="chart-label">ABOUT THE INSTALLER</span><div class="installer-company-header"><div class="installer-company-logo ${state.brand.companyLogo ? 'has-logo' : ''}">${companyLogo}</div><div><h4>${esc(state.brand.companyName)}</h4><p class="installer-tagline">${esc(state.brand.tagline)}</p></div></div><p>${esc(state.brand.companyName)} designs, models, and delivers commercial EV charging projects for host businesses. This proposal connects site demand, construction planning, equipment economics, and the customer experience into one decision-ready plan.</p></article><article class="ev-panel"><span class="chart-label">WHAT WE BRING TO THIS DEAL</span><h4>${esc(state.brand.proposalSlogan)}</h4><div class="ev-installer-list"><span>Site evaluation and utility coordination</span><span>Equipment, civil, electrical, and commissioning planning</span><span>Transparent assumptions and buyer-ready economics</span></div></article></div>`;
-  const siteSnapshot = `<div class="ev-score-grid"><article><span>SITE CAPTURE SCORE</span><strong id="evSiteCaptureScore"></strong><small>Traffic, access, amenities, route proximity, and competitor congestion</small></article><article><span>DAILY TRAFFIC</span><strong id="evDailyTraffic"></strong><small>vehicles / day near the site</small></article><article><span>SITE VISIBILITY</span><strong id="evVisibilityScore"></strong><small>visibility from the travel corridor</small></article><article><span>EASE OF ENTRY + EXIT</span><strong id="evEntryExitScore"></strong><small>driver access assessment</small></article><article><span>DISTANCE FROM MAJOR ROUTE</span><strong id="evTravelRouteDistance"></strong><small>nearest high-volume travel route</small></article><article><span>FOOD, RESTROOMS, SEATING + WI-FI</span><strong id="evAmenityScore"></strong><small>host amenity assessment</small></article><article><span>COMPETITIVE CHARGER CONGESTION</span><strong id="evCongestionScore"></strong><small>room for a more convenient option</small></article></div><div class="ev-panel ev-demand-narrative"><span class="chart-label">SITE DEMAND CASE</span><h4>High-visibility amenities turn charge time into a better stop.</h4><p>Daily traffic, easy circulation, a nearby travel route, and a place to eat or rest all increase the likelihood that a driver chooses this site over a less convenient competitor. Existing local charger use supports the demand case; competitor utilization is a supporting comparison, not the forecast for this site.</p></div><div class="ev-score-grid ev-growth-grid"><article><span>FUTURE GROWTH SCORE</span><strong id="evFutureGrowthScore"></strong><small>BEV adoption, traffic, charger development, and public fast-charging behavior</small></article><article><span>CURRENT BEV POPULATION</span><strong id="evCurrentBevPopulation"></strong><small>local market estimate</small></article><article><span>HISTORICAL BEV GROWTH</span><strong id="evHistoricalBevGrowth"></strong><small>annual growth assumption</small></article><article><span>PROJECTED BEV FLEET</span><strong id="evProjectedBevFleet"></strong><small>planning-horizon estimate</small></article><article><span>TESLA + OTHER-MAKE MIX</span><strong id="evTeslaMix"></strong><small>Tesla share; remaining mix is other makes</small></article><article><span>TRAFFIC GROWTH</span><strong id="evTrafficGrowth"></strong><small>annual growth assumption</small></article><article><span>FUTURE CHARGER CONSTRUCTION</span><strong id="evFutureConstruction"></strong><small>known or expected competing sites</small></article><article><span>PUBLIC FAST-CHARGING BEHAVIOR</span><strong id="evPublicFastCharging"></strong><small>BEV drivers expected to use public DC fast charging</small></article></div>${forecast}<div class="ev-site-layout"><div class="ev-panel-head"><div><span class="chart-label">CONSTRUCTION SITE PLAN</span><h4>Draw the charger build plan.</h4></div><span class="source-chip">Interactive</span></div><p>Place equipment, draw trenching and striping, and leave a construction-ready sketch.</p><div id="evLayoutToolMount"></div></div>`;
-  section.innerHTML = `<div class="section-heading ev-controls-only"><div><div class="section-kicker">04 / EV CHARGING</div><h2>Turn charging visits into customer value.</h2></div><div class="heading-note">A repeatable EV business case: market proof, forecasted demand, investment, revenue, expenses, and economics.</div></div><div class="ev-customer-story">${evReportSection('01 / LOCATION OVERVIEW', 'What is already happening around this location.', 'Observed charging activity, local throughput, utilization, and the charger map establish the market context.', locationOverview)}${evReportSection('02 / ABOUT US', 'About the installer proposing this deal.', 'Who is accountable for turning this demand opportunity into a built, operating charging site.', aboutUs)}${evReportSection('03 / SITE SNAPSHOT', 'Why this site can capture demand today and as the EV market grows.', 'Capture and growth scores make each demand driver visible and configurable.', siteSnapshot)}${evReportSection('04 / EV CHARGING REVENUE', 'Charging revenue at Year 5 demand.', 'Gross charging revenue is calculated independently from restaurant sales.', chargingRevenue)}${evReportSection('05 / REVENUE FROM ADDITIONAL VISITORS', `What charging visitors could mean for ${esc(hostName)}.`, 'Restaurant capture and receipt cases are shown separately from charging revenue.', visitorRevenue)}${evReportSection('06 / EXPENSES', 'Annual EV operating expenses.', 'Operating costs are explicit so gross charging revenue is not mistaken for margin.', expenses)}${evReportSection('07 / ECONOMICS', 'A long-term view of why this model can be worth the investment.', 'The selected investment model determines the revenue streams included in the forecast.', economics, 'ev-projected-section')}${proposalScopes.lenderSupport ? evReportSection('08 / LENDER SUPPORT', 'Delivery and bankability diligence.', 'EVpin, utility, engineering, development, operations, and finance checks in one lender-ready working view.', lenderSupport, 'ev-lender-section') : ''}</div>`;
+  const siteSnapshot = `<div class="ev-score-grid"><article><span>SITE CAPTURE SCORE</span><strong id="evSiteCaptureScore"></strong><small>Traffic, access, route proximity, and competitor congestion</small></article><article><span>DAILY TRAFFIC</span><strong id="evDailyTraffic"></strong><small>vehicles / day near the site</small></article><article><span>SITE VISIBILITY</span><strong id="evVisibilityScore"></strong><small>visibility from the travel corridor</small></article><article><span>EASE OF ENTRY + EXIT</span><strong id="evEntryExitScore"></strong><small>driver access assessment</small></article><article><span>DISTANCE FROM MAJOR ROUTE</span><strong id="evTravelRouteDistance"></strong><small>nearest high-volume travel route</small></article><article><span>COMPETITIVE CHARGER CONGESTION</span><strong id="evCongestionScore"></strong><small>room for a more convenient option</small></article></div><div class="ev-panel ev-demand-narrative"><span class="chart-label">SITE DEMAND CASE</span><h4>Traffic and access turn charge time into a better stop.</h4><p>Daily traffic, easy circulation, and a nearby travel route all increase the likelihood that a driver chooses this site over a less convenient competitor. Existing local charger use supports the demand case; competitor utilization is a supporting comparison, not the forecast for this site.</p></div><div class="ev-score-grid ev-growth-grid"><article><span>FUTURE GROWTH SCORE</span><strong id="evFutureGrowthScore"></strong><small>BEV adoption, traffic, charger development, and public fast-charging behavior</small></article><article><span>CURRENT BEV POPULATION</span><strong id="evCurrentBevPopulation"></strong><small>local market estimate</small></article><article><span>HISTORICAL BEV GROWTH</span><strong id="evHistoricalBevGrowth"></strong><small>annual growth assumption</small></article><article><span>PROJECTED BEV FLEET</span><strong id="evProjectedBevFleet"></strong><small>planning-horizon estimate</small></article><article><span>TESLA + OTHER-MAKE MIX</span><strong id="evTeslaMix"></strong><small>Tesla share; remaining mix is other makes</small></article><article><span>TRAFFIC GROWTH</span><strong id="evTrafficGrowth"></strong><small>annual growth assumption</small></article><article><span>FUTURE CHARGER CONSTRUCTION</span><strong id="evFutureConstruction"></strong><small>known or expected competing sites</small></article><article><span>PUBLIC FAST-CHARGING BEHAVIOR</span><strong id="evPublicFastCharging"></strong><small>BEV drivers expected to use public DC fast charging</small></article></div>${forecast}`;
+  section.innerHTML = `<div class="section-heading ev-controls-only"><div><div class="section-kicker">04 / EV CHARGING</div><h2>Turn charging visits into customer value.</h2></div><div class="heading-note">A repeatable EV business case: market proof, forecasted demand, investment, revenue, expenses, and economics.</div></div><div class="ev-customer-story">${evReportSection('01 / LOCATION OVERVIEW', 'What is already happening around this location.', 'Observed charging activity and local traffic show that Orem already supports meaningful fast-charging demand.', locationOverview, 'location-overview-page')}${evReportSection('02 / ABOUT US', 'About the installer proposing this deal.', 'Who is accountable for turning this demand opportunity into a built, operating charging site.', aboutUs)}${evReportSection('03 / SITE SNAPSHOT', 'Why this site can capture demand today and as the EV market grows.', 'Capture and growth scores make each demand driver visible and configurable.', siteSnapshot)}${evReportSection('04 / REVENUE FROM ADDITIONAL GUESTS', 'What could additional charging guests mean for restaurant sales?', 'The expected charging case creates potential guest parties each day. Party spend determines the revenue opportunity.', visitorRevenue)}${evReportSection('05 / EV CHARGING REVENUE', 'Charging revenue at Year 5 demand.', 'Gross charging revenue is calculated independently from restaurant sales.', chargingRevenue)}${evReportSection('06 / EXPENSES', 'Annual EV operating expenses.', 'Operating costs are explicit so gross charging revenue is not mistaken for margin.', expenses)}${evReportSection('07 / ECONOMICS', 'A long-term view of why this model can be worth the investment.', 'The selected investment model determines the revenue streams included in the forecast.', economics, 'ev-projected-section')}${proposalScopes.lenderSupport ? evReportSection('08 / LENDER SUPPORT', 'Delivery and bankability diligence.', 'EVpin, utility, engineering, development, operations, and finance checks in one lender-ready working view.', lenderSupport, 'ev-lender-section') : ''}</div>`;
   const firstThree = section.querySelectorAll('.ev-customer-story > .ev-report-section');
   if (firstThree.length >= 3) {
-    firstThree[0].outerHTML = evReportSection('01 / LOCATION OVERVIEW', 'What is already happening around this location.', 'Observed charging activity, local throughput, utilization, and the charger map establish the market context.', locationOverview);
+    firstThree[0].outerHTML = evReportSection('01 / LOCATION OVERVIEW', 'What is already happening around this location.', 'Observed charging activity, local throughput, utilization, and the charger map establish the market context.', locationOverview, 'location-overview-page');
     firstThree[1].outerHTML = evReportSection('02 / ABOUT US', 'About the installer proposing this deal.', 'Who is accountable for turning this demand opportunity into a built, operating charging site.', aboutUs);
     firstThree[2].outerHTML = evReportSection('03 / SITE SNAPSHOT', 'Why this site can capture demand today and as the EV market grows.', 'Capture and growth scores make each demand driver visible and configurable.', siteSnapshot);
+  }
+  const siteSnapshotReport = section.querySelectorAll('.ev-customer-story > .ev-report-section')[2];
+  if (siteSnapshotReport) {
+    const siteSnapshotSpec = cardCatalog('ev.siteSnapshotMockup', null) || { title: 'How much charging demand could this site capture?', subtitle: 'Page 2 established the market. Fleet growth, charging behavior and restaurant fit show what this location could capture.' };
+    const siteSnapshotHead = siteSnapshotReport.querySelector('.ev-report-head');
+    siteSnapshotReport.replaceChildren(siteSnapshotHead);
+    siteSnapshotReport.insertAdjacentHTML('beforeend', siteSnapshotMarkup(siteSnapshotSpec));
+    siteSnapshotReport.querySelector('.ev-report-head h3').textContent = siteSnapshotSpec.title;
+    siteSnapshotReport.querySelector('.ev-report-head p').textContent = siteSnapshotSpec.subtitle;
+  }
+  const visitorRevenueReport = section.querySelectorAll('.ev-customer-story > .ev-report-section')[3];
+  if (visitorRevenueReport) {
+    const visitorRevenueSpec = cardCatalog('ev.visitorRevenueMockup', null) || { title: 'What could additional charging guests mean for restaurant sales?', subtitle: 'The expected charging case creates potential guest parties each day. Party spend determines the revenue opportunity.' };
+    const visitorRevenueHead = visitorRevenueReport.querySelector('.ev-report-head');
+    visitorRevenueReport.replaceChildren(visitorRevenueHead);
+    visitorRevenueReport.classList.add('revenue-guests-section');
+    visitorRevenueReport.insertAdjacentHTML('beforeend', visitorRevenueMarkup(visitorRevenueSpec));
+    visitorRevenueReport.querySelector('.ev-report-head h3').textContent = visitorRevenueSpec.title;
+    visitorRevenueReport.querySelector('.ev-report-head p').textContent = visitorRevenueSpec.subtitle;
   }
   const evProjectInvestment = state.investment.ev;
   const model = state.ev.investmentModel;
@@ -654,6 +1191,8 @@ function renderStructuredEvCustomerStory() {
     });
     if (proposalScopes.lenderSupport && finalSections[7]) finalSections[7].id = 'ev-report-8';
   }
+  const story = section.querySelector('.ev-customer-story');
+  if (story && !story.querySelector('.construction-plan-section')) story.insertAdjacentHTML('beforeend', evReportSection('11 / CONSTRUCTION SITE PLAN', 'Construction site plan.', 'Place equipment, draw trenching and striping, and leave a construction-ready sketch.', '<div class="ev-site-layout"><div id="evLayoutToolMount"></div></div>', 'construction-plan-section'));
   const layoutToolMount = $('#evLayoutToolMount');
   if (retainedLayoutTool && layoutToolMount) layoutToolMount.appendChild(retainedLayoutTool);
   $('#layout')?.classList.add('scope-off');
@@ -687,29 +1226,49 @@ function bindEvFaceInputs() {
   $$('.ev-face-input').forEach(input => input.addEventListener('input', event => {
     const target = event.currentTarget, key = target.dataset.evKey;
     state.ev[key] = Number(target.value);
-    const fill = Math.max(0, Math.min(100, (Number(target.value) - Number(target.min)) / Math.max(0.0001, Number(target.max) - Number(target.min)) * 100)); target.style.setProperty('--ev-fill', `${fill}%`);
-    const output = target.parentElement.querySelector('output'); if (output) output.textContent = evFaceValue(state.ev[key], target.dataset.evFormat);
     renderEvCustomerValues(); renderUniversalEvOutputs(); renderEvFinancialValues(); saveState();
   }));
 }
 
 function renderEvOnlyOverview() {
-  const heroTitle = $('.hero h1'); if (heroTitle) heroTitle.innerHTML = 'Turn charging visits<br /><em>into customer value.</em>';
-  const heroSub = $('.hero-sub'); if (heroSub) heroSub.innerHTML = `A focused EV charging proposal for <strong id="storeName">${esc(state.overview.siteName)}</strong>, built around observed Orem market demand, an EVpin utilization forecast, and the restaurant-sales opportunity those visits can create.`;
-  const heroMeta = $('.hero .hero-meta'); if (heroMeta) heroMeta.innerHTML = `<span><b class="status-pill">${esc(state.overview.status)}</b> GetEV EV customer-value proposal</span><span>${esc(state.overview.location)}</span>`;
+  if (!isEvOnlyBid) return;
+  const heroTitle = $('.hero h1'); if (heroTitle) heroTitle.innerHTML = '<span class="hero-pdf-title">Turn charging visits into</span> <span class="rotating-headline" aria-live="polite"><span class="rotating-headline-word">customer value.</span></span><span class="print-headline">Turn charging visits into customer value.</span>';
+  const hostName = state.overview.siteName || 'the host business'; const location = state.overview.location || 'Location pending';
+  const heroSub = $('.hero-sub'); if (heroSub) heroSub.innerHTML = `Our goal is to make EV charging a natural extension of the ${esc(hostName)} guest experience - serving current guests, attracting new ones, and giving drivers a warm, welcoming place to spend their charging time. In doing so, the project can create measurable visits and sales while adding a valuable new amenity to the property.<span class="hero-project-id">${esc(hostName)} | ${esc(location)}<br/>Proposed ${number(state.ev.ports)}-port DC fast-charging station</span>`;
+  const heroMeta = $('.hero .hero-meta'); if (heroMeta) heroMeta.remove();
   $('#proposal-summary')?.classList.add('scope-off');
   $('.hero-art')?.classList.remove('scope-off');
+  setupRotatingHeadline();
   const evKicker = $('#ev .section-kicker'); if (evKicker) evKicker.textContent = '02 / EV CUSTOMER VALUE';
-  const evNavigation = [
-    'Location overview', 'About us', 'Site snapshot', 'EV charging revenue',
-    'Revenue from additional visitors', 'Investment + expenses', 'Economics'
-  ];
-  if (proposalScopes.lenderSupport) evNavigation.push('Lender support');
+  const evNavigation = [...document.querySelectorAll('#ev .ev-report-section')].map(node=>({label:node.dataset.navLabel || node.querySelector('h3')?.textContent || 'Section',id:node.id}));
   const reportNav = $('.report-nav');
-  if (reportNav) reportNav.innerHTML = evNavigation.map((label, index) => `<button class="nav-item ${index === 0 ? 'active' : ''}" data-target="ev-report-${index + 1}"><span>${String(index + 1).padStart(2, '0')}</span>${esc(label)}</button>`).join('');
+  if (reportNav) reportNav.innerHTML = evNavigation.map((item, index) => `<button class="nav-item ${index === 0 ? 'active' : ''}" data-target="${item.id}"><span>${String(index + 2).padStart(2, '0')}</span>${esc(item.label)}</button>`).join('');
+  observeProposalSections();
+}
+
+let rotatingHeadlineTimer = null;
+function setupRotatingHeadline() {
+  const slot = $('.rotating-headline');
+  const word = $('.rotating-headline-word');
+  if (rotatingHeadlineTimer) window.clearInterval(rotatingHeadlineTimer);
+  if (!slot || !word) return;
+  slot.dataset.ready = 'true';
+  const phrases = ['customer value.', 'restaurant sales.', 'guest opportunities.', 'new visits.', 'more business.'];
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { rotatingHeadlineTimer = null; return; }
+  let index = 0;
+  const rotate = () => {
+    word.classList.add('is-fading');
+    window.setTimeout(() => {
+      index = (index + 1) % phrases.length;
+      word.textContent = phrases[index];
+      word.classList.remove('is-fading');
+    }, 360);
+  };
+  rotatingHeadlineTimer = window.setInterval(rotate, 3200);
 }
 
 function renderReport() {
+  applyGuestSalesDefaults();
   const proposalName = state.overview.proposalName || `${state.overview.siteName} ${state.overview.location.split(',').slice(-2).join(',').trim()}`;
   setText('#sidebarBidStatus', state.overview.status); setText('#proposalNameEyebrow', proposalName);
   const proposalEyebrow = $('.hero .eyebrow'); if (proposalEyebrow) proposalEyebrow.innerHTML = `${esc(proposalName)} <span>•</span> ${state.overview.proposalDate}`;
@@ -721,11 +1280,17 @@ function renderReport() {
   const fitCallout = $('#site .fact-callout p'); if (fitCallout) fitCallout.textContent = `${number(state.site.selfConsumption)}% of projected solar production is consumed behind the meter.`;
   setText('#solar .chart-top strong', `${number(calc.solarMwh(), 0)} MWh first year`); setText('#solar .solar-detail h3', `${number(state.solar.arrayKw)} kW DC rooftop array`); setText('#solar .solar-detail .detail-specs span:nth-child(1) b', number(calc.modules())); setText('#solar .solar-detail .detail-specs span:nth-child(2) b', number(calc.solarMwh(), 0)); setText('#solar .solar-detail .detail-specs span:nth-child(3) b', number(state.solar.warranty));
   setText('#storage .battery-copy h3', `${number(state.storage.capacityMwh, 1)} MWh / ${number(state.storage.powerKw)} kW`); setText('#storage .dispatch-footer strong', `− ${number(state.storage.shavePct)}% peak demand`); setText('#storage .peak-marker span', `${number(state.site.peakDemand)} kW`);
-  renderStructuredEvCustomerStory(); renderEvSectionInputOutputPanels(); hideProposalFormulas(); renderDemandMap(); renderEvCustomerValues(); renderUniversalEvOutputs(); renderEvFinancialValues(); bindEvFaceInputs(); bindEvSectionInputs();
+  renderStructuredEvCustomerStory(); applyJsonProposalCards(); renderEvSectionInputOutputPanels(); hideProposalFormulas(); renderDemandMap(); renderEvCustomerValues(); renderUniversalEvOutputs(); renderEvFinancialValues(); bindEvFaceInputs(); bindEvSectionInputs();
   const bundleValues = [state.bundles.critterGuard, state.bundles.lighting, state.bundles.hvac]; bundleValues.forEach((value, i) => setText(`#bundles .bundle-card:nth-child(${i + 1}) strong`, money(value)));
   setText('#investment .investment-row:nth-child(2) strong', money(state.investment.solar)); setText('#investment .investment-row:nth-child(3) strong', money(state.investment.battery)); setText('#investment .investment-row:nth-child(4) strong', money(state.investment.ev)); setText('#investment .investment-row:nth-child(5) strong', money(state.investment.siteImprovements)); setText('#investment .investment-row.total strong', money(calc.totalInvestment())); setText('#investment .incentive-card>strong', `Up to ${number(state.investment.incentivePct)}%`); const incentive = $('#investment .incentive-bar i'); if (incentive) incentive.style.width = `${Math.min(100, state.investment.incentivePct)}%`;
   setText('#economics .economics-summary strong', compactMoney(calc.netValue())); setText('#economics .roi-chip', `${number(calc.roi(), 1)}% ROI`);
-  renderAuditBlocks(); renderReferenceComponents(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); normalizePresentationLabels(); refreshDerivedMetrics(); ensureSectionControls(); restoreInlineEdits(); saveState();
+  renderAuditBlocks(); renderReferenceComponents(); ensureCustomCardProvenance(); $('#ev .audit-grid')?.remove(); $('#ev .regional-benchmark')?.remove(); $('#ev .reference-components')?.remove(); applyScopeCopy(); renderEvOnlyOverview(); normalizePresentationLabels(); refreshDerivedMetrics(); refreshReviewedDetails();
+  const renderedSlides=[...document.querySelectorAll('#ev .ev-report-section')];
+  const renderedNav=document.querySelector('.report-nav');
+  if(renderedNav&&renderedSlides.length>6){
+    renderedNav.innerHTML=renderedSlides.map((node,index)=>`<button class="nav-item ${index===0?'active':''}" data-target="${node.id}"><span>${String(index+2).padStart(2,'0')}</span>${esc(node.dataset.navLabel||'Section')}</button>`).join('');
+  }
+  restoreInlineEdits(); syncInlineEditing(); saveState();
 }
 
 const currentScopes = () => ({ solar: $('.config-scope-toggle[data-scope="solar"]')?.checked ?? proposalScopes.solar, storage: $('.config-scope-toggle[data-scope="storage"]')?.checked ?? proposalScopes.storage, ev: $('.config-scope-toggle[data-scope="ev"]')?.checked ?? proposalScopes.ev, lenderSupport: $('.config-scope-toggle[data-scope="lenderSupport"]')?.checked ?? proposalScopes.lenderSupport });
@@ -778,7 +1343,7 @@ function renderReferenceComponents() {
 }
 
 $('#applyConfig').addEventListener('click', () => { renderReport(); closeConfig(); });
-$('#showAllConfigs').addEventListener('click', () => openConfig('overview'));
+$('#showAllConfigs').addEventListener('click', () => toggleInlineConfig($('.hero'), 'overview'));
 $('#exportConfigs').addEventListener('click', exportConfigs);
 $('#importConfigs').addEventListener('click', () => $('#configImportFile').click());
 $('#configImportFile').addEventListener('change', event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => importConfigsText(String(reader.result || '')); reader.readAsText(file); event.target.value = ''; });
@@ -801,24 +1366,37 @@ function prepareInlineEdits(section) {
 }
 function restoreInlineEdits() { [$('.hero'), ...$$('.content-section')].filter(Boolean).forEach(prepareInlineEdits); }
 function setSectionEditing(section, editing) { prepareInlineEdits(section); editableFor(section).forEach(field => { field.contentEditable = editing; field.classList.toggle('inline-editing', editing); }); }
-function addSectionControls(section, sectionId, configSectionId = sectionId) {
-  if (section.querySelector('.section-controls')) return;
-  const heading = section.querySelector('.section-heading, .ev-report-head'); if (!heading) return;
-  const controls = document.createElement('div'); controls.className = 'section-controls'; controls.innerHTML = `<button class="section-edit" type="button" aria-label="Edit ${sectionId} section"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure ${sectionId} section"><span>⚙</span><b>Configure</b></button>`; heading.appendChild(controls);
-  const pencil = controls.querySelector('.section-edit'); pencil.addEventListener('click', () => { const editing = pencil.classList.toggle('editing'); pencil.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(section, editing); });
-  controls.querySelector('.section-config').addEventListener('click', () => openConfig(configSectionId));
-}
-function ensureSectionControls() {
-  $$('.content-section').forEach(section => addSectionControls(section, section.id));
+function syncInlineEditing() {
+  const editing = document.body.classList.contains('edit-mode') && !document.body.classList.contains('view-only');
+  const hero = $('.hero');
+  if (hero) { setSectionEditing(hero, editing); if (editing && !hero.querySelector('.inline-config-dials')) toggleInlineConfig(hero, 'overview'); if (!editing) hero.querySelector('.inline-config-dials')?.remove(); }
+  $$('.content-section').forEach(section => setSectionEditing(section, editing));
   const evConfigSections = { 'ev-report-1': 'ev', 'ev-report-2': 'overview', 'ev-report-3': 'ev', 'ev-report-4': 'ev', 'ev-report-5': 'ev', 'ev-report-6': 'ev', 'ev-report-7': 'economics', 'ev-report-8': 'lender' };
-  $$('#ev .ev-report-section').forEach(section => addSectionControls(section, section.id, evConfigSections[section.id] || 'ev'));
+  $$('#ev .ev-report-section').forEach(section => {
+    setSectionEditing(section, editing);
+    if (editing && !['ev-equipment','ev-construction'].includes(section.id) && !section.querySelector('.ev-section-inputs') && !section.querySelector('.inline-config-dials')) toggleInlineConfig(section, evConfigSections[section.id] || 'ev');
+    if (!editing) section.querySelector('.inline-config-dials')?.remove();
+  });
 }
-ensureSectionControls();
-const hero = $('.hero'); const heroActions = document.createElement('div'); heroActions.className = 'hero-actions'; heroActions.innerHTML = '<button class="section-edit" type="button" aria-label="Edit overview"><span>✎</span><b>Edit</b></button><button class="section-config" type="button" aria-label="Configure overview"><span>⚙</span><b>Configure</b></button>'; hero.appendChild(heroActions);
-heroActions.querySelector('.section-edit').addEventListener('click', event => { const editing = event.currentTarget.classList.toggle('editing'); event.currentTarget.querySelector('span').textContent = editing ? '✓' : '✎'; setSectionEditing(hero, editing); });
-heroActions.querySelector('.section-config').addEventListener('click', () => openConfig('overview'));
 
 const jumpToReportSection = item => {
+  if (document.body.classList.contains('definitions-mode')) {
+    const definitionTargets = {
+      'ev-report-1': ['locationMetrics'],
+      'ev-report-2': ['siteSnapshotMockup.scenarios', 'siteSnapshotMockup.fit.items'],
+      'ev-report-3': ['spendingCases', 'financialCards.chargingRevenue', 'financialCards.expenses', 'visitorRevenueMockup'],
+      'ev-report-4': ['referencePages.about.cards'],
+      'ev-report-5': ['referencePages.partnership'],
+      'ev-report-6': ['referencePages.optionOne'],
+      'ev-report-7': ['referencePages.daily'],
+      'ev-report-8': ['referencePages.annual'],
+      'ev-report-9': ['referencePages.roi']
+    };
+    const key = (definitionTargets[item?.dataset?.target] || [])[0];
+    const target = key ? document.querySelector(`[data-definition-group="${key}"]`) : null;
+    if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); $$('.nav-item').forEach(nav => nav.classList.toggle('active', nav === item)); }
+    return;
+  }
   const target = document.getElementById(item?.dataset?.target || '');
   if (!target || target.classList.contains('scope-off')) return;
   const topbarHeight = document.querySelector('.topbar')?.offsetHeight || 0;
@@ -832,8 +1410,24 @@ $('.report-nav')?.addEventListener('click', event => {
   event.preventDefault();
   jumpToReportSection(item);
 });
-const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { const current = $(`.nav-item[data-target="${entry.target.id}"]`); if (current) $$('.nav-item').forEach(nav => nav.classList.toggle('active', nav === current)); } }), { rootMargin: '-25% 0px -65% 0px' });
-$$('.section-anchor').forEach(section => observer.observe(section));
+const updateActiveProposalNav = () => {
+  const navItems = $$('.nav-item[data-target]').filter(item => !item.classList.contains('scope-off'));
+  if (!navItems.length) return;
+  const readingLine = (document.querySelector('.topbar')?.offsetHeight || 0) + 84;
+  let current = navItems[0];
+  for (const item of navItems) {
+    const target = document.getElementById(item.dataset.target);
+    if (!target || target.classList.contains('scope-off')) continue;
+    if (target.getBoundingClientRect().top <= readingLine) current = item;
+    else break;
+  }
+  navItems.forEach(item => item.classList.toggle('active', item === current));
+};
+const observer = new IntersectionObserver(() => updateActiveProposalNav(), { rootMargin: '-10% 0px -10% 0px', threshold: 0 });
+const observeProposalSections = () => { $$('.section-anchor,.ev-report-section').forEach(section => { if (!section.dataset.navObserved) { section.dataset.navObserved = 'true'; observer.observe(section); } }); updateActiveProposalNav(); };
+let navScrollFrame = 0;
+window.addEventListener('scroll', () => { if (navScrollFrame) return; navScrollFrame = requestAnimationFrame(() => { navScrollFrame = 0; updateActiveProposalNav(); }); }, { passive: true });
+observeProposalSections();
 
 let proposalNameInput = $('#proposalNameInput'); if (!proposalNameInput) { const editSection = $('#editPanel .edit-section'); if (editSection) { const label = document.createElement('label'); label.textContent = 'Proposal name'; proposalNameInput = document.createElement('input'); proposalNameInput.id = 'proposalNameInput'; proposalNameInput.placeholder = 'e.g. Kneaders Bakery & Cafe Orem, Utah'; label.append(proposalNameInput); editSection.prepend(label); } } if (proposalNameInput) { proposalNameInput.value = state.overview.proposalName || `${state.overview.siteName} ${state.overview.location.split(',').slice(-2).join(',').trim()}`; proposalNameInput.addEventListener('input', event => { state.overview.proposalName = event.target.value; renderReport(); }); }
 const siteInput = $('#siteInput'); if (siteInput) { siteInput.value = state.overview.siteName; siteInput.addEventListener('input', event => { state.overview.siteName = event.target.value; if (!state.overview.proposalName || state.overview.proposalName.includes('Energy Proposal')) state.overview.proposalName = `${event.target.value} ${state.overview.location.split(',').slice(-2).join(',').trim()}`; renderReport(); }); }
@@ -851,28 +1445,269 @@ function updateScopeUI() {
 $$('.config-scope-toggle').forEach(toggle => toggle.addEventListener('change', () => { updateScopeUI(); applyScopeCopy(); }));
 $$('.segmented button').forEach(button => button.addEventListener('click', () => { $$('.segmented button').forEach(item => item.classList.remove('selected')); button.classList.add('selected'); }));
 const openBidCard = card => { const proposalUrl = new URL(window.location.href); proposalUrl.search = ''; proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', card.dataset.bid); window.location.assign(proposalUrl.toString()); };
-$$('.bid-card').forEach(card => { card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', `Open ${card.querySelector('h2')?.textContent?.trim() || 'proposal'}`); card.addEventListener('click', event => { if (!event.target.closest('button,a')) openBidCard(card); }); card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBidCard(card); } }); });
+function bindDashboardCards() { $$('.bid-card').forEach(card => { card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', `Open ${card.querySelector('h2')?.textContent?.trim() || 'proposal'}`); card.addEventListener('click', event => { if (!event.target.closest('button,a')) openBidCard(card); }); card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBidCard(card); } }); }); }
+bindDashboardCards();
 document.addEventListener('click', event => { const card = event.target.closest?.('.bid-card'); if (card && !event.target.closest('button,a')) openBidCard(card); }, true);
-$('#newBidButton')?.addEventListener('click', () => {
-  const templateBidId = 'copper-fork-grill-american-fork';
-  const template = bidProfiles[templateBidId];
-  const newProposalState = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(template.overrides[section] || {}) }]));
-  newProposalState.overview = { ...newProposalState.overview, siteName: 'New retail site', proposalName: 'New retail site City, State', location: 'Street address, City, State ZIP', proposalDate: new Date().toISOString().slice(0, 10), status: 'Draft' };
-  newProposalState.brand = { ...state.brand };
-  const proposalUrl = new URL(window.location.href);
-  proposalUrl.hash = '';
-  proposalUrl.search = '';
-  proposalUrl.searchParams.set('bid', templateBidId);
-  proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: templateBidId, scopes: { ...template.scopes }, inlineEdits: {}, state: newProposalState }));
-  window.location.assign(proposalUrl.toString());
-});
+function inferNewProposalLocationType(value) {
+  const text = String(value || '').toLowerCase();
+  if (/restaurant|cafe|bakery|coffee|diner|fast.?food|pizza|kneaders/.test(text)) return 'Restaurant';
+  if (/gas|fuel|7[- ]?eleven|chevron|shell|exxon|maverik|wawa/.test(text)) return 'Gas station';
+  if (/dealership|motors|automotive|auto sales|ford|toyota|honda|nissan|kia|hyundai/.test(text)) return 'Car dealership';
+  if (/apartment|apartments|residential|condominium|townhome|housing/.test(text)) return 'Apartment complex';
+  if (/retail|market|grocery|walmart|target|store|shopping|mall|pharmacy|cvs|walgreens/.test(text)) return 'Retail store';
+  return text.trim() ? 'Commercial property' : 'Choose a location';
+}
+const locationStateNames = { al: 'Alabama', ak: 'Alaska', az: 'Arizona', ar: 'Arkansas', ca: 'California', co: 'Colorado', fl: 'Florida', id: 'Idaho', il: 'Illinois', md: 'Maryland', mi: 'Michigan', mn: 'Minnesota', mo: 'Missouri', mt: 'Montana', nv: 'Nevada', nm: 'New Mexico', ny: 'New York', nc: 'North Carolina', oh: 'Ohio', ok: 'Oklahoma', or: 'Oregon', pa: 'Pennsylvania', tn: 'Tennessee', tx: 'Texas', ut: 'Utah', va: 'Virginia', wa: 'Washington', wi: 'Wisconsin', wy: 'Wyoming' };
+const locationSearchAliases = { maverick: 'Maverik', 'maverick lehi': 'Maverik Lehi', 'chubby\'s express': "Chubby's Cafe", friends: "Friends Food & Gas" , '7 eleven': '7-Eleven', '7eleven': '7-Eleven' };
+function locationStateCode(address, searchText = '') {
+  const raw = String(address?.state_code || address?.state || '').trim().replace(/^US-/i, '').toLowerCase();
+  if (raw.length === 2 && locationStateNames[raw]) return raw.toUpperCase();
+  const named = Object.entries(locationStateNames).find(([, name]) => name.toLowerCase() === raw);
+  if (named) return named[0].toUpperCase();
+  const queryMatch = String(searchText).match(/(?:^|\s)([a-z]{2})$/i);
+  return queryMatch && locationStateNames[queryMatch[1].toLowerCase()] ? queryMatch[1].toUpperCase() : '';
+}
+function locationSearchVariants(raw) {
+  const value = String(raw || '').trim().replace(/\s+/g, ' ');
+  const match = value.match(/^(.+?)\s+in\s+(.+)$/i);
+  const reverseMatch = !match && value.match(/^(.+?)\s+(ut|utah|co|colorado|az|arizona|or|oregon|id|idaho|nv|nevada)\s+(.+)$/i);
+  const leadingBrandMatch = !match && !reverseMatch && value.match(/^(maverick|maverik|7[- ]?eleven)\s+(.+?)\s+(ut|utah|co|colorado|az|arizona|or|oregon|id|idaho|nv|nevada)$/i);
+  const place = match ? match[1].trim() : reverseMatch ? reverseMatch[3].trim() : leadingBrandMatch ? leadingBrandMatch[1].trim() : value;
+  const area = match ? match[2].trim() : reverseMatch ? `${reverseMatch[1].trim()} ${reverseMatch[2].trim()}` : leadingBrandMatch ? `${leadingBrandMatch[2].trim()} ${leadingBrandMatch[3].trim()}` : '';
+  const normalizedArea = area.replace(/\b([A-Za-z]{2})\b$/i, (_, code) => locationStateNames[code.toLowerCase()] || code);
+  const normalizedPlace = locationSearchAliases[place.toLowerCase()] || place;
+  const normalized = [normalizedPlace, normalizedArea].filter(Boolean).join(', ');
+  return [...new Set([value, normalized, `${normalizedPlace} ${normalizedArea}`, `${normalizedPlace}, ${normalizedArea}`].filter(Boolean))];
+}
+async function searchLocationSuggestions(raw) {
+  try { const response=await fetch('location-lookup-data.json'); const data=await response.json(); const matches=data.records.filter(record=>new RegExp(record.match,'i').test(raw)); if(matches.length)return matches; } catch {}
+  for (const query of locationSearchVariants(raw)) {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&limit=5&countrycodes=us&q=${encodeURIComponent(query)}`, { headers: { accept: 'application/json' } });
+      if (!response.ok) continue;
+      const results = await response.json();
+      if (Array.isArray(results) && results.length) return results;
+    } catch {}
+  }
+  const normalized = String(raw || '').toLowerCase();
+  if (/chubby/.test(normalized) && /lehi/.test(normalized)) return [{ name: "Chubby's Express", display_name: 'Chubby Express, 3156 N 1200 W Suite 100, Lehi, UT 84043', address: { house_number: '3156', road: 'N 1200 W', city: 'Lehi', state: 'Utah', state_code: 'UT', postcode: '84043' } }];
+  if (/maveri[ck]/.test(normalized) && /lehi/.test(normalized)) return [
+    { name: 'Maverik #580', display_name: 'Maverik, 1075 S 1100 W, Lehi, UT 84043', lat: '40.3673', lon: '-111.8738', address: { house_number: '1075', road: 'S 1100 W', city: 'Lehi', state: 'Utah', state_code: 'UT', postcode: '84043' } },
+    { name: 'Maverik #601', display_name: 'Maverik, 2050 N 3600 W, Lehi, UT 84043', lat: '40.4152', lon: '-111.9433', address: { house_number: '2050', road: 'N 3600 W', city: 'Lehi', state: 'Utah', state_code: 'UT', postcode: '84043' } },
+    { name: 'Maverik #358', display_name: 'Maverik, 3569 N Thanksgiving Way, Lehi, UT 84043', lat: '40.4330', lon: '-111.8852', address: { house_number: '3569', road: 'N Thanksgiving Way', city: 'Lehi', state: 'Utah', state_code: 'UT', postcode: '84043' } }
+  ];
+  return [];
+}
+function enhanceNewProposalModal() {
+  const modal = $('#newProposalSetup'); const form = modal?.querySelector('form'); if (!modal || !form || form.dataset.enhanced === 'true') return;
+  form.dataset.enhanced = 'true';
+  modal.querySelectorAll('input[name="utilitySpend"],input[name="ports"]').forEach(input => input.closest('label')?.remove());
+  modal.querySelectorAll('.new-proposal-row').forEach(row => { if (!row.querySelector('label')) row.remove(); });
+  const nameLabel = form.querySelector('input[name="siteName"]')?.closest('label');
+  if (!nameLabel) return;
+  nameLabel.classList.add('new-proposal-search-label');
+  nameLabel.childNodes[0].textContent = 'Find an organization (or enter in whatever name) ';
+  const queryInput = nameLabel.querySelector('input[name="siteName"]');
+  queryInput.type = 'search'; queryInput.autocomplete = 'off'; queryInput.placeholder = 'e.g. Chubby’s Express in Lehi, UT';
+  nameLabel.insertAdjacentHTML('beforeend', '<span class="optional">Optional — you can start with a name, an address, or neither.</span><div class="new-proposal-suggestions" role="listbox" hidden></div>');
+   const dateLabel = form.querySelector('input[name="proposalDate"]')?.closest('label');
+   const typeLabel = document.createElement('label'); typeLabel.className = 'new-proposal-location-type'; typeLabel.innerHTML = 'Location type <select name="locationType"><option value="">Choose a location</option><option>Apartment complex</option><option>Car dealership</option><option>Commercial business</option><option>Commercial office space</option><option>Convenience store</option><option>Gas station</option><option>Grocery store</option><option>Hotel</option><option>Restaurant</option><option>Retail store</option><option>Other</option></select><input name="locationTypeOther" hidden placeholder="Describe location type"></label>';
+   dateLabel?.after(typeLabel);
+   const locationPreview = document.createElement('div'); locationPreview.className = 'new-proposal-location-preview'; locationPreview.hidden = true; locationPreview.innerHTML = '<div class="new-proposal-location-preview-head"><b>Confirm location</b><span>Selected map point</span></div><div class="new-proposal-location-map" aria-label="Map preview of selected location"></div><small class="new-proposal-location-preview-address"></small>'; nameLabel.after(locationPreview);
+   const suggestions = nameLabel.querySelector('.new-proposal-suggestions'); const typeSelect = typeLabel.querySelector('select'); const typeOther = typeLabel.querySelector('input');
+   let locationPreviewMap; let locationPreviewMarker;
+   const showLocationPreview = async result => { const lat = Number(result?.lat); const lon = Number(result?.lon); if (!Number.isFinite(lat) || !Number.isFinite(lon)) { locationPreview.hidden = true; return; } locationPreview.hidden = false; locationPreview.querySelector('.new-proposal-location-preview-address').textContent = result.display_name || 'Selected location'; try { const L = await loadLeaflet(); if (!locationPreviewMap) { locationPreviewMap = L.map(locationPreview.querySelector('.new-proposal-location-map'), { zoomControl: true, attributionControl: true, dragging: true, scrollWheelZoom: false }).setView([lat, lon], 16); L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics', maxZoom: 19 }).addTo(locationPreviewMap); } else { locationPreviewMap.setView([lat, lon], 16); } if (locationPreviewMarker) locationPreviewMarker.setLatLng([lat, lon]); else locationPreviewMarker = L.marker([lat, lon]).addTo(locationPreviewMap); setTimeout(() => locationPreviewMap.invalidateSize(), 50); } catch { locationPreview.hidden = false; } };
+  const syncType = () => { const inferred = inferNewProposalLocationType([form.siteName?.value, form.street?.value, form.city?.value].join(' ')); if (!typeSelect.value) typeSelect.value = inferred === 'Choose a location' ? '' : inferred; typeOther.hidden = typeSelect.value !== 'Other'; bidProfiles['kneaders-orem'].overrides.overview.locationType = typeSelect.value === 'Other' ? (typeOther.value || 'Commercial business') : (typeSelect.value || inferred); };
+   const selectResult = result => { const address = result.address || {}; const street = [address.house_number, address.road].filter(Boolean).join(' '); const city = address.city || address.town || address.village || address.municipality || ''; const stateCode = locationStateCode(address, queryInput.value); if (result.namedetails?.name || result.name) form.siteName.value = result.namedetails?.name || result.name; if (street) form.street.value = street; if (city) form.city.value = city; if (stateCode) form.stateCode.value = stateCode; if (address.postcode) form.zip.value = address.postcode; form.dataset.selectedLat = result.lat || ''; form.dataset.selectedLon = result.lon || ''; suggestions.hidden = true; typeSelect.value = result.locationType || inferNewProposalLocationType(result.name || ""); syncType(); showLocationPreview(result); };
+  let searchTimer;
+   queryInput.addEventListener('input', () => { syncType(); clearTimeout(searchTimer); const query = queryInput.value.trim(); if (query.length < 3) { suggestions.hidden = true; return; } searchTimer = setTimeout(async () => { try { const results = await searchLocationSuggestions(query); if(queryInput.value.trim() !== query)return; suggestions.innerHTML = results.length ? results.map((result, index) => `<button type="button" role="option" data-result-index="${index}"><b>${esc(result.namedetails?.name || result.name || 'Suggested location')}</b><small>${esc(result.display_name || '')}</small></button>`).join('') : '<p>No matching locations found. Try the business name followed by the city and state.</p>'; suggestions.hidden = false; suggestions.querySelectorAll('[data-result-index]').forEach(button => button.addEventListener('click', () => selectResult(results[Number(button.dataset.resultIndex)]))); } catch { suggestions.innerHTML = '<p>Location search is unavailable. Enter the address manually.</p>'; suggestions.hidden = false; } }, 300); });
+  form.querySelectorAll('input[name="siteName"],input[name="street"],input[name="city"],input[name="stateCode"],input[name="locationTypeOther"]').forEach(input => input.addEventListener('input', syncType));
+  typeSelect.addEventListener('change', syncType);
+   form.addEventListener('reset', () => { setTimeout(() => { queryInput.value = ''; suggestions.hidden = true; locationPreview.hidden = true; typeSelect.value = ''; typeOther.hidden = true; delete form.dataset.selectedLat; delete form.dataset.selectedLon; delete bidProfiles['kneaders-orem'].overrides.overview.locationType; }, 0); });
+  syncType();
+}
+function openNewProposalSetup() {
+  let modal = $('#newProposalSetup');
+  if (!modal) {
+    modal = document.createElement('div'); modal.id = 'newProposalSetup'; modal.className = 'new-proposal-modal'; modal.innerHTML = `<form class="new-proposal-card" novalidate><div class="new-proposal-head"><div><div class="home-kicker">NEW PROPOSAL</div><h2>Start with the property.</h2><p>Start with as much as you know. GetEV can prepare a working proposal even when some property details are still pending.</p></div><button type="button" class="close-edit" data-close-new-proposal aria-label="Close">×</button></div><div class="new-proposal-fields"><label>Location / customer name <input name="siteName" placeholder="e.g. Kneaders Bakery & Cafe"></label><label>Street address <input name="street" placeholder="e.g. 1960 N State Street"></label><div class="new-proposal-row"><label>City <input name="city" placeholder="Lehi"></label><label>State <input name="stateCode" maxlength="2" placeholder="UT"></label><label>ZIP code <input name="zip" inputmode="numeric" placeholder="84043"></label></div><label>Proposal date <input name="proposalDate" type="date"></label><fieldset><legend>Project scope</legend><label class="new-proposal-check"><input name="ev" type="checkbox" checked><span>EV charging</span><small>Charging demand, site context, and guest-revenue opportunity</small></label><label class="new-proposal-check"><input name="solar" type="checkbox"><span>Solar</span><small>Solar production, utility savings, and payback</small></label><label class="new-proposal-check"><input name="storage" type="checkbox"><span>Battery storage</span><small>Peak management, resilience, and bill control</small></label></fieldset></div><p class="new-proposal-note">You can refine assumptions, images, maps, and configuration after the proposal opens.</p><div class="new-proposal-actions"><button type="button" class="secondary-button" data-close-new-proposal>Cancel</button><button type="submit" class="primary-button">Prepare proposal</button></div></form>`; document.body.appendChild(modal);
+    modal.querySelectorAll('[data-close-new-proposal]').forEach(button => button.addEventListener('click', () => { modal.hidden = true; }));
+    modal.addEventListener('click', event => { if (event.target === modal) modal.hidden = true; });
+     modal.querySelector('form').addEventListener('submit', event => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const city = String(data.get('city')).trim() || 'Lehi'; const stateCode = String(data.get('stateCode')).trim().toUpperCase() || 'UT'; const street = String(data.get('street')).trim() || 'Address to be confirmed'; const zip = String(data.get('zip')).trim() || '84043'; const siteName = String(data.get('siteName')).trim() || `Proposed EV charging site in ${city}`; const location = [street, city, stateCode, zip].join(', '); const templateBidId = 'kneaders-orem'; const template = bidProfiles[templateBidId]; const selectedScopes = { ev: data.get('ev') === 'on', solar: data.get('solar') === 'on', storage: data.get('storage') === 'on' }; const scopes = Object.values(selectedScopes).some(Boolean) ? selectedScopes : { ev: true, solar: false, storage: false }; const locationType = String(data.get('locationType') || '').trim(); const otherType = String(data.get('locationTypeOther') || '').trim(); const newProposalState = Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(template.overrides[section] || {}) }])); newProposalState.overview = { ...newProposalState.overview, siteName, proposalName: `${siteName} ${city}, ${stateCode}`, location, city, stateCode, locationType: locationType === 'Other' ? (otherType || 'Commercial business') : (locationType || inferNewProposalLocationType(siteName)), proposalDate: String(data.get('proposalDate')) || new Date().toISOString().slice(0, 10), status: 'Draft' }; newProposalState.site.latitude = Number(form.dataset.selectedLat) || 40.391617; newProposalState.site.longitude = Number(form.dataset.selectedLon) || -111.849055; newProposalState.brand = { ...state.brand }; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.search = ''; proposalUrl.searchParams.set('bid', templateBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, copyId: `proposal-${Date.now()}`, bidId: templateBidId, scopes, inlineEdits: {}, state: newProposalState })); window.location.assign(proposalUrl.toString()); });
+  }
+  enhanceNewProposalModal(); const form = modal.querySelector('form'); form.reset(); form.ev.checked = true; form.proposalDate.value = new Date().toISOString().slice(0, 10); modal.hidden = false; form.siteName.focus();
+}
+$('#newBidButton')?.addEventListener('click', openNewProposalSetup);
 const copyText = async value => { try { await navigator.clipboard.writeText(value); } catch { const fallback = document.createElement('textarea'); fallback.value = value; document.body.appendChild(fallback); fallback.select(); document.execCommand('copy'); fallback.remove(); } };
 const encodeCopyPayload = payload => { const bytes = new TextEncoder().encode(JSON.stringify(payload)); let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); }); return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, bidId: activeBidId, scopes: currentScopes(), inlineEdits, state })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
-$('#shareButton').addEventListener('click', async () => { const shareUrl = `${window.location.href.split('#')[0]}#view=${encodeURIComponent($('#storeName').textContent.trim())}`; await copyText(shareUrl); toast('View-only link copied to clipboard.'); });
+$('#copyProposalButton')?.addEventListener('click', async () => { if (!activeBidId) return; const proposalUrl = new URL(window.location.href); proposalUrl.hash = ''; proposalUrl.searchParams.set('bid', activeBidId); proposalUrl.searchParams.set('copy', encodeCopyPayload({ version: 1, copyId: `copy-${Date.now()}`, bidId: activeBidId, scopes: currentScopes(), inlineEdits, state })); await copyText(proposalUrl.toString()); toast('Editable proposal copy link copied. The recipient can open it and make their own changes.'); });
+const definitionsStorageKey = `GetEV-definitions:${activeBidId || 'kneaders-orem'}:${copiedProposal ? (copiedProposal.copyId || 'copy') : 'base'}`;
+const definitionSections = [{ key: 'locationMetrics', label: 'Location overview · metric cards' }, { key: 'siteSnapshotMockup.scenarios', label: 'Site snapshot · scenario cards' }, { key: 'siteSnapshotMockup.fit.items', label: 'Site snapshot · fit cards' }, { key: 'spendingCases', label: 'Revenue from additional guests · spend cards' }, { key: 'financialCards.chargingRevenue', label: 'EV charging revenue · metric cards' }, { key: 'financialCards.expenses', label: 'Expenses · metric cards' }, { key: 'referencePages.about.cards', label: 'About 1Solar · proof cards' }, { key: 'portfolioMetrics.storeBreakdown', label: 'Portfolio · store economics' }, { key: 'portfolioMetrics.scorecard', label: 'Portfolio · site scorecard' }, { key: 'portfolioMetrics.utilization', label: 'Portfolio · utilization model' }, { key: 'portfolioMetrics.financing', label: 'Portfolio · financing' }, { key: 'portfolioMetrics.lease', label: 'Portfolio · lease capacity' }, { key: 'portfolioMetrics.fieldGuide', label: 'Portfolio · field guide' }, { key: 'portfolioMetrics.fields', label: 'Portfolio · supporting fields' }];
+const definitionSources = { '#': ['NLR / AFDC charger inventory', 'UDOT AADT roadway counts', 'Overture Maps Places', 'OpenStreetMap / Overpass'], '$': ['Rocky Mountain Power tariff', 'Official Kneaders menu', 'Kneaders POS data — not connected', 'Project/vendor documents — not connected'], '%': ['Utah State Tax Commission EV registrations', 'Paren performance data — access requested', 'OCPI network status — access required', 'UDOT AADT roadway counts'] };
+const definitionSectionLabel = key => ({ 'locationMetrics': 'Location overview', 'siteSnapshotMockup.scenarios': 'Site snapshot', 'siteSnapshotMockup.fit.items': 'Site snapshot', 'spendingCases': 'Revenue from additional guests', 'financialCards.chargingRevenue': 'Revenue from additional guests', 'financialCards.expenses': 'Revenue from additional guests', 'visitorRevenueMockup': 'Revenue from additional guests', 'referencePages.about.cards': 'About 1Solar', 'referencePages.partnership': 'Partnership opportunities', 'referencePages.optionOne': 'Option 1 – 1Solar-owned', 'referencePages.daily': 'Option 2 – Daily charging outlook', 'referencePages.annual': 'Option 2 – Annualized income', 'referencePages.roi': 'Combined ROI outlook', 'portfolioMetrics.storeBreakdown': 'Portfolio · store economics', 'portfolioMetrics.scorecard': 'Portfolio · site scorecard', 'portfolioMetrics.utilization': 'Portfolio · utilization model', 'portfolioMetrics.financing': 'Portfolio · financing', 'portfolioMetrics.lease': 'Portfolio · lease capacity', 'portfolioMetrics.fieldGuide': 'Portfolio · field guide', 'portfolioMetrics.fields': 'Portfolio · supporting fields' }[key] || key);
+function definitionPath(root, path) { return path.split('.').reduce((value, key) => value?.[key], root); }
+function setDefinitionPath(root, path, value) { const parts = path.split('.'); const last = parts.pop(); const target = parts.reduce((item, key) => item[key] ||= {}, root); target[last] = value; }
+function definitionRecords() {
+  if (!proposalCardCatalog?.ev) return [];
+  return definitionSections.flatMap(section => { const raw = definitionPath(proposalCardCatalog.ev, section.key); const cards = Array.isArray(raw) ? raw : raw ? [raw] : []; return cards.map((rawCard, index) => { const tuple = Array.isArray(rawCard); const card = tuple ? { key: `${section.key}-${index}`, label: rawCard[1], value: rawCard[0], description: rawCard[2], source: rawCard[3] || 'Company profile', derivedFrom: rawCard[4] || 'Company credentials and approved company profile', dependentVariable: rawCard[5] || `${section.key}-${index}` } : { ...rawCard }; if (section.key === 'spendingCases') { const scenario = guestSalesCases().find(item => item.key === card.key); if (scenario) Object.assign(card, { label: scenario.label, value: money(scenario.spend), description: `${scenario.capture}% guest capture × ${money(scenario.spend)} per purchasing party`, source: 'Conservative assumption - no 3rd party data source available', derivedFrom: 'Daily charging visits × guest capture, rounded to daily parties × average party spend; month = 30.42 days; year = operating days', example: `${number(calc.evForecastVisits(5), 2)} visits × ${scenario.capture}% ≈ ${scenario.parties} parties × ${money(scenario.spend)} = ${money(scenario.daily)}/day`, benefit: 'Shows how capture and spending uncertainty affect potential gross sales.' }); } return { section: section.key, sectionLabel: section.label, index, tuple, object: !Array.isArray(raw), card, id: `${section.key}:${card.key || index}` }; }); });
+}
+function isSupplementalDefinition(record) { return String(record?.section || '').startsWith('portfolioMetrics.'); }
+function definitionCardForTarget(record, targetSection) {
+  const source = JSON.parse(JSON.stringify(record.card || {}));
+  const label = organizationAgnosticMetricText(source.label || source.title || 'Untitled metric');
+  const description = source.description || source.subtitle || source.note || 'Predefined proposal metric';
+  const sourceName = organizationAgnosticMetricText(source.source || source.resources || 'Proposal definition');
+  const independent = source.independentVariables || source.derivedFrom || 'Fixed proposal inputs';
+  const dependent = source.dependentVariable || source.valueId || source.receiptId || source.key || 'Fixed proposal output';
+  if (targetSection === 'locationMetrics') return { key: `${record.section}-${record.index}-${Date.now()}`, label, valueId: source.valueId || dependent, value: source.value || '—', description, source: sourceName, derivedFrom: independent, dependentVariable: dependent, scale: source.scale, action: source.action, active: source.active };
+  if (targetSection === 'spendingCases') return { key: `${record.section}-${record.index}-${Date.now()}`, label, receiptId: source.receiptId || dependent, dailyId: source.dailyId || `${record.section}-${record.index}-daily`, monthlyId: source.monthlyId || `${record.section}-${record.index}-monthly`, annualId: source.annualId || `${record.section}-${record.index}-annual`, value: source.value || '—', daily: source.daily || '—', monthly: source.monthly || '—', annual: source.annual || '—', description, source: sourceName, resources: source.resources || independent };
+  if (targetSection === 'financialCards.chargingRevenue' || targetSection === 'financialCards.expenses') return { key: `${record.section}-${record.index}-${Date.now()}`, label, valueId: source.valueId || dependent, value: source.value || '—', description, source: sourceName, derivedFrom: independent, dependentVariable: dependent };
+  if (targetSection === 'siteSnapshotMockup.scenarios') return { key: `${record.section}-${record.index}-${Date.now()}`, label, visits: source.visits || source.value || '—', utilization: source.utilization || '—', parties: source.parties || '—', note: description, source: sourceName, accent: source.accent || 'blue', active: Boolean(source.active) };
+  if (targetSection === 'siteSnapshotMockup.fit.items') return { label, value: source.value || '—', note: description, source: sourceName, accent: source.accent || 'blue' };
+  if (targetSection === 'referencePages.about.cards') return [source.value || source.label || '—', label, description];
+  return source;
+}
+function definitionAddOptions(records, targetSection) {
+  return definitionSections.map(section => { const options = records.filter(record => !(record.section === targetSection && definitionIsEnabled(record.section, record.index))).map(record => `<option value="${esc(`${record.section}::${record.index}`)}">${esc(record.card.label || record.card.title || 'Untitled metric')}</option>`).join(''); return options ? `<optgroup label="${esc(definitionSectionLabel(section.key))}">${options}</optgroup>` : ''; }).join('');
+}
+function definitionExample(record) {
+  const card = record.card; if (card.example) return card.example;
+  const label = String(card.label || card.title || '').toLowerCase();
+  if (label.includes('port')) return 'Example: 8 ports × 20% utilization → about 92 visits/day.';
+  if (label.includes('utilization')) return 'Example: 20% expected utilization, with 15% and 25% downside/upside cases.';
+  if (label.includes('visit')) return 'Example: 92 visits/day × 365 days → 33,580 visits/year.';
+  if (label.includes('cost')) return 'Example: $500,000 gross project cost − $127,000 incentives → $373,000 net cost.';
+  if (label.includes('revenue') || label.includes('value') || label.includes('income')) return 'Example: 92 visits/day × $25 average ticket × 30% capture → $251,850/year.';
+  if (label.includes('score')) return 'Example: 70 roadway + 80 EV adoption, weighted with the other site-fit inputs.';
+  if (label.includes('payback') || label.includes('return')) return 'Example: $373,000 net cost ÷ $124,100 annual value → about 3.0 years.';
+  return 'Example: 8 proposed ports, 20% utilization, and a $25 average guest ticket.';
+}
+function definitionPreviewLiveCard(record) {
+  const key = String(record.card?.key || '');
+  if (!key) return null;
+  return $$('[data-card-key]').find(node => node.dataset.cardKey === key) || null;
+}
+function definitionViewPreview(record) {
+  const card = record.card || {};
+  const label = organizationAgnosticMetricText(card.label || card.title || 'Untitled metric');
+  const liveCard = definitionPreviewLiveCard(record);
+  const liveValue = liveCard?.querySelector('strong')?.textContent?.trim();
+  const liveDetail = liveCard?.querySelector('em,p')?.textContent?.trim();
+  const value = liveValue || card.value || card.visits || card.utilization || card.parties || 'Example';
+  const detail = organizationAgnosticMetricText(liveDetail || card.description || card.subtitle || card.note || definitionExample(record));
+  const scale = card.scale ? `<div class="definition-preview-scale"><i></i><i></i><i></i></div><small><span>${esc(card.scale.low || '')}</span><span>${esc(card.scale.typical || '')}</span><b>${esc(card.scale.high || '')}</b></small>` : `<small>${esc(definitionExample(record))}</small>`;
+  return `<div class="definition-view-preview" aria-label="View Only card preview"><div><span>${esc(label)}</span>${card.action ? `<b>${esc(card.action)}</b>` : ''}</div><strong>${esc(value)}</strong><em>${esc(detail)}</em>${scale}</div>`;
+}
+const organizationAgnosticMetricText = value => String(value ?? '').replace(/7[-–]Eleven/gi, 'Portfolio');
+const conservativeAssumptionSource = 'Conservative assumption - no 3rd party data source available';
+const definitionSourceText = card => { const source = card?.source || card?.resources; if (!source || /^(proposal definition|company profile|manual input)$/i.test(String(source).trim())) return conservativeAssumptionSource; return organizationAgnosticMetricText(source); };
+function definitionSuggestionMenu(input) {
+  document.querySelector('.definition-suggestions')?.remove();
+  const symbol = ['#', '$', '%'].find(item => input.value.includes(item)); if (!symbol) return;
+  const menu = document.createElement('div'); menu.className = 'definition-suggestions';
+  menu.innerHTML = definitionSources[symbol].map(value => `<button type="button">${esc(value)}</button>`).join('');
+  input.parentElement.appendChild(menu);
+  menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => { const start = input.selectionStart ?? input.value.length; input.value = `${input.value.slice(0, start)}${button.textContent}${input.value.slice(start)}`; menu.remove(); input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); }));
+}
+function definitionMarkup(record) {
+  const card = record.card; const source = definitionSourceText(card); const independent = card.independentVariables || card.derivedFrom || 'Configured proposal inputs'; const dependent = card.dependentVariable || card.valueId || card.receiptId || card.key || 'proposal output'; const description = card.description || card.footnote || card.note || 'Current proposal definition';
+  return `<article class="definition-card" data-definition-section="${esc(record.section)}" data-definition-index="${record.index}" data-definition-tuple="${record.tuple ? 'true' : 'false'}" data-definition-object="${record.object ? 'true' : 'false'}"><div class="definition-card-head"><div><div class="definition-kind">${esc(record.sectionLabel)}</div><h3>${esc(card.label || card.title || 'Untitled card')}</h3></div><button class="definition-remove" type="button" data-definition-remove>Remove</button></div><label class="definition-field">Section<select data-definition-section-select>${definitionSections.map(section => `<option value="${esc(section.key)}" ${section.key === record.section ? 'selected' : ''}>${esc(definitionSectionLabel(section.key))}</option>`).join('')}</select></label><label class="definition-field">Card label<input data-definition-field="label" value="${esc(card.label || card.title || '')}"></label><label class="definition-field">Independent variables<textarea data-definition-field="independentVariables" placeholder="e.g. # nearby ports × % utilization">${esc(independent)}</textarea></label><label class="definition-field">Dependent variable<input data-definition-field="dependentVariable" value="${esc(dependent)}"></label><label class="definition-field">Data source<input data-definition-field="source" value="${esc(source)}"></label><label class="definition-field">Description<textarea data-definition-field="description">${esc(description || card.subtitle || '')}</textarea></label><button class="definition-save" type="button" data-definition-save>Save card</button></article>`;
+}
+function definitionPickerMarkup(record) {
+  const card = record.card; const label = organizationAgnosticMetricText(card.label || card.title || 'Untitled metric'); const detail = organizationAgnosticMetricText(card.description || card.subtitle || card.note || 'Predefined proposal metric'); const source = definitionSourceText(card); const independent = organizationAgnosticMetricText(card.independentVariables || card.derivedFrom || 'Fixed proposal inputs'); const dependent = organizationAgnosticMetricText(card.dependentVariable || card.valueId || card.receiptId || card.key || 'Fixed proposal output'); const hidden = !definitionIsEnabled(record.section, record.index); const benefit = organizationAgnosticMetricText(card.benefit || card.valueHint || 'Helps the sales team explain the opportunity with a consistent, decision-ready measure.');
+  return `<article class="definition-picker${hidden ? ' is-hidden' : ''}" data-definition-section="${esc(record.section)}" data-definition-index="${record.index}" data-definition-search="${esc(`${label} ${detail} ${source} ${independent} ${dependent} ${benefit}`.toLowerCase())}"><div class="definition-picker-copy"><b>${esc(label)}</b><small>${esc(detail)}</small><em>Calculated from ${esc(independent)} → ${esc(dependent)}</em><em>Why it matters: ${esc(benefit)}</em><em>${esc(definitionExample(record))}</em><em>Source: ${esc(source)}</em></div>${definitionViewPreview(record)}<button type="button" class="definition-card-action" data-definition-remove>${hidden ? 'Add' : 'Remove'}</button></article>`;
+}
+function blankMetricForSection(section, key) {
+  const base = { key, label: 'Metric name', value: 'Add value', description: 'Customize this card in Edit Mode, just like any other card.', source: 'User-defined metric', derivedFrom: 'Add the inputs or assumptions that drive this metric.', dependentVariable: key };
+  if (section === 'siteSnapshotMockup.scenarios') return { ...base, label: 'Scenario name', visits: 'Add visits/day', utilization: 'Add utilization', parties: 'Add parties/day', note: base.description };
+  if (section === 'siteSnapshotMockup.fit.items') return { label: 'Fit factor', value: 'Add value', note: base.description, source: base.source };
+  if (section === 'spendingCases') return { ...base, label: 'Spend case', receiptId: `${key}Receipt`, dailyId: `${key}Daily`, monthlyId: `${key}Monthly`, annualId: `${key}Annual`, daily: 'Add daily value', monthly: 'Add monthly value', annual: 'Add annual value', resources: base.derivedFrom };
+  if (section === 'referencePages.about.cards') return ['Add metric value', 'Metric name', base.description];
+  if (section.startsWith('financialCards.')) return { ...base, valueId: `${key}Value` };
+  return { ...base, valueId: `${key}Value` };
+}
+function definitionDisplayGroups(records) {
+  const groups = new Map();
+  definitionSections.forEach(section => { const key = definitionSectionLabel(section.key); if (!groups.has(key)) groups.set(key, { key: section.key, label: key, records: [] }); groups.get(key).records.push(...records.filter(record => record.section === section.key)); });
+  return [...groups.values()];
+}
+function openDefinitionMetricModal(targetSection) {
+  const records = definitionRecords().filter(isSupplementalDefinition); let modal = $('#definitionMetricModal');
+  if (!modal) { modal = document.createElement('div'); modal.id = 'definitionMetricModal'; modal.className = 'definition-metric-modal'; document.body.appendChild(modal); }
+  const groups = definitionSections.map(section => { const items = records.filter(record => record.section === section.key); if (!items.length) return ''; return `<section><h3>${esc(definitionSectionLabel(section.key))}</h3><div class="definition-modal-items">${items.map(record => { const selected = targetSection ? record.section === targetSection && definitionIsEnabled(record.section, record.index) : definitionIsEnabled(record.section, record.index); return `<button type="button" ${selected ? 'disabled' : ''} class="${selected ? 'is-selected' : ''}" data-definition-choice="${esc(`${record.section}::${record.index}`)}"><b>${esc(organizationAgnosticMetricText(record.card.label || record.card.title || 'Untitled metric'))}${selected ? ' · already added' : ''}</b><small>${esc(organizationAgnosticMetricText(record.card.description || record.card.subtitle || record.card.note || 'Predefined proposal metric'))}</small><em>${esc(definitionExample(record))}</em><em>Source: ${esc(definitionSourceText(record.card))}</em></button>`; }).join('')}</div></section>`; }).join('');
+  modal.innerHTML = `<div class="definition-metric-modal-card" role="dialog" aria-modal="true" aria-labelledby="definitionMetricModalTitle"><div class="definition-metric-modal-head"><div><div class="definition-kind">SUPPLEMENTAL METRICS</div><h2 id="definitionMetricModalTitle">Choose a supplemental metric${targetSection ? ` for ${esc(definitionSectionLabel(targetSection))}` : ''}</h2><p>Default report metrics stay out of this menu. Search the supplemental catalog, review the example, or start with a blank card. Blank cards can be customized in Edit Mode, just like any other card.</p></div><button type="button" class="close-edit" data-definition-modal-close aria-label="Close">×</button></div><input class="definition-modal-search" type="search" placeholder="Search supplemental metrics" aria-label="Search supplemental metrics"><button type="button" class="definition-blank-metric" data-definition-blank>Add blank metric card</button><div class="definition-modal-list">${groups || '<p>No supplemental metrics are available.</p>'}</div></div>`;
+  modal.hidden = false; const search = modal.querySelector('.definition-modal-search');
+  search.addEventListener('input', () => { const query = search.value.trim().toLowerCase(); modal.querySelectorAll('[data-definition-choice]').forEach(button => { button.hidden = Boolean(query) && !button.textContent.toLowerCase().includes(query); }); });
+  modal.querySelectorAll('[data-definition-choice]').forEach(button => button.addEventListener('click', () => { const [sourceSection, sourceIndex] = button.dataset.definitionChoice.split('::'); const sourceRecord = records.find(record => record.section === sourceSection && String(record.index) === sourceIndex); if (!sourceRecord) return; const effectiveTargetSection = targetSection || sourceSection; const target = definitionPath(proposalCardCatalog.ev, effectiveTargetSection); const targetCards = Array.isArray(target) ? target : []; if (sourceSection === effectiveTargetSection) { proposalCardCatalog.ev._hiddenDefinitionCards ||= {}; delete proposalCardCatalog.ev._hiddenDefinitionCards[`${sourceSection}:${sourceIndex}`]; } else { targetCards.push(definitionCardForTarget(sourceRecord, effectiveTargetSection)); setDefinitionPath(proposalCardCatalog.ev, effectiveTargetSection, targetCards); } persistDefinitions(); modal.hidden = true; renderReport(); renderDefinitionsView(); }));
+  modal.querySelector('[data-definition-blank]').addEventListener('click', () => { const section = targetSection || 'locationMetrics'; const key = `blank-${Date.now()}`; const current = definitionPath(proposalCardCatalog.ev, section); const cards = Array.isArray(current) ? current : (current ? [current] : []); cards.push(blankMetricForSection(section, key)); setDefinitionPath(proposalCardCatalog.ev, section, cards); persistDefinitions(); modal.hidden = true; renderReport(); renderDefinitionsView(); toast('Blank metric added. Customize it in Edit Mode.'); });
+  modal.querySelector('[data-definition-modal-close]').addEventListener('click', () => { modal.hidden = true; }); modal.addEventListener('click', event => { if (event.target === modal) modal.hidden = true; }, { once: true }); search.focus();
+}
+function normalizeDefinitionTargets() {
+  if (!proposalCardCatalog?.ev) return;
+  definitionSections.forEach(section => { const value = definitionPath(proposalCardCatalog.ev, section.key); if (value && !Array.isArray(value) && typeof value === 'object') Object.defineProperty(value, '0', { value, configurable: true, writable: true }); });
+}
+document.addEventListener('click', event => { const button = event.target.closest('[data-definition-save]'); if (!button) return; const card = button.closest('.definition-card'); if (!card || card.dataset.definitionTuple !== 'true') return; const values = Object.fromEntries([...card.querySelectorAll('[data-definition-field]')].map(input => [input.dataset.definitionField, input.value.trim()])); const cards = definitionPath(proposalCardCatalog.ev, card.dataset.definitionSection); const target = cards?.[Number(card.dataset.definitionIndex)]; if (Array.isArray(target)) { target[3] = values.source; target[4] = values.independentVariables; target[5] = values.dependentVariable; } }, true);
+// Inline Definitions controls own card movement, including object-backed section records.
+document.addEventListener('change', event => { const select = event.target.closest('[data-definition-section-select]'); if (!select || select.value !== 'referencePages.about.cards') return; const card = select.closest('.definition-card'); const from = card?.dataset.definitionSection; const index = Number(card?.dataset.definitionIndex); const source = definitionPath(proposalCardCatalog.ev, from); const target = definitionPath(proposalCardCatalog.ev, select.value); if (!Array.isArray(source) || !Array.isArray(target)) return; const raw = source[index]; const moved = Array.isArray(raw) ? raw : [raw.value || raw.label || '—', raw.label || 'Company profile', raw.description || 'Current company profile definition', raw.source || 'Company profile', raw.derivedFrom || 'Company credentials and approved company profile', raw.dependentVariable || raw.key || `about-${Date.now()}`]; source.splice(index, 1); target.push(moved); persistDefinitions(); event.preventDefault(); event.stopImmediatePropagation(); renderReport(); renderDefinitionsView(); toast('Card moved to its new section.'); }, true);
+function renderDefinitionsView() {
+  const grid = $('#definitionsGrid'); if (!grid || !proposalCardCatalog?.ev) return;
+  normalizeDefinitionTargets();
+  grid.previousElementSibling?.classList.contains('definitions-search') && grid.previousElementSibling.remove();
+  const records = definitionRecords(); const displayGroups = definitionDisplayGroups(records);
+  const anchor = key => `definition-group-${key.replace(/[^a-z0-9]+/gi, '-')}`;
+  grid.innerHTML = displayGroups.map(group => `<section class="definitions-group" data-definition-group="${esc(group.key)}" id="${anchor(group.key)}"><div class="definitions-group-head"><div><h2>${esc(group.label)}</h2></div><div class="definitions-group-tools"><button type="button" class="secondary-button definition-add-toggle" data-definition-add-toggle aria-label="Add metric">+</button></div></div><div class="definitions-group-grid">${group.records.map(definitionPickerMarkup).join('')}</div></section>`).join('') || '<p>No predefined proposal metrics are available yet.</p>';
+  const search = document.createElement('input');
+  search.type = 'search'; search.className = 'definitions-search'; search.placeholder = 'Search predefined metrics'; search.setAttribute('aria-label', 'Search predefined metrics');
+  grid.before(search);
+  search.addEventListener('input', () => { const query = search.value.trim().toLowerCase(); grid.querySelectorAll('.definition-picker').forEach(card => { card.hidden = Boolean(query) && !card.dataset.definitionSearch.includes(query); }); });
+  grid.querySelectorAll('[data-definition-add-toggle]').forEach(button => button.addEventListener('click', () => openDefinitionMetricModal(button.closest('[data-definition-group]')?.dataset.definitionGroup)));
+  grid.querySelectorAll('[data-definition-remove]').forEach(button => button.addEventListener('click', () => { const card = button.closest('.definition-picker'); const key = `${card.dataset.definitionSection}:${card.dataset.definitionIndex}`; proposalCardCatalog.ev._hiddenDefinitionCards ||= {}; if (button.textContent.trim() === 'Add') delete proposalCardCatalog.ev._hiddenDefinitionCards[key]; else proposalCardCatalog.ev._hiddenDefinitionCards[key] = true; persistDefinitions(); renderReport(); renderDefinitionsView(); }));
+  grid.querySelectorAll('[data-definition-section-select]').forEach(select => select.addEventListener('change', () => {
+    const card = select.closest('.definition-card'); const from = card.dataset.definitionSection; const index = Number(card.dataset.definitionIndex); const targetSection = select.value; if (from === targetSection) return;
+    const sourceValue = definitionPath(proposalCardCatalog.ev, from); const sourceCards = Array.isArray(sourceValue) ? sourceValue : [sourceValue]; const rawMoved = sourceCards.splice(index, 1)[0];
+    if (Array.isArray(sourceValue)) setDefinitionPath(proposalCardCatalog.ev, from, sourceCards); else setDefinitionPath(proposalCardCatalog.ev, from, null);
+    const moved = Array.isArray(rawMoved) ? { key: `moved-${Date.now()}`, label: rawMoved[1], value: rawMoved[0], description: rawMoved[2], source: rawMoved[3] || 'Company profile', derivedFrom: rawMoved[4] || 'Company credentials and approved company profile', dependentVariable: rawMoved[5] || `moved-${Date.now()}` } : { ...rawMoved, key: rawMoved?.key || `moved-${Date.now()}` };
+    if (!moved.value) moved.value = moved.dependentVariable || '—';
+    if (targetSection === 'locationMetrics' && !moved.valueId) moved.valueId = moved.dependentVariable || moved.key; if (targetSection === 'spendingCases' && !moved.receiptId) moved.receiptId = moved.dependentVariable || `${moved.key}Receipt`;
+    const targetValue = definitionPath(proposalCardCatalog.ev, targetSection); const targetCards = Array.isArray(targetValue) ? targetValue : (targetValue ? [targetValue] : []); targetCards.push(moved); setDefinitionPath(proposalCardCatalog.ev, targetSection, targetCards);
+    persistDefinitions(); renderReport(); renderDefinitionsView(); toast('Card moved to its new section.');
+  }));
+ grid.querySelectorAll('[data-definition-remove]').forEach(button => button.addEventListener('click', () => { const card = button.closest('.definition-card'); const section = card.dataset.definitionSection; const value = definitionPath(proposalCardCatalog.ev, section); if (Array.isArray(value)) value.splice(Number(card.dataset.definitionIndex), 1); else setDefinitionPath(proposalCardCatalog.ev, section, null); persistDefinitions(); renderReport(); renderDefinitionsView(); }));
+ grid.querySelectorAll('[data-definition-add-section]').forEach(button => button.addEventListener('click', () => { const section = button.dataset.definitionAddSection; const key = `custom-${Date.now()}`; const card = { key, label: 'NEW METRIC', value: '—', description: 'Current proposal definition', source: 'Manual input', derivedFrom: 'Configured proposal inputs', dependentVariable: key }; const current = definitionPath(proposalCardCatalog.ev, section); const cards = Array.isArray(current) ? current : (current ? [current] : []); cards.push(card); setDefinitionPath(proposalCardCatalog.ev, section, cards); persistDefinitions(); renderReport(); renderDefinitionsView(); toast(`New card added to ${definitionSectionLabel(section)}.`); }));
+grid.querySelectorAll('[data-definition-save]').forEach(button => button.addEventListener('click', () => { const card = button.closest('.definition-card'); const target = definitionPath(proposalCardCatalog.ev, card.dataset.definitionSection)[Number(card.dataset.definitionIndex)]; const values = Object.fromEntries([...card.querySelectorAll('[data-definition-field]')].map(input => [input.dataset.definitionField, input.value.trim()])); if (Object.values(values).some(value => !value)) { toast('Complete every definition field before saving.'); return; } if (Array.isArray(target)) { target[1] = values.label; target[2] = values.description; } else { if (target.title !== undefined) target.title = values.label; else target.label = values.label; target.derivedFrom = values.independentVariables; target.dependentVariable = values.dependentVariable; if (target.valueId !== undefined) target.dependentVariable = values.dependentVariable; else if (target.receiptId !== undefined) target.dependentVariable = values.dependentVariable; else if (target.value !== undefined) target.value = values.dependentVariable; target.source = values.source; if (target.subtitle !== undefined) target.subtitle = values.description; else target.description = values.description; if (target.note !== undefined) target.note = values.description; } persistDefinitions(); renderReport(); renderDefinitionsView(); saveState(); toast('Definition saved.'); }));
+}
+function persistDefinitions() { localStorage.setItem(definitionsStorageKey, JSON.stringify({ ev: proposalCardCatalog.ev })); }
+function definitionEntryHasContent(entry) { if (Array.isArray(entry)) return entry.some(value => String(value ?? '').trim()); if (!entry || typeof entry !== 'object') return false; return [entry.label, entry.title, entry.description, entry.subtitle, entry.note, entry.value, entry.valueId, entry.receiptId].some(value => String(value ?? '').trim()); }
+function loadDefinitions() { try { const saved = JSON.parse(localStorage.getItem(definitionsStorageKey) || 'null'); if (!saved?.ev || !proposalCardCatalog?.ev) return; definitionSections.forEach(section => { const baseline = definitionPath(proposalCardCatalogDefaults.ev, section.key); const current = definitionPath(saved.ev, section.key); if (Array.isArray(baseline)) { if (!Array.isArray(current)) setDefinitionPath(saved.ev, section.key, JSON.parse(JSON.stringify(baseline))); else { current.forEach((entry, index) => { if (!definitionEntryHasContent(entry) && baseline[index]) current[index] = JSON.parse(JSON.stringify(baseline[index])); }); if (current.length > 0 && !current.some(definitionEntryHasContent)) setDefinitionPath(saved.ev, section.key, JSON.parse(JSON.stringify(baseline))); } } else if (baseline && typeof baseline === 'object' && (!current || !definitionEntryHasContent(current))) setDefinitionPath(saved.ev, section.key, JSON.parse(JSON.stringify(baseline))); }); proposalCardCatalog.ev = saved.ev; proposalCardCatalog.ev.guestSalesProfiles = proposalCardCatalogDefaults.ev.guestSalesProfiles; const currentRevenueCopy = proposalCardCatalogDefaults.ev.visitorRevenueMockup; if (currentRevenueCopy) proposalCardCatalog.ev.visitorRevenueMockup = JSON.parse(JSON.stringify(currentRevenueCopy)); } catch {} }
+function resetDefinitions() { if (!proposalCardCatalogDefaults?.ev) return; proposalCardCatalog.ev = JSON.parse(JSON.stringify(proposalCardCatalogDefaults.ev)); localStorage.removeItem(definitionsStorageKey); renderReport(); renderDefinitionsView(); toast('Kneaders definitions restored.'); }
+$('#resetDefinitions')?.addEventListener('click', resetDefinitions);
+$('#presentationMenu')?.addEventListener('change', event => {
+  const mode = event.target.value;
+  if (mode !== 'print') { setPresentationMode(mode); return; }
+  const previousMode = document.body.classList.contains('view-only') ? 'view' : 'edit';
+  setPresentationMode('view');
+  const restoreMode = () => { setPresentationMode(previousMode); window.removeEventListener('afterprint', restoreMode); };
+  window.addEventListener('afterprint', restoreMode, { once: true });
+  window.print();
+});
+setPresentationMode(document.body.classList.contains('view-only') ? 'view' : 'edit');
 
 updateScopeUI();
-if (activeBidId) { renderReport(); setText('.breadcrumb strong', activeBid.locationLabel); document.title = `GetEV — ${state.overview.siteName} Proposal`; } else { document.title = 'GetEV — Sales Workspace'; }
+if (activeBidId) { renderReport(); observeProposalSections(); if (isEvOnlyBid) renderEvOnlyOverview(); setText('.breadcrumb strong', activeBid.locationLabel); document.title = `GetEV — ${state.overview.siteName} Proposal`; } else { document.title = 'GetEV — Sales Workspace'; }
+Promise.all([proposalCardsReady, udotAadtReady, utahEvRegistrationsReady, overturePlacesReady, osmOverpassReady, nlrStationsReady, carDealershipGapReady, apartmentGapReady, regionalDataReady, regionalTrafficReady, rockyMountainPowerRatesReady]).then(([, , , , , , , , , regionalTrafficRecord, rockyMountainPowerRates]) => {
+  loadDefinitions();
+  const trafficChanged = applyUdotAadtRecord();
+  const registrationsChanged = applyUtahEvRegistrationRecord();
+  const placesChanged = applyAmenityPlaceRecord();
+  const nlrChanged = applyNlrStationsRecord();
+  const regionalChanged = applyRegionalSourceContext();
+  const regionalTrafficChanged = applyRegionalTrafficRecord(regionalTrafficRecord);
+  const rockyMountainPowerChanged = applyRockyMountainPowerRates(rockyMountainPowerRates);
+  renderDashboardCardsFromJson();
+  if (activeBidId) { renderReport(); observeProposalSections(); }
+  if (document.body.classList.contains('definitions-mode')) renderDefinitionsView();
+  refreshRegionalSourceLabels();
+  if (activeBidId && (trafficChanged || registrationsChanged || placesChanged || nlrChanged || regionalChanged || regionalTrafficChanged || rockyMountainPowerChanged)) { saveState(); renderReport(); refreshRegionalSourceLabels(); }
+});
 window.addEventListener('getev:company-branding', event => {
   if (!activeBidId || copiedProposal || !event.detail?.companyName) return;
   state.brand = { ...state.brand, ...event.detail };

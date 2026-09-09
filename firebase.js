@@ -1,4 +1,4 @@
-// Google sign-in plus installer-company onboarding for the GetEV workspace.
+// Google and passwordless email-link sign-in plus installer-company onboarding for the GetEV workspace.
 const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || {
   apiKey: 'AIzaSyD515NidpwJdAX7utodOaiDIWT4TBd89t4',
   authDomain: 'bidwise-production.firebaseapp.com',
@@ -9,7 +9,7 @@ const firebaseConfig = window.BIDWISE_FIREBASE_CONFIG || {
   measurementId: 'G-XX3K470W2Y'
 };
 const isLocalFile = window.location.protocol === 'file:';
-const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton'), document.querySelector('#gateAuthButton')].filter(Boolean);
+const authButtons = [document.querySelector('#authButton'), document.querySelector('#homeAuthButton')].filter(Boolean);
 const authCtas = [...document.querySelectorAll('[data-auth-cta]')];
 const homeCompanyProfileButton = document.querySelector('#companyProfileButton');
 let homeAvatarInitials = document.querySelector('#homeAvatarInitials');
@@ -17,33 +17,63 @@ if (!homeAvatarInitials) { homeAvatarInitials = document.createElement('button')
 const profileMenu = document.createElement('div');
 profileMenu.className = 'profile-menu';
 profileMenu.hidden = true;
-profileMenu.innerHTML = '<strong id="profileMenuName">Profile</strong><small id="profileMenuEmail"></small><button type="button" id="profileCompanyButton">Company profile</button><button type="button" id="profileSignOut">Sign out</button>';
+profileMenu.setAttribute('role', 'menu');
+profileMenu.setAttribute('aria-label', 'Account menu');
+profileMenu.innerHTML = '<strong id="profileMenuName">Profile</strong><small id="profileMenuEmail"></small><div class="profile-menu-items"><button type="button" role="menuitem" id="profileCompanyButton">Company profile</button><button type="button" role="menuitem" id="profileFeedbackButton">Send feedback</button><button type="button" role="menuitem" id="profileSignOut">Sign out</button></div>';
 document.body.append(profileMenu);
 const profileCompanyButton = profileMenu.querySelector('#profileCompanyButton');
+const profileFeedbackButton = profileMenu.querySelector('#profileFeedbackButton');
 const profileSignOut = profileMenu.querySelector('#profileSignOut');
+const feedbackModal = document.createElement('div');
+feedbackModal.className = 'feedback-modal';
+feedbackModal.hidden = true;
+feedbackModal.innerHTML = '<div class="feedback-modal-card" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle"><div class="company-modal-head"><div><div class="home-kicker">GETEV FEEDBACK</div><h2 id="feedbackModalTitle">How can we improve?</h2><p>Tell us what would help you close the next EV charging deal.</p></div><button class="close-edit" type="button" data-feedback-close aria-label="Close feedback">×</button></div><form id="feedbackForm"><label>Feedback<textarea name="message" required maxlength="5000" rows="6" placeholder="What worked, what was confusing, or what should we add?"></textarea></label><label>Email address <span>(optional)</span><input name="email" type="email" maxlength="254" placeholder="you@example.com" /></label><small id="feedbackFormNote">Your feedback will be sent to the GetEV team.</small><div class="feedback-actions"><button type="button" class="secondary-button" data-feedback-close>Cancel</button><button type="submit" class="primary-button">Send feedback</button></div></form></div>';
+document.body.append(feedbackModal);
+const feedbackForm = feedbackModal.querySelector('#feedbackForm');
+const feedbackFormNote = feedbackModal.querySelector('#feedbackFormNote');
 const companyModal = document.querySelector('#companyModal');
 const companyForm = document.querySelector('#companyForm');
 const companyFormNote = document.querySelector('#companyFormNote');
 const companySignInButton = document.querySelector('#companySignInButton');
+const gateGoogleSignInButton = document.querySelector('#gateGoogleSignInButton');
+const gateEmailSignInButton = document.querySelector('#gateEmailSignInButton');
+const emailAuthAddress = document.querySelector('#emailAuthAddress');
+const emailLinkButton = document.querySelector('#emailLinkButton');
+const emailAuthNote = document.querySelector('#emailAuthNote');
+const emailAltcha = document.querySelector('#emailAltcha');
+const emailAuthPanel = document.querySelector('.email-auth-panel');
+// Authentication belongs to the access gate, not the independent company-profile form.
+const accessGateCard = document.querySelector('#accessGate .access-gate-card');
+if (accessGateCard && companySignInButton) accessGateCard.append(companySignInButton);
+if (accessGateCard && emailAuthPanel) accessGateCard.append(emailAuthPanel);
 const adminModal = document.querySelector('#adminModal');
 const adminProfilesList = document.querySelector('#adminProfilesList');
 const adminButton = document.createElement('button');
 adminButton.className = 'auth-button';
 adminButton.type = 'button';
-adminButton.textContent = 'Admin';
+adminButton.textContent = 'Data Sources';
 adminButton.hidden = true;
 document.querySelector('.home-user')?.prepend(adminButton);
-const ADMIN_EMAIL = 'richkingsford@gmail.com';
+const ADMIN_EMAILS = new Set(['richkingsford@gmail.com', 'mckselph@gmail.com']);
 const toast = message => { const node = document.querySelector('#toast'); if (!node) return; node.textContent = message; node.classList.add('show'); setTimeout(() => node.classList.remove('show'), 3200); };
 let currentUser = null;
 let currentProfile = null;
 let saveCompanyProfile = null;
 let loadAdminProfiles = null;
 
-const isAdminUser = user => user?.email?.toLowerCase() === ADMIN_EMAIL;
-const hasWorkspaceAccess = user => Boolean(user);
+const isAdminUser = user => ADMIN_EMAILS.has(user?.email?.toLowerCase());
+const isAdminRoute = new URLSearchParams(window.location.search).get('admin') === 'sources' && !new URLSearchParams(window.location.search).has('bid');
+document.body.classList.toggle('admin-route', isAdminRoute);
+const isPublicProposalUrl = Boolean(new URLSearchParams(window.location.search).get('bid'));
+const hasWorkspaceAccess = user => Boolean(user) || isPublicProposalUrl;
 
 const setIdentity = (user, profile = currentProfile) => {
+  document.body.classList.remove('auth-pending');
+  const publicVisitor = isPublicProposalUrl && !user;
+  const canonicalProposal = document.body.classList.contains('canonical-proposal') || (isPublicProposalUrl && !new URLSearchParams(window.location.search).has('copy'));
+  document.body.classList.toggle('public-proposal', publicVisitor);
+  document.body.classList.toggle('view-only', publicVisitor || canonicalProposal);
+  if (publicVisitor || canonicalProposal) document.body.classList.remove('edit-mode');
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const contactName = profile?.contactName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const firstName = contactName.split(' ')[0];
@@ -53,7 +83,7 @@ const setIdentity = (user, profile = currentProfile) => {
   document.querySelectorAll('.bid-owner').forEach(node => { node.textContent = user ? contactName : 'Proposal team'; });
   const avatar = document.querySelector('#avatarInitials'); if (avatar) { avatar.textContent = initials; avatar.title = user?.email || 'Not signed in'; avatar.hidden = !user; }
   if (homeAvatarInitials) { homeAvatarInitials.textContent = initials; homeAvatarInitials.hidden = !user; }
-  authButtons.forEach(button => { button.hidden = Boolean(user); if (!user) button.textContent = 'Sign in with Google'; });
+   authButtons.forEach(button => { button.hidden = Boolean(user); if (!user) button.textContent = 'Sign in'; });
   document.querySelector('#profileMenuName')?.replaceChildren(document.createTextNode(displayName)); document.querySelector('#profileMenuEmail')?.replaceChildren(document.createTextNode(user?.email || ''));
   if (homeCompanyProfileButton) homeCompanyProfileButton.hidden = true;
   adminButton.hidden = !isAdminUser(user);
@@ -61,16 +91,15 @@ const setIdentity = (user, profile = currentProfile) => {
   document.body.classList.toggle('home-registered', hasWorkspaceAccess(user, profile));
   document.body.classList.toggle('access-granted', hasWorkspaceAccess(user, profile));
   document.body.classList.toggle('admin-user', isAdminUser(user));
+  window.dispatchEvent(new CustomEvent('getev:identity', { detail: { email: user?.email || '', isAdmin: isAdminUser(user) } }));
   const gateTitle = document.querySelector('#accessGateTitle');
   const gateCopy = document.querySelector('#accessGate p');
-  const gateButton = document.querySelector('#gateAuthButton');
   if (!user) {
     if (gateTitle) gateTitle.textContent = 'Your proposals are inside.';
-    if (gateCopy) gateCopy.textContent = 'Sign in with Google and complete your installer company profile to access this bid workspace.';
-    if (gateButton) gateButton.textContent = 'Sign in with Google';
+     if (gateCopy) gateCopy.textContent = 'Sign in to access the active bid workspace.';
   }
   if (profile?.companyName) {
-    const branding = { companyName: profile.companyName, tagline: profile.tagline || '', proposalSlogan: profile.proposalSlogan || '', companyLogo: profile.companyLogo?.url || '' };
+    const branding = { companyName: profile.companyName, tagline: profile.tagline || '', proposalSlogan: profile.proposalSlogan || '', proposalCertifications: profile.proposalCertifications || '', companyLogo: profile.companyLogo?.url || '', companyPhoto: profile.companyPhoto?.url || '' };
     try { localStorage.setItem('GetEV-company-branding', JSON.stringify(branding)); } catch { /* Storage can be unavailable in privacy-restricted sessions. */ }
     window.dispatchEvent(new CustomEvent('getev:company-branding', { detail: branding }));
   }
@@ -81,6 +110,7 @@ const showCompanyModal = (user, profile = {}) => {
   companyForm.elements.companyName.value = profile.companyName || '';
   companyForm.elements.contactName.value = profile.contactName || user?.displayName || '';
   companyForm.elements.email.value = profile.businessEmail || user?.email || '';
+  if (emailAuthAddress) emailAuthAddress.value = user?.email || '';
   companyForm.elements.territory.value = profile.territory || '';
   companyForm.elements.website.value = profile.website || '';
   companyForm.elements.tagline.value = profile.tagline || '';
@@ -93,7 +123,7 @@ const showCompanyModal = (user, profile = {}) => {
   if (companySignInButton) companySignInButton.hidden = Boolean(user);
   const submitButton = companyForm.querySelector('button[type="submit"]');
   if (submitButton) submitButton.hidden = !user;
-  if (companyFormNote) companyFormNote.textContent = user ? 'Complete the required fields below. Your company profile will be saved for review; optional files can be added now or later.' : 'Sign in first, then complete the required fields below.';
+  if (companyFormNote) companyFormNote.textContent = user ? 'Complete the required fields below. Your company profile will be saved for review; optional files can be added now or later.' : 'Verify your email address above before completing the company profile.';
   companyModal.hidden = false;
   (user ? companyForm.elements.companyName : companySignInButton)?.focus();
 };
@@ -101,7 +131,7 @@ const hideCompanyModal = () => { if (companyModal) companyModal.hidden = true; }
 
 if (firebaseConfig && !isLocalFile) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
-  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
+   const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
   const { getFirestore, doc, getDoc, setDoc, getDocs, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js');
   const app = initializeApp(firebaseConfig);
@@ -128,18 +158,49 @@ if (firebaseConfig && !isLocalFile) {
     renderAdminProfiles(snapshot.docs.map(item => ({ id: item.id, ...item.data() })));
   };
 
-  const explainAuthError = error => {
-    console.error('GetEV Google sign-in error', error);
+   const explainAuthError = error => {
+     console.error('GetEV sign-in error', error);
     if (error?.code === 'auth/unauthorized-domain') {
-      toast('This site is not authorized in Firebase yet. Add richkingsford.github.io under Authentication → Settings → Authorized domains.');
+      toast('This site is not authorized in Firebase yet. Add get-ev.io under Authentication → Settings → Authorized domains.');
       return;
     }
     if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
       toast('Opening Google sign-in in this tab…');
       return;
     }
-    if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') toast(`Google sign-in failed${error?.code ? ` (${error.code})` : ''}. Please try again.`);
-  };
+     if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') toast(`Sign-in failed${error?.code ? ` (${error.code})` : ''}. Please try again.`);
+   };
+
+   const emailLinkSettings = { url: `${window.location.origin}${window.location.pathname}`, handleCodeInApp: true };
+   const altchaVerifyUrl = 'https://us-central1-bidwise-production.cloudfunctions.net/altchaVerify';
+   const getAltchaPayload = () => companyForm?.querySelector('input[name="altcha"]')?.value || '';
+   const ensureAltchaVerified = async () => {
+     await customElements.whenDefined('altcha-widget');
+     return new Promise((resolve, reject) => {
+     if (!emailAltcha) return reject(new Error('Human verification is unavailable.'));
+     const existingPayload = getAltchaPayload();
+     if (existingPayload) return resolve(existingPayload);
+     let timer;
+     const finish = (callback, value) => { clearTimeout(timer); emailAltcha.removeEventListener('statechange', onStateChange); callback(value); };
+     const onStateChange = event => {
+       const state = event.detail?.state;
+       if (state === 'verified') finish(resolve, getAltchaPayload());
+       if (state === 'error') finish(reject, new Error('Human verification failed.'));
+     };
+     emailAltcha.addEventListener('statechange', onStateChange);
+     timer = setTimeout(() => finish(reject, new Error('Human verification timed out.')), 120000);
+     try { emailAltcha.verify(); } catch (error) { finish(reject, error); }
+     });
+   };
+   const sendEmailLink = async () => {
+     const email = String(emailAuthAddress?.value || '').trim().toLowerCase();
+     if (!/^\S+@\S+\.\S+$/.test(email)) { emailAuthAddress?.focus(); if (emailAuthNote) emailAuthNote.textContent = 'Enter a valid email address to receive your secure sign-in link.'; return; }
+     if (!emailLinkButton) return;
+     emailLinkButton.disabled = true; emailLinkButton.textContent = 'Sending…';
+     try { if (emailAuthNote) emailAuthNote.textContent = 'Complete the quick human verification, then we’ll send your link.'; const altchaPayload = await ensureAltchaVerified(); const verification = await fetch(altchaVerifyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload: altchaPayload }) }); const verificationResult = await verification.json().catch(() => ({})); if (!verification.ok || !verificationResult.verified) throw new Error('Human verification was not accepted.'); await sendSignInLinkToEmail(auth, email, emailLinkSettings); localStorage.setItem('getev-email-for-signin', email); if (emailAuthNote) emailAuthNote.textContent = `Check ${email} for your secure sign-in link. You can close this window.`; toast('Sign-in link sent. Check your email.'); }
+     catch (error) { explainAuthError(error); if (emailAuthNote) emailAuthNote.textContent = 'We could not send the sign-in link. Check the address and try again.'; }
+     finally { emailLinkButton.disabled = false; emailLinkButton.textContent = 'Email me a sign-in link'; }
+   };
 
   const loadCompanyProfile = async user => {
     try {
@@ -172,7 +233,7 @@ if (firebaseConfig && !isLocalFile) {
     currentUser = user;
     currentProfile = null;
     if (!user) { hideCompanyModal(); setIdentity(null); document.body.classList.add('auth-ready'); return; }
-    if (!user.email) { await signOut(auth); toast('Choose a Google account with an email address to continue.'); return; }
+     if (!user.email) { await signOut(auth); toast('Choose an account with an email address to continue.'); return; }
     setIdentity(user);
     try {
       await loadCompanyProfile(user);
@@ -189,8 +250,8 @@ if (firebaseConfig && !isLocalFile) {
 
   const startSignIn = async () => {
     try {
-      if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
-      await signInWithPopup(auth, provider);
+       if (currentUser) { showCompanyModal(currentUser, currentProfile || {}); return; }
+       showCompanyModal(null);
     } catch (error) {
       if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') {
         try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; }
@@ -202,30 +263,59 @@ if (firebaseConfig && !isLocalFile) {
   // Attach directly so the visible CTA retains the browser's user gesture.
   authCtas.forEach(button => button.addEventListener('click', () => {
     if (currentUser) showCompanyModal(currentUser, currentProfile || {});
-    else showCompanyModal(null);
+    else startSignIn();
   }));
-  companySignInButton?.addEventListener('click', startSignIn);
+  const continueWithGoogle = async () => { try { await signInWithPopup(auth, provider); } catch (error) { if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/operation-not-supported-in-this-environment') { try { await signInWithRedirect(auth, provider); return; } catch (redirectError) { explainAuthError(redirectError); return; } } explainAuthError(error); } };
+  [companySignInButton, gateGoogleSignInButton].filter(Boolean).forEach(button => button.addEventListener('click', continueWithGoogle));
+  gateEmailSignInButton?.addEventListener('click', () => { window.setTimeout(() => emailAuthAddress?.focus(), 0); });
+   emailLinkButton?.addEventListener('click', sendEmailLink);
   [document.querySelector('#avatarInitials'), homeAvatarInitials].filter(Boolean).forEach(button => button.addEventListener('click', () => { if (profileMenu) profileMenu.hidden = !profileMenu.hidden; }));
+  const showFeedbackModal = () => { profileMenu.hidden = true; feedbackModal.hidden = false; feedbackForm?.reset(); feedbackForm?.querySelector('textarea')?.focus(); };
   profileCompanyButton?.addEventListener('click', () => { profileMenu.hidden = true; showCompanyModal(currentUser, currentProfile || {}); });
-  profileSignOut?.addEventListener('click', async () => { profileMenu.hidden = true; await signOut(auth); });
+  profileFeedbackButton?.addEventListener('click', showFeedbackModal);
+  profileSignOut?.addEventListener('click', async () => {
+    profileMenu.hidden = true;
+    try {
+      await signOut(auth);
+      // A signed-out user should always land on the public workspace home, never
+      // remain on a private proposal or admin route from their previous session.
+      window.location.assign(new URL('./', window.location.href).href);
+    } catch (error) {
+      explainAuthError(error);
+    }
+  });
+  feedbackModal.querySelectorAll('[data-feedback-close]').forEach(button => button.addEventListener('click', () => { feedbackModal.hidden = true; }));
+  feedbackModal.addEventListener('click', event => { if (event.target === feedbackModal) feedbackModal.hidden = true; });
+  feedbackForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!currentUser) { feedbackFormNote.textContent = 'Please sign in before sending feedback.'; return; }
+    const submit = feedbackForm.querySelector('button[type="submit"]'); const data = new FormData(feedbackForm); const message = String(data.get('message') || '').trim(); const email = String(data.get('email') || '').trim();
+    if (!message) { feedbackFormNote.textContent = 'Tell us what you would like us to improve.'; return; }
+    submit.disabled = true; submit.textContent = 'Sending…'; feedbackFormNote.textContent = 'Sending your feedback…';
+    try { const token = await currentUser.getIdToken(); const response = await fetch('https://us-central1-bidwise-production.cloudfunctions.net/submitFeedback', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ message, email }) }); const result = await response.json().catch(() => ({})); if (!response.ok) throw new Error(result.error || 'Feedback could not be sent.'); feedbackFormNote.textContent = 'Success — your feedback was sent to the GetEV team.'; feedbackForm.reset(); setTimeout(() => { feedbackModal.hidden = true; }, 1400); } catch (error) { console.error('GetEV feedback error', error); feedbackFormNote.textContent = 'We could not send feedback right now. Please try again.'; } finally { submit.disabled = false; submit.textContent = 'Send feedback'; }
+  });
   // Recover redirect results without blocking the initial sign-in controls.
-  void getRedirectResult(auth).then(async redirectResult => {
+   void getRedirectResult(auth).then(async redirectResult => {
     if (redirectResult?.user && currentUser?.uid !== redirectResult.user.uid) {
       currentUser = redirectResult.user;
       await loadCompanyProfile(redirectResult.user);
     }
-  }).catch(explainAuthError);
+   }).catch(explainAuthError);
+   if (isSignInWithEmailLink(auth, window.location.href)) {
+     const savedEmail = localStorage.getItem('getev-email-for-signin');
+     const email = savedEmail || window.prompt('Confirm your email address to finish signing in:');
+     if (email) void signInWithEmailLink(auth, email.trim(), window.location.href).then(() => { localStorage.removeItem('getev-email-for-signin'); const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete('apiKey'); cleanUrl.searchParams.delete('oobCode'); cleanUrl.searchParams.delete('mode'); cleanUrl.searchParams.delete('lang'); window.history.replaceState({}, document.title, cleanUrl.toString()); }).catch(explainAuthError);
+   }
 } else {
   setIdentity(null);
-  const localMessage = isLocalFile ? 'Google sign-in is available on the hosted GetEV site. Open https://richkingsford.github.io/GetEV/ to continue.' : 'Google sign-in is not configured for this workspace yet.';
+   const localMessage = isLocalFile ? 'Email and Google sign-in are available on the hosted GetEV site.' : 'Sign-in is not configured for this workspace yet.';
   authButtons.forEach(button => button.addEventListener('click', () => toast(localMessage)));
   authCtas.forEach(button => button.addEventListener('click', () => toast(localMessage)));
 };
 
 adminButton.addEventListener('click', async () => {
   if (!isAdminUser(currentUser) || !adminModal) return;
-  adminModal.hidden = false;
-  try { await loadAdminProfiles?.(); } catch (error) { console.error('GetEV admin profiles error', error); toast('Could not load company registrations.'); }
+  const adminUrl = new URL(window.location.href); adminUrl.searchParams.set('admin', 'sources'); window.location.assign(adminUrl.toString());
 });
 document.querySelector('#closeAdminModal')?.addEventListener('click', () => { adminModal.hidden = true; });
 adminModal?.addEventListener('click', event => { if (event.target === adminModal) adminModal.hidden = true; });
@@ -233,7 +323,7 @@ document.querySelector('#closeCompanyModal')?.addEventListener('click', hideComp
 companyModal?.addEventListener('click', event => { if (event.target === companyModal) hideCompanyModal(); });
 companyForm?.addEventListener('submit', async event => {
   event.preventDefault();
-  if (!currentUser) { toast('Continue with Google before creating your company profile.'); return; }
+   if (!currentUser) { toast('Verify your email or continue with Google before creating your company profile.'); return; }
   const form = new FormData(companyForm);
   const requiredFields = [['companyName', 'Company name'], ['contactName', 'Primary contact'], ['email', 'Business email'], ['territory', 'Service territory']];
   const missingField = requiredFields.find(([name]) => !String(form.get(name) || '').trim());
@@ -252,8 +342,8 @@ companyForm?.addEventListener('submit', async event => {
   }
   const services = { solar: form.get('solar') === 'on', storage: form.get('storage') === 'on', ev: form.get('ev') === 'on' };
   if (!Object.values(services).some(Boolean)) { if (companyFormNote) companyFormNote.textContent = 'Select at least one installation service before saving.'; toast('Select at least one installation service.'); return; }
-  const insuranceFile = companyForm.elements.insuranceDocument?.files?.[0]; const contractorFile = companyForm.elements.contractorCertification?.files?.[0]; const logoFile = companyForm.elements.companyLogo?.files?.[0];
+  const insuranceFile = companyForm.elements.insuranceDocument?.files?.[0]; const contractorFile = companyForm.elements.contractorCertification?.files?.[0]; const logoFile = companyForm.elements.companyLogo?.files?.[0]; const photoFile = companyForm.elements.companyPhoto?.files?.[0];
   if (logoFile && (!logoFile.type.startsWith('image/') || logoFile.size > 5 * 1024 * 1024)) { toast('Choose an image logo up to 5 MB.'); return; }
   const submit = companyForm.querySelector('button[type="submit"]'); submit.disabled = true; submit.textContent = 'Saving…';
-  try { const [insuranceDocument, contractorCertification, companyLogo] = await Promise.all([uploadCompanyDocument(insuranceFile), uploadCompanyDocument(contractorFile), uploadCompanyDocument(logoFile, 'company-logos')]); const certificationDocuments = []; for (const file of [...(companyForm.elements.certificationDocuments?.files || [])]) certificationDocuments.push(await uploadCompanyDocument(file)); const pendingStorage = [insuranceDocument, contractorCertification, companyLogo, ...certificationDocuments].some(document => document?.storageStatus === 'pending-storage-setup'); await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), tagline: String(form.get('tagline') || '').trim(), proposalSlogan: String(form.get('proposalSlogan') || '').trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services, proposalCertifications: String(form.get('proposalCertifications') || '').trim(), companyLogo: companyLogo || currentProfile?.companyLogo || null, insuranceDocument: insuranceDocument || currentProfile?.insuranceDocument || null, contractorCertification: contractorCertification || currentProfile?.contractorCertification || null, certificationDocuments: certificationDocuments.length ? certificationDocuments : currentProfile?.certificationDocuments || [], documentStorageStatus: pendingStorage ? 'pending-storage-setup' : 'stored' }); if (pendingStorage) toast('Profile saved. Documents are recorded and awaiting secure file storage setup.'); } catch (error) { console.error('GetEV company profile save error', error); toast(`Could not save your company profile${error?.code ? ` (${error.code})` : ''}. Please try again.`); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
+  try { const [insuranceDocument, contractorCertification, companyLogo, companyPhoto] = await Promise.all([uploadCompanyDocument(insuranceFile), uploadCompanyDocument(contractorFile), uploadCompanyDocument(logoFile, 'company-logos'), uploadCompanyDocument(photoFile, 'company-photos')]); const certificationDocuments = []; for (const file of [...(companyForm.elements.certificationDocuments?.files || [])]) certificationDocuments.push(await uploadCompanyDocument(file)); const pendingStorage = [insuranceDocument, contractorCertification, companyLogo, companyPhoto, ...certificationDocuments].some(document => document?.storageStatus === 'pending-storage-setup'); await saveCompanyProfile?.({ companyName: String(form.get('companyName')).trim(), tagline: String(form.get('tagline') || '').trim(), proposalSlogan: String(form.get('proposalSlogan') || '').trim(), contactName: String(form.get('contactName')).trim(), businessEmail: String(form.get('email') || '').trim(), territory: String(form.get('territory')).trim(), website: String(form.get('website') || '').trim(), services, proposalCertifications: String(form.get('proposalCertifications') || '').trim(), companyLogo: companyLogo || currentProfile?.companyLogo || null, companyPhoto: companyPhoto || currentProfile?.companyPhoto || null, insuranceDocument: insuranceDocument || currentProfile?.insuranceDocument || null, contractorCertification: contractorCertification || currentProfile?.contractorCertification || null, certificationDocuments: certificationDocuments.length ? certificationDocuments : currentProfile?.certificationDocuments || [], documentStorageStatus: pendingStorage ? 'pending-storage-setup' : 'stored' }); if (pendingStorage) toast('Profile saved. Documents are recorded and awaiting secure file storage setup.'); } catch (error) { console.error('GetEV company profile save error', error); toast(`Could not save your company profile${error?.code ? ` (${error.code})` : ''}. Please try again.`); } finally { submit.disabled = false; submit.textContent = currentProfile?.companyName ? 'Save company profile' : 'Create company profile'; }
 });

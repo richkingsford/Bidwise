@@ -1,0 +1,18 @@
+{
+  "source": "Overture Maps Places",
+  "release": "2026-08-19.0",
+  "retrievedAt": "2026-08-21T04:36:25Z",
+  "site": "Kneaders Bakery & Cafe | 1960 N State Street, Orem, Utah",
+  "siteCoordinates": { "latitude": 40.333002, "longitude": -111.712338 },
+  "bbox": [-111.725, 40.323, -111.7, 40.343],
+  "amenityRadiusKm": 1,
+  "placeCountInBbox": 430,
+  "placeCountWithinRadius": 306,
+  "foodAndDrinkPlaceCountWithinRadius": 36,
+  "sourceUrl": "https://stac.overturemaps.org/catalog.json",
+  "samples": [
+    { "sourceRecordId": "c795c52d-0322-429c-b283-2136d4c569d2", "name": "McDonald's", "category": "fast_food_restaurant", "address": "1611 N State St", "latitude": 40.32701668, "longitude": -111.70900784, "confidence": 0.9999574214160443, "operatingStatus": "open" },
+    { "sourceRecordId": "8a1007db-1d08-42f1-93b1-a760ba7bc968", "name": "Costa Vida Mexican Grill", "category": "mexican_restaurant", "address": "1621 North State Street", "latitude": 40.327151, "longitude": -111.710678, "confidence": 0.9951843619346619, "operatingStatus": "open" },
+    { "sourceRecordId": "a3d28648-1039-448b-ba33-9ef323028a1b", "name": "Little Caesars Pizza", "category": "pizza_restaurant", "address": "1690 N State St", "latitude": 40.32844375, "longitude": -111.70882061, "confidence": 0.9749269485473633, "operatingStatus": "open" }
+  ]
+}

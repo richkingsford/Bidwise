@@ -1,7 +1,10 @@
 {
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "artifacts/**", "tmp/**", "tests/**", "qa-*/**", "functions/**", "*.md", "todos.txt", "*.log"]
   },
   "firestore": {
     "rules": "firestore.rules"

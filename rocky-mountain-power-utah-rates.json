@@ -1,0 +1,21 @@
+{
+  "source": "Rocky Mountain Power",
+  "sourceUrl": "https://www.rockymountainpower.net/about/rates-regulation/utah-rates-tariffs.html",
+  "rateSummaryUrl": "https://www.rockymountainpower.net/content/dam/pcorp/documents/en/rockymountainpower/rates-regulation/utah/Utah_Price_Summary.pdf",
+  "tariff": "Schedule 6 - General Service, Distribution Voltage",
+  "effectiveDate": "2026-01-01",
+  "retrievedAt": "2026-08-27",
+  "currency": "USD",
+  "energyRatesPerKwh": {
+    "summerJuneThroughSeptember": 0.039408,
+    "winterOctoberThroughMay": 0.034873
+  },
+  "demandRatesPerKwMonth": {
+    "summerJuneThroughSeptember": 13.77,
+    "winterOctoberThroughMay": 12.18
+  },
+  "facilitiesChargePerKwMonth": 4.14,
+  "customerChargePerMonth": 55,
+  "annualWeightedEnergyRatePerKwh": 0.036385,
+  "method": "Twelve-month planning blend: four summer months and eight winter months. Demand, facilities, taxes, riders, and customer charges remain separate because they require interval load and account-specific tariff details."
+}

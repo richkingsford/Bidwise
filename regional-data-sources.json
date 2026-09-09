@@ -1,0 +1,12 @@
+{
+  "source": "Regional public agency data registry",
+  "updatedAt": "2026-08-27",
+  "states": [
+    { "state": "CO", "priority": 1, "status": "ready-for-import", "traffic": { "name": "Colorado DOT Traffic Data Explorer", "url": "https://dtdapps.codot.gov/otis/trafficdata" }, "evRegistrations": { "name": "U.S. DOE AFDC vehicle registration counts", "url": "https://afdc.energy.gov/data/categories/vehicles--2" }, "proposalUse": "Roadway AADT and EV-market context" },
+    { "state": "NV", "priority": 2, "status": "ready-for-import", "traffic": { "name": "Nevada DOT TRINA / GeoHub AADT", "url": "https://gis.dot.nv.gov/trina/" }, "evRegistrations": { "name": "U.S. DOE AFDC vehicle registration counts", "url": "https://afdc.energy.gov/data/categories/vehicles--2" }, "proposalUse": "Roadway AADT and EV-market context" },
+    { "state": "AZ", "priority": 3, "status": "ready-for-import", "traffic": { "name": "Arizona DOT Traffic Monitoring / TDMS", "url": "https://azdot.gov/planning/data-and-information/traffic-monitoring" }, "evRegistrations": { "name": "U.S. DOE AFDC vehicle registration counts", "url": "https://afdc.energy.gov/data/categories/vehicles--2" }, "proposalUse": "Roadway AADT and EV-market context" },
+    { "state": "OR", "priority": 4, "status": "ready-for-import", "traffic": { "name": "Oregon DOT Traffic Counting / OTMS", "url": "https://www.oregon.gov/odot/Data/Pages/Traffic-Counting.aspx" }, "evRegistrations": { "name": "U.S. DOE AFDC vehicle registration counts", "url": "https://afdc.energy.gov/data/categories/vehicles--2" }, "proposalUse": "Roadway AADT and EV-market context" },
+    { "state": "ID", "priority": 5, "status": "ready-for-import", "traffic": { "name": "Idaho Transportation Department Traffic Data", "url": "https://itd.idaho.gov/traffic-data/" }, "evRegistrations": { "name": "U.S. DOE AFDC vehicle registration counts", "url": "https://afdc.energy.gov/data/categories/vehicles--2" }, "proposalUse": "Roadway AADT and EV-market context" }
+  ],
+  "implementationStatus": "Live roadway AADT imports are wired for all five states through the regionalTraffic function; DOE AFDC remains the shared EV-market context source."
+}

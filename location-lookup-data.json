@@ -1,0 +1,7 @@
+{
+  "verifiedAt":"2026-09-08",
+  "records":[
+    {"match":"chubby.*lehi|lehi.*chubby","name":"Chubby's Express","display_name":"Chubby's Express, 3156 N 1200 W Suite 100, Lehi, UT 84043","lat":"40.427430984763","lon":"-111.868479471592","address":{"house_number":"3156","road":"N 1200 W Suite 100","city":"Lehi","state":"Utah","state_code":"UT","postcode":"84043"},"locationType":"Restaurant","source":"https://chubbyscafe.com/","coordinateSource":"Esri World Geocoding Service, PointAddress, score 100"},
+    {"match":"friends.*layton|layton.*friends","name":"Friends Food & Gas #3","display_name":"Friends Food & Gas #3, 1971 N Hill Field Rd, Layton, UT 84041","lat":"41.088858699002","lon":"-111.973923981178","address":{"house_number":"1971","road":"N Hill Field Rd","city":"Layton","state":"Utah","state_code":"UT","postcode":"84041"},"locationType":"Gas station","source":"https://firemarshal.utah.gov/licensees/lp-gas-companies-table/","coordinateSource":"Esri World Geocoding Service, PointAddress, score 100"}
+  ]
+}

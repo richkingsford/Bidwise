@@ -8,28 +8,328 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=site-snapshot-assumptions-20260815" />
+    <link rel="stylesheet" href="styles.css?v=slide4-meaning-fullwidth-20260910" />
+    <script async defer src="https://cdn.jsdelivr.net/gh/altcha-org/altcha/dist/main/altcha.min.js" type="module"></script>
+    <style>
+      .rotating-headline { display: inline-block; min-width: 17ch; white-space: nowrap; }
+      .rotating-headline-word { display: inline-block; opacity: 1; transition: opacity .36s ease; }
+      .rotating-headline-word.is-fading { opacity: 0; }
+      .ev-only-proposal .hero h1 { white-space: normal; max-width: 100%; overflow-wrap: normal; }
+      .ev-only-proposal .hero h1 .hero-pdf-title { display: inline !important; width: auto !important; margin: 0 !important; color: #f5f7fb; font: inherit !important; letter-spacing: inherit; }
+      .ev-only-proposal .hero h1 .rotating-headline { min-width: 0; color: var(--lime); font: inherit; white-space: nowrap; }
+      .print-headline { display: none; }
+      .hero-project-id { display: block; margin-top: 14px; color: var(--ink); font: 500 10px/1.5 var(--mono); letter-spacing: .15px; }
+      .proposal-photo { transform: scale(var(--visual-scale, 1)); transform-origin: center; }
+      .proposal-logo-card img { transform: translate(calc((var(--visual-x, 50) - 50) * 1%), calc((var(--visual-y, 50) - 50) * 1%)) scale(var(--visual-scale, 1)) !important; transform-origin: center; }
+      .visual-adjustments { display: grid; gap: 12px; margin-top: 16px; }
+      .visual-adjustment { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+      .visual-adjustment strong { color: var(--ink); font: 600 12px var(--display); }
+      .visual-adjustment label { display: grid; gap: 5px; color: var(--muted); font-size: 10px; }
+      .visual-control { width: 100%; accent-color: var(--electric, #3478ff); }
+      .hero { border-bottom: 2px solid var(--line); }
+      .presentation-menu { min-height: 34px; padding: 0 28px 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel, #fff); color: var(--ink); font: 600 10px var(--mono); }
+      .presentation-menu option { background: #181a1f; color: #f1f3f5; }
+      .presentation-menu option:checked { background: #2864d7; color: #fff; }
+      .view-link-button { padding: 8px 11px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font: 600 10px var(--mono); }
+      .view-link-button:hover { border-color: var(--electric, var(--navy)); }
+      .config-panel { display: none !important; }
+      .inline-config-dials { flex: 0 0 100%; width: 100%; margin-top: 18px; padding: 15px; border: 1px solid #4a4742; border-radius: 10px; background: #292724; }
+      .ev-report-head { flex-wrap: wrap; }
+      .ev-report-head .inline-config-dials { order: 10; flex-basis: 100%; }
+      .inline-config-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; color: var(--electric, var(--navy)); font: 600 10px var(--mono); letter-spacing: .08em; }
+      .inline-config-head button { color: var(--muted); font-size: 18px; line-height: 1; }
+      .inline-config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 260px)); justify-content: start; gap: 12px; }
+      .inline-dial { display: grid; gap: 6px; min-width: 0; color: var(--muted); font-size: 10px; }
+      .inline-dial span { min-height: 2.4em; line-height: 1.2; }
+      .inline-dial output { color: var(--ink); font: 600 15px var(--display); }
+      .edit-mode .inline-config-head { color: #c8d0da; }
+      .edit-mode .inline-dial output { color: #f1f3f5; }
+      .inline-dial input { width: 100%; accent-color: var(--electric, #3478ff); }
+      .inline-visual-controls { display: grid; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #d8dde2; }
+      .inline-config-head small { color: var(--muted); font: 400 10px var(--sans); letter-spacing: 0; }
+      .inline-visual-adjustment { display: grid; gap: 8px; padding: 10px; border: 1px solid #4a4742; border-radius: 7px; background: #292724 !important; }
+      .inline-file-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #f1f3f5; font: 600 11px var(--display); }
+      .inline-file-label input[type="file"] { max-width: 220px; padding: 4px; border: 1px solid #4a4742; border-radius: 5px; background: #292724 !important; color: #aeb4bd; font: 10px var(--sans); }
+      .inline-visual-dials { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .inline-visual-dials label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
+      .edit-mode input:not([type="range"]):not([type="file"]),
+      .edit-mode select,
+      .edit-mode textarea { background: rgba(255,255,255,.025) !important; border: 1px solid #59616a !important; border-radius: 4px; box-shadow: none !important; color: #f1f3f5 !important; }
+      .edit-mode input:not([type="range"]):not([type="file"]):focus,
+      .edit-mode select:focus,
+      .edit-mode textarea:focus { border-color: #8b949e !important; outline: 2px solid rgba(139,148,158,.16); outline-offset: 1px; }
+      .edit-mode .ev-face-field { background: #17181d !important; border-color: #30323a !important; }
+      .edit-mode .ev-section-select,
+      .edit-mode .config-field select { background: #292724 !important; border-color: #4a4742 !important; color: #f1f3f5 !important; }
+      .edit-mode .ev-section-inputs { background: #20201f !important; border-color: #45413d !important; }
+      .edit-mode .ev-section-input-scroll { grid-template-columns: repeat(auto-fit, minmax(220px, 280px)); justify-content: start; }
+      .ev-section-outputs:before { display: none !important; }
+      .ev-output-panel { display: block; }
+      .ev-output-panel > div:first-child .chart-label { display: none; }
+      .ev-output-panel .ev-output-grid { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      @media (max-width: 900px) { .ev-output-panel .ev-output-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 560px) { .ev-output-panel .ev-output-grid { grid-template-columns: 1fr; } }
+      #ev-report-4 .spend-periods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #30323a; }
+      #ev-report-4 .spend-periods span { display: grid; gap: 4px; min-width: 0; }
+      #ev-report-4 .spend-periods small { color: #8792a5; font: 700 9px var(--mono); letter-spacing: .06em; }
+      #ev-report-4 .spend-periods b { color: #f5f7fb; font: 600 14px var(--display); white-space: nowrap; }
+      .location-overview-page { padding-top: 34px; }
+      .location-overview-page .ev-report-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px 20px; padding-right: 0; }
+      .location-overview-page .ev-report-head .inline-config-dials { grid-column: 1 / -1; }
+      .location-report-meta { color: #7f8da2; font: 500 11px var(--mono); letter-spacing: .03em; text-align: right; white-space: nowrap; }
+      .location-overview-page .ev-report-head p { grid-column: 1 / -1; max-width: 760px; }
+      .location-overview-page .ev-section-inputs { display: none; }
+      .edit-mode .location-overview-page .ev-section-inputs { display: block; margin: 0 0 18px; padding: 15px; border: 1px solid #36516a; border-radius: 10px; background: #142131; }
+      .location-overview-page .ev-section-outputs { display: block !important; width: 100% !important; max-width: none !important; min-width: 0; }
+      .location-overview-page .ev-location-metrics { display: grid !important; width: 100% !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; justify-content: start; gap: 12px; }
+      .ev-location-metric { width: 100%; max-width: 420px; min-width: 0; min-height: 198px; height: auto; max-height: none; padding: 20px 20px; border: 1px solid #36516a; border-radius: 10px; background: #151f2d; overflow: visible; }
+      .ev-location-metric.active { border: 2px solid var(--lime); padding: 19px 19px; }
+      .ev-location-metric > div:first-child, .location-market-proof > div:first-child { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+      .ev-location-metric > div:first-child span, .location-market-proof .chart-label { color: #49a2ff; font: 700 11px var(--mono); letter-spacing: .04em; }
+      .ev-location-metric.active > div:first-child span { color: var(--lime); }
+      .ev-location-metric > div:first-child b, .location-market-proof > div:first-child b { color: #49a2ff; font: 700 10px var(--mono); white-space: nowrap; }
+      .ev-location-metric > div:first-child b { display: none; }
+      .ev-location-metric strong { display: block; margin: 14px 0 6px; color: #f5f7fb; font: 700 clamp(24px, 2.7vw, 35px) var(--display); letter-spacing: -.04em; white-space: nowrap; }
+      .ev-location-metric em { display: block; min-height: 18px; color: #aeb8c7; font: normal 13px var(--sans); }
+      .ev-location-metric p { margin-top: 14px; color: #7f8da2; font-size: 11px; }
+      .metric-scale { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 18px; }
+      .metric-scale i { height: 8px; background: #6e8092; }
+      .metric-scale i:nth-child(2) { background: #f2be47; }
+      .metric-scale i:nth-child(3) { background: var(--lime); }
+      .ev-location-metric > small { display: flex; justify-content: space-between; gap: 8px; color: #aeb8c7; font: 700 9px var(--mono); margin-top: 7px; }
+      .ev-location-metric > small b { color: var(--lime); }
+      .location-market-grid { grid-template-columns: minmax(0, 1.45fr) minmax(300px, .75fr); gap: 16px; margin-top: 18px; }
+      .location-market-grid .ev-market-map-wrap { position: relative; min-width: 0; }
+      .location-market-grid .ev-market-map { height: 346px; min-height: 346px; border: 1px solid #36516a; border-radius: 10px; overflow: hidden; }
+      .location-market-grid .ev-market-map-title { position: absolute; z-index: 5; inset: 22px 22px auto; display: block; padding: 15px 22px; border: 1px solid #36516a; border-radius: 9px; background: #101b29f2; color: #f5f7fb; }
+      .location-market-grid .ev-market-map-title > b { display: block; margin-bottom: 9px; font: 700 11px var(--mono); }
+      .location-market-grid .ev-market-map-title > span { display: flex; align-items: center; gap: 10px; font: 700 10px var(--mono); }
+      .location-market-grid .ev-market-map-title small { margin-left: auto; color: #aeb8c7; font: 400 10px var(--sans); }
+      .location-legend-kneaders, .location-legend-station { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--lime); }
+      .location-legend-station { background: #ff5c78; margin-left: 12px; }
+      .location-market-grid .location-map-footer { position: absolute; z-index: 5; inset: auto 22px 22px; display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 15px 22px; border: 1px solid #36516a; border-radius: 9px; background: #101b29f2; color: #ff5c78; font: 700 10px var(--mono); }
+      .location-map-footer strong { color: #f5f7fb; }
+      .location-market-grid .leaflet-control-zoom { z-index: 20 !important; margin-top: 104px !important; margin-left: 12px !important; }
+      .location-market-grid .leaflet-control-attribution { display: none !important; }
+      .location-market-proof { height: 346px; min-height: 346px; padding: 20px 26px; border: 1px solid #36516a; border-radius: 10px; background: #151f2d; overflow: hidden; }
+      .location-market-proof h4 { margin: 14px 0 12px; color: #f5f7fb; font: 700 clamp(23px, 2.2vw, 32px)/1.15 var(--display); }
+      .location-market-proof p { margin: 0; color: #aeb8c7; font-size: 14px; line-height: 1.45; }
+      .location-market-proof p strong { color: #f5f7fb; }
+      .location-market-proof > em { display: block; margin-top: 25px; color: var(--lime); font-style: normal; font-weight: 700; }
+      .location-market-proof > small { display: block; margin-top: 24px; color: #aeb8c7; font-size: 12px; line-height: 1.5; }
+      .ev-location-support { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: start; gap: 12px; margin-top: 18px; min-width: 0; }
+      .ev-location-support article { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; min-width: 0; min-height: 110px; height: auto; max-height: none; padding: 13px 20px; border: 1px solid #36516a; border-radius: 10px; background: #151f2d; overflow: visible; }
+      .ev-location-support strong { grid-column: 1 / -1; color: #f5f7fb; font: 700 clamp(16px, 1.8vw, 23px) var(--display); white-space: nowrap; }
+      .ev-location-support span { color: #49a2ff; font: 700 11px var(--mono); }
+      .ev-location-support article:nth-child(2) span { color: var(--lime); }
+      .ev-location-support article:nth-child(3) span { color: #f2be47; }
+      .ev-location-support small { min-width: 0; color: #7f8da2; font: 10px var(--mono); text-align: left; overflow-wrap: anywhere; }
+      @media (max-width: 1100px) { .location-overview-page .ev-location-metrics { grid-template-columns: repeat(2, minmax(0, 420px)) !important; } }
+      @media (max-width: 900px) { .location-overview-page .ev-report-head { grid-template-columns: 1fr; gap: 10px; } .location-report-meta { text-align: left; } .location-overview-page .ev-report-head p { max-width: none; } .location-market-grid, .ev-location-support { grid-template-columns: 1fr; } .ev-location-metric, .ev-location-support article { height: auto; max-height: none; } .inline-config-grid, .inline-visual-dials { grid-template-columns: repeat(2, minmax(0, 1fr)); } .location-market-grid .ev-market-map, .location-market-proof { min-height: 320px; height: 320px; } .location-market-proof { height: auto; } .location-market-grid .location-map-footer { display: grid; } }
+      @media (max-width: 560px) { .location-overview-page .ev-location-metrics { grid-template-columns: 1fr !important; } .ev-location-metric { width: 100%; max-width: none; } }
+      @media (max-width: 560px) { .location-market-grid .ev-market-map-title { inset: 12px 12px auto; padding: 12px; } .location-market-grid .ev-market-map-title > span { flex-wrap: wrap; } .location-market-grid .ev-market-map-title small { width: 100%; margin-left: 0; } .location-market-grid .location-map-footer { inset: auto 12px 12px; padding: 12px; } .ev-location-metric strong { font-size: 29px; } }
+      .view-only .sidebar,
+      .view-only .section-controls,
+      .view-only .hero-actions,
+      .view-only .layout-sidebar,
+      .view-only .layout-map-status,
+      .view-only .config-panel,
+      .view-only .edit-panel,
+      .view-only .closing-note .primary-button { display: none !important; }
+      .view-only .view-link-button { display: none !important; }
+      .view-only .ev-section-inputs,
+      .view-only .inline-config-dials,
+      .view-only .visual-adjustments,
+      .view-only input[type="range"],
+      .view-only .config-range { display: none !important; }
+      .view-only .app-shell { grid-template-columns: minmax(0, 1fr); }
+      .view-only .main-content { grid-column: 1; }
+      @media (max-width: 900px) {
+        .app-shell { grid-template-columns: minmax(0, 1fr); }
+        .main-content { grid-column: 1; min-width: 0; }
+        .sidebar { position: sticky; inset: 0 0 auto; z-index: 6; width: 100%; height: auto; min-height: 0; padding: 12px 14px; }
+        .sidebar .brand { margin: 0 0 12px; }
+        .sidebar-label { margin: 0 0 8px; }
+        .report-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .nav-item { flex: 0 0 auto; white-space: nowrap; padding: 9px 10px; }
+        .sidebar-bottom { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) { .rotating-headline-word { transition: none; } }
+      @media (max-width: 700px) {
+        .ev-only-proposal .hero h1 { white-space: normal; overflow-wrap: anywhere; }
+        .ev-only-proposal .hero h1 .rotating-headline { white-space: normal; min-width: 0; }
+      }
+      @media print {
+        @page { size: Letter landscape; margin: .35in; }
+        .sidebar,
+        .topbar,
+        .presentation-menu,
+        .view-link-button,
+        .hero-actions,
+        .section-controls,
+         .layout-sidebar,
+         .layout-map-status,
+         .location-map-layers,
+         .leaflet-control-zoom,
+         .config-panel,
+        .edit-panel,
+        .ev-section-inputs,
+        .inline-config-dials,
+        .print-button,
+        .copy-proposal-button,
+        .auth-button { display: none !important; }
+        .app-shell { display: block; min-height: 0; }
+        .main-content { width: 100%; }
+        .report-wrap { max-width: none; padding: 0; }
+        .hero { min-height: 6.8in; border-bottom: 0; break-after: page; page-break-after: always; }
+         /* Print uses the same hero structure as View Only, with one stable
+            headline. Keep the animated web fragments out of the PDF so they
+            cannot duplicate or wrap the title unexpectedly. */
+         .ev-only-proposal .hero h1 > * { display: none !important; }
+         .ev-only-proposal .hero h1 { color: transparent !important; }
+         .ev-only-proposal .hero h1::after {
+           content: 'Turn charging visits into customer value.';
+           display: block;
+           color: #17202a;
+           font: 600 clamp(34px, 5vw, 58px)/1.05 var(--display);
+           letter-spacing: -0.04em;
+         }
+        /* The hero already owns the page break; a second break here creates a blank page. */
+        /* Keep each proposal section self-contained on its landscape page, with
+           two lines of breathing room at the bottom for the printed version. */
+        .content-section:not(#ev),
+        #ev .ev-report-section {
+          box-sizing: border-box;
+          padding-bottom: 2em !important;
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+        /* The customer-facing EV proposal is intentionally one section per
+           landscape page.  Some sections contain dense tables and cards, so
+           compact only the print rendition and widen the layout before
+           scaling it down.  Screen/view mode remains unchanged and fully
+           responsive. */
+        #ev .ev-report-section {
+           width: 100%;
+           zoom: .65;
+          break-after: page;
+          page-break-after: always;
+        }
+        #ev .ev-report-section:first-child { padding-top: 0; }
+         #ev .ev-customer-story > .ev-report-section:nth-child(2) {
+           width: 100%;
+           zoom: .35;
+         }
+         #ev .ev-customer-story > .ev-report-section:nth-child(3),
+         #ev .ev-customer-story > .ev-report-section:nth-child(6),
+         #ev .ev-customer-story > .ev-report-section:nth-child(9) { zoom: .48; }
+        #ev .ev-report-section:last-child { break-after: auto; }
+        #ev { padding-top: 0 !important; }
+        .location-overview-page { min-height: 0; padding-top: 0; width: auto; }
+        #ev .ev-site-layout { display: none !important; }
+        #ev-report-3 .site-snapshot-top,
+        #ev-report-3 .site-snapshot-bottom { grid-template-columns: minmax(220px, .72fr) minmax(0, 1.55fr) !important; }
+        #ev-report-3 .site-fleet-stats,
+        #ev-report-3 .site-snapshot-scenarios { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+        #ev-report-3 .site-snapshot-scenarios { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        #ev-report-3 .site-fit-items { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+        #ev-report-3 .site-capture-outlook,
+        #ev-report-3 .site-fleet-card,
+        #ev-report-3 .site-scenario-card,
+        #ev-report-3 .site-fit-card,
+        #ev-report-3 .site-meaning-card { padding: 12px 14px; }
+        #ev-report-3 .site-scenario-card.active { padding: 11px 13px; }
+        #ev-report-3 .site-capture-outlook strong,
+        #ev-report-3 .site-scenario-card > strong { margin: 10px 0 3px; font-size: 29px; }
+        #ev-report-3 .site-fleet-stats { margin-top: 12px; }
+        #ev-report-3 .site-fleet-stats strong { margin-top: 5px; font-size: 18px; }
+        #ev-report-3 .site-scenario-detail { margin-top: 9px; padding-top: 8px; }
+        #ev-report-3 .site-scenario-detail b { font-size: 16px; }
+        #ev-report-3 .site-scenario-card > small:last-child { margin-top: 8px; }
+        #ev-report-3 .site-fit-items { margin-top: 10px; }
+        #ev-report-3 .site-fit-items strong { margin-top: 5px; font-size: 16px; }
+        #ev-report-3 .site-meaning-card h4 { margin: 10px 0 7px; font-size: 18px; }
+        #ev-report-3 .site-snapshot-sources { padding-top: 7px; font-size: 8px; }
+        #ev-report-3 .ev-score-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 7px; }
+        #ev-report-3 .ev-score-grid article { padding: 9px; gap: 4px; }
+        #ev-report-3 .ev-score-grid article strong { font-size: 18px; }
+        #ev-report-3 .ev-score-grid article small { font-size: 8px; }
+        #ev-report-3 { padding-top: 10px !important; }
+        #ev-report-3 .ev-report-head { margin-bottom: 8px; }
+        #ev-report-3 .ev-demand-narrative { margin-top: 6px !important; padding: 10px !important; }
+        #ev-report-4 .visitor-revenue-top,
+        #ev-report-4 .visitor-revenue-bottom { grid-template-columns: 1.35fr .65fr !important; gap: 10px; }
+        #ev-report-4 .visitor-spend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 9px; }
+        #ev-report-4 .visitor-calculation-card,
+        #ev-report-4 .visitor-base-card,
+        #ev-report-4 .visitor-spend-card,
+        #ev-report-4 .visitor-sensitivity-card,
+        #ev-report-4 .visitor-meaning-card { padding: 12px 15px; }
+        #ev-report-4 .visitor-calculation-flow { gap: 7px; margin-top: 10px; }
+        #ev-report-4 .visitor-calculation-flow strong { font-size: 22px; }
+        #ev-report-4 .visitor-calculation-flow small,
+        #ev-report-4 .visitor-spend-card em { font-size: 8px; }
+        #ev-report-4 .visitor-base-card strong { font-size: 31px; }
+        #ev-report-4 .visitor-spend-card > strong { margin-top: 9px; font-size: 31px; }
+        #ev-report-4 .visitor-spend-periods { margin-top: 9px; padding-top: 8px; }
+        #ev-report-4 .visitor-spend-periods b { font-size: 11px; }
+        #ev-report-4 .visitor-spend-foot { margin-top: 8px; font-size: 8px; }
+        #ev-report-4 .visitor-sensitivity-grid { margin-top: 10px; }
+        #ev-report-4 .visitor-sensitivity-grid strong { font-size: 20px; }
+        #ev-report-4 .visitor-meaning-card h4 { font-size: 16px; }
+        #ev-report-4 .visitor-revenue-sources { padding-top: 6px; font-size: 8px; }
+        #ev-report-4.revenue-guests-section .ev-report-head { margin-bottom: 8px; }
+        #ev-report-4.revenue-guests-section .ev-report-head p { white-space: nowrap; }
+        .location-overview-page .ev-section-inputs { display: none !important; }
+        .location-overview-page .ev-report-head { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-bottom: 12px; }
+        .location-overview-page .ev-report-head p { grid-column: 1 / -1; max-width: none; }
+         .location-overview-page .ev-location-metrics { gap: 8px; }
+         .location-overview-page .ev-location-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        .location-overview-page .ev-location-metric { height: 125px; max-height: 125px; padding: 10px 12px; }
+        .location-overview-page .ev-location-metric strong { margin: 12px 0 5px; font-size: 26px; }
+        .location-overview-page .ev-location-metric em { font-size: 10px; }
+        .location-market-grid { gap: 8px; margin-top: 10px; }
+        .location-market-grid .ev-market-map, .location-market-proof { min-height: 160px; height: 160px; }
+        .location-market-proof { padding: 12px 16px; }
+        .location-market-proof h4 { margin: 8px 0 6px; font-size: 20px; }
+        .location-market-proof p, .location-market-proof > small { font-size: 10px; }
+        .location-market-proof > em { margin-top: 12px; font-size: 11px; }
+        .ev-location-support { gap: 8px; margin-top: 10px; }
+        .location-overview-page .ev-location-support { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        .ev-location-support article { height: 64px; max-height: 64px; padding: 8px 12px; }
+        .ev-location-support strong { font-size: 21px; }
+      }
+      .definitions-view{position:fixed;inset:72px 0 0 232px;z-index:4;overflow:auto;padding:42px clamp(18px,4vw,64px);background:var(--paper,#f7faf8);color:var(--ink,#12252c)}.definitions-head{display:flex;justify-content:space-between;gap:28px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:26px}.definitions-head h1{font:600 clamp(28px,4vw,48px) var(--display);letter-spacing:-.04em;margin:8px 0}.definitions-head p{max-width:720px;color:var(--muted);line-height:1.55}.definitions-actions{display:flex;gap:10px;flex-wrap:wrap}.definitions-source-note{margin:18px 0;padding:12px 15px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font:11px var(--mono)}.definitions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;align-items:start}.definition-card{min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:17px;display:grid;gap:11px}.definition-card-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.definition-card-head h3{font:600 16px var(--display);margin:4px 0}.definition-kind{font:10px var(--mono);color:var(--electric,#3478ff);letter-spacing:.08em}.definition-remove{border:1px solid var(--line);border-radius:5px;background:transparent;color:var(--muted);padding:5px 8px;font:10px var(--mono)}.definition-field{display:grid;gap:5px;min-width:0;font:10px var(--mono);color:var(--muted)}.definition-field input,.definition-field textarea{width:100%;border:1px solid #d7dde0;border-radius:5px;background:#fbfcfc;color:var(--ink);padding:9px;font:12px var(--sans)}.definition-field textarea{min-height:48px;resize:vertical;line-height:1.35}.definition-save{justify-self:start;border:1px solid var(--line);border-radius:5px;background:var(--navy,#12252c);color:#fff;padding:8px 11px;font:600 10px var(--mono)}.definitions-mode .report-wrap{display:none}.definitions-mode .definitions-view{display:block}.definitions-mode .edit-panel,.definitions-mode .config-panel,.definitions-mode .config-backdrop{display:none!important}.definition-suggestions{position:absolute;z-index:50;display:grid;min-width:260px;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 8px 20px #12252c22;overflow:hidden}.definition-suggestions button{padding:9px 11px;text-align:left;border:0;border-bottom:1px solid #edf0f1;background:#fff;color:var(--ink);font:11px var(--sans)}.definition-suggestions button:hover{background:#eef4f2}.definition-field{position:relative}@media(max-width:900px){.definitions-view{inset:126px 0 0 0;padding:24px 18px}.definitions-head{display:grid}}@media(max-width:760px){.definitions-actions{justify-content:start}.definitions-grid{grid-template-columns:1fr}}
+      .definition-field select{width:100%;border:1px solid #d7dde0;border-radius:5px;background:#fbfcfc;color:var(--ink);padding:9px;font:12px var(--sans)}.definition-card[data-definition-section^="siteSnapshotMockup"]{border-left:3px solid var(--electric,#3478ff)}
+      .definitions-mode .definition-card,.definitions-view .definition-card{background:#171b22;color:#f4f7fb}.definitions-mode .definition-card h3,.definitions-view .definition-card h3{color:#f4f7fb}.definitions-mode .definition-field input,.definitions-mode .definition-field textarea,.definitions-mode .definition-field select,.definitions-view .definition-field input,.definitions-view .definition-field textarea,.definitions-view .definition-field select{border-color:#59616a;background:#20252d;color:#f4f7fb}.definitions-mode .definition-field select option,.definitions-view .definition-field select option{background:#20252d;color:#f4f7fb}.definitions-mode .definition-suggestions,.definitions-view .definition-suggestions{background:#20252d;border-color:#59616a;box-shadow:0 8px 20px #0008}.definitions-mode .definition-suggestions button,.definitions-view .definition-suggestions button{background:#20252d;color:#f4f7fb;border-color:#343d49}.definitions-mode .definition-suggestions button:hover,.definitions-view .definition-suggestions button:hover{background:#2c3540;color:#fff}
+    </style>
   </head>
-  <body>
+  <body class="auth-pending">
     <section class="home-view" id="homeView" aria-labelledby="homeTitle">
-      <div class="home-topbar"><a class="home-brand" href="./" aria-label="Go to GetEV dashboard"><span class="brand-mark">G</span><span>GetEV</span><span class="brand-dot">•</span></a><div class="home-user"><span class="live-dot"></span> Sales workspace · <span id="workspaceAuthor">Sign in to personalize</span><button class="auth-button" id="companyProfileButton" type="button" hidden>Company profile</button><button class="auth-button" id="homeAuthButton" type="button">Sign in with Google</button></div></div>
-      <main class="home-main"><section class="home-dashboard" id="homeDashboard"><div class="home-kicker">GetEV SALES WORKSPACE</div><div class="home-heading"><div><h1 id="homeTitle">Your active bids.</h1><p>Pick a proposal to present, refine, or share with a buyer.</p></div><button class="primary-button home-new-bid" type="button" id="newBidButton">+ New bid</button></div><div class="bid-grid">
-        <article class="bid-card" data-bid="kneaders-orem"><div class="bid-card-top"><span class="bid-status ready">PREPARED</span><span class="bid-owner">Proposal team</span></div><div class="bid-card-title"><span class="store-avatar kneaders-mark">K</span><div><h2>Kneaders Bakery &amp; Cafe</h2><p>Orem, Utah · 1960 State Street</p></div></div><div class="bid-scope"><span>EV charging</span></div><div class="bid-metrics"><div><small>FOOT TRAFFIC REVENUE</small><strong>$168K / yr</strong></div><div><small>MARKET PROOF CHARGES</small><strong>200 / day</strong></div><div><small>YEAR 5 DAILY FORECAST</small><strong>77 / day</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
-        <article class="bid-card" data-bid="copper-fork-grill-american-fork"><div class="bid-card-top"><span class="bid-status ready">PREPARED</span><span class="bid-owner">Proposal team</span></div><div class="bid-card-title"><span class="store-avatar copper-mark">C</span><div><h2>Copper Fork Grill</h2><p>American Fork, Utah · 789 W Main Street</p></div></div><div class="bid-scope"><span>Solar</span><span>Battery</span><span>EV charging</span></div><div class="bid-metrics"><div><small>FOOT TRAFFIC REVENUE</small><strong>$210K / yr</strong></div><div><small>MARKET PROOF CHARGES</small><strong>200 / day</strong></div><div><small>YEAR 5 DAILY FORECAST</small><strong>106 / day</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
-        <article class="bid-card" data-bid="maverick-lehi-solar"><div class="bid-card-top"><span class="bid-status draft">DRAFT</span><span class="bid-owner">Proposal team</span></div><div class="bid-card-title"><span class="store-avatar maverick-mark">M</span><div><h2>Maverik</h2><p>Lehi, Utah · 760 E Main Street</p></div></div><div class="bid-scope"><span>Solar</span></div><div class="bid-metrics"><div><small>FOOT TRAFFIC REVENUE</small><strong>$168K / yr</strong></div><div><small>MARKET PROOF CHARGES</small><strong>200 / day</strong></div><div><small>YEAR 5 DAILY FORECAST</small><strong>77 / day</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
-        <article class="bid-card" data-bid="target-lehi-solar-battery"><div class="bid-card-top"><span class="bid-status review">IN REVIEW</span><span class="bid-owner">Proposal team</span></div><div class="bid-card-title"><span class="store-avatar target-mark">T</span><div><h2>Target + storage</h2><p>Lehi, Utah · 1250 E Timpanogos Hwy</p></div></div><div class="bid-scope"><span>Solar</span><span>Battery</span></div><div class="bid-metrics"><div><small>FOOT TRAFFIC REVENUE</small><strong>$168K / yr</strong></div><div><small>MARKET PROOF CHARGES</small><strong>200 / day</strong></div><div><small>YEAR 5 DAILY FORECAST</small><strong>77 / day</strong></div></div><button class="bid-open" type="button">Open proposal <span>→</span></button></article>
-      </div><div class="home-footer"><span><i class="live-dot"></i> Four active proposals</span><span>Last synced just now</span></div></section><section class="home-marketing" aria-labelledby="marketingTitle"><div class="home-kicker">COMMERCIAL ENERGY PROPOSALS, WITHOUT THE SPREADSHEET CHAOS</div><div class="marketing-hero"><div><h1 id="marketingTitle">Turn site data into a bid buyers can believe.</h1><p>GetEV helps installer teams build clear, interactive proposals for solar, battery storage, and EV charging — with the assumptions, maps, and economics ready for a real conversation.</p><button class="primary-button marketing-cta" type="button" data-auth-cta>Register your company <span>→</span></button></div><div class="marketing-proof"><span class="marketing-proof-mark">B</span><strong>One workspace.<br />Three scopes.<br /><em>More confidence.</em></strong></div></div><div class="marketing-grid"><article><span class="marketing-icon">01</span><h2>Build faster</h2><p>Start from realistic retail defaults, then tune the independent inputs your team actually knows.</p></article><article><span class="marketing-icon">02</span><h2>Explain the value</h2><p>Show production, demand reduction, charger demand, incentives, and payback in one buyer-friendly report.</p></article><article><span class="marketing-icon">03</span><h2>Present with confidence</h2><p>Share a view-only proposal with interactive maps, charts, and a clean construction-ready story.</p></article></div><div class="marketing-bottom"><strong>Designed for service-installing companies.</strong><span>Solar · Battery storage · EV charging</span><button class="auth-button marketing-signin" type="button" data-auth-cta>Sign in with Google</button></div></section></main>
+      <div class="home-topbar"><a class="home-brand" href="./" aria-label="Go to GetEV dashboard"><span class="brand-mark">G</span><span>GetEV</span><span class="brand-dot">•</span></a><div class="home-user"><span class="live-dot"></span> Sales workspace · <span id="workspaceAuthor">Sign in to personalize</span><button class="auth-button" id="companyProfileButton" type="button" hidden>Company profile</button><button class="auth-button" id="homeAuthButton" type="button">Sign in</button></div></div>
+      <main class="home-main"><section class="home-dashboard" id="homeDashboard"><div class="home-kicker">GetEV SALES WORKSPACE</div><div class="home-heading"><div><h1 id="homeTitle">Your active bids.</h1><p>Pick a proposal to present, refine, or share with a buyer.</p></div><button class="primary-button home-new-bid" type="button" id="newBidButton">+ New bid</button></div><div class="bid-grid" aria-live="polite"></div><div class="home-footer"><span><i class="live-dot"></i> Four active proposals</span><span>Last synced just now</span></div></section><section class="home-marketing" aria-labelledby="marketingTitle"><div class="home-kicker">COMMERCIAL ENERGY PROPOSALS, WITHOUT THE SPREADSHEET CHAOS</div><div class="marketing-hero"><div><h1 id="marketingTitle">Turn site data into a bid buyers can believe.</h1><p>GetEV helps installer teams build clear, interactive proposals for solar, battery storage, and EV charging — with the assumptions, maps, and economics ready for a real conversation.</p><button class="primary-button marketing-cta" type="button" data-auth-cta>Register your company <span>→</span></button></div><div class="marketing-proof"><span class="marketing-proof-mark">B</span><strong>One workspace.<br />Three scopes.<br /><em>More confidence.</em></strong></div></div><div class="marketing-grid"><article><span class="marketing-icon">01</span><h2>Build faster</h2><p>Start from realistic retail defaults, then tune the independent inputs your team actually knows.</p></article><article><span class="marketing-icon">02</span><h2>Explain the value</h2><p>Show production, demand reduction, charger demand, incentives, and payback in one buyer-friendly report.</p></article><article><span class="marketing-icon">03</span><h2>Present with confidence</h2><p>Share a view-only proposal with interactive maps, charts, and a clean construction-ready story.</p></article></div><div class="marketing-bottom"><strong>Designed for service-installing companies.</strong><span>Solar · Battery storage · EV charging</span><button class="auth-button marketing-signin" type="button" data-auth-cta>Sign in</button></div></section></main>
     </section>
     <div class="admin-modal" id="adminModal" hidden>
       <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
-        <div class="company-modal-head"><div><div class="home-kicker">ADMINISTRATION</div><h2 id="adminModalTitle">Company approvals</h2><p>Approved installer companies can use GetEV with a Gmail or Google Workspace account.</p></div><button class="close-edit" id="closeAdminModal" type="button" aria-label="Close admin">×</button></div>
+        <div class="company-modal-head"><div><div class="home-kicker">ADMINISTRATION</div><h2 id="adminModalTitle">Company approvals</h2><p>Approved installer companies can use GetEV with a verified email address.</p></div><button class="close-edit" id="closeAdminModal" type="button" aria-label="Close admin">×</button></div>
         <div class="admin-list" id="adminProfilesList"><p class="admin-empty">Loading company profiles…</p></div>
       </div>
     </div>
+    <section class="admin-tools-page" id="adminToolsPage" aria-labelledby="adminToolsTitle" hidden>
+      <div class="admin-tools-shell">
+        <div class="admin-tools-top"><a class="admin-back-link" href="./">← Back to workspace</a><span class="admin-only-badge">ADMIN ONLY</span></div>
+        <div class="home-kicker">DATA OPERATIONS</div>
+        <div class="admin-tools-heading"><div><h1 id="adminToolsTitle">Data sources</h1><p>Review each proposal data source and retrieve a small sample without changing customer-facing proposals.</p></div></div>
+        <div class="admin-source-status" id="adminSourceStatus" role="status">Waiting for an admin session.</div>
+        <div class="admin-source-grid" id="adminSourceGrid"></div>
+      </div>
+    </section>
     <div class="company-modal" id="companyModal" hidden>
       <div class="company-modal-card" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
-        <div class="company-modal-head"><div><div class="home-kicker">INSTALLER REGISTRATION</div><h2 id="companyModalTitle">Tell us about your company.</h2><p>GetEV is built for teams that design and install commercial energy systems.</p></div><button class="close-edit" id="closeCompanyModal" type="button" aria-label="Close registration">×</button></div>
+        <div class="company-modal-head"><div><div class="home-kicker">INSTALLER REGISTRATION</div><h2 id="companyModalTitle">Tell us about your company.</h2><p>GetEV supports any email address. Verify your inbox first, then complete your company profile for review.</p></div><button class="close-edit" id="closeCompanyModal" type="button" aria-label="Close registration">×</button></div>
         <form id="companyForm" class="company-form" novalidate>
+          <button class="google-signin" id="companySignInButton" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.6c3.9-3.6 6.1-8.9 6.1-15.1z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.2c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20.4 20.4 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.4a12.3 12.3 0 0 1 0-7.8v-5.3H5.8a20 20 0 0 0 0 18.4z"/><path fill="#EA4335" d="M24 11.2c3 0 5.7 1 7.8 3l5.8-5.8A19.7 19.7 0 0 0 24 3C16.1 3 9.3 7.5 5.8 14.3l6.8 5.3C14.2 14.8 18.7 11.2 24 11.2z"/></svg>Continue with Google</button>
+          <section class="email-auth-panel" aria-labelledby="emailAuthTitle"><h3 id="emailAuthTitle">Sign in or create your account</h3><p>We’ll email you a secure sign-in link. No password required.</p><div class="email-auth-row"><input id="emailAuthAddress" type="email" autocomplete="email" placeholder="you@company.com" aria-label="Email address" /><button class="secondary-button" id="emailLinkButton" type="button">Email me a sign-in link</button></div><altcha-widget id="emailAltcha" challenge="https://us-central1-bidwise-production.cloudfunctions.net/altchaChallenge" type="checkbox" auto="off" aria-label="Human verification"></altcha-widget><small id="emailAuthNote">Use any email provider, including custom business domains.</small></section>
           <label>Company name<input name="companyName" required placeholder="e.g. Summit Energy Systems" /></label>
           <label>Company tagline <span class="optional">optional</span><input name="tagline" maxlength="100" placeholder="e.g. Commercial energy, made simple" /></label>
           <label>Proposal slogan <span class="optional">optional</span><input name="proposalSlogan" maxlength="140" placeholder="e.g. Better projects start with a clearer plan" /></label>
@@ -38,17 +338,16 @@
           <label>Service territory<input name="territory" required placeholder="e.g. Utah, Idaho, and Wyoming" /></label>
           <fieldset><legend>Installation services offered</legend><label class="company-check"><input type="checkbox" name="solar" /><span>Solar</span><small>Commercial PV design + installation</small></label><label class="company-check"><input type="checkbox" name="storage" /><span>Battery storage</span><small>Commercial storage + controls</small></label><label class="company-check"><input type="checkbox" name="ev" /><span>EV charging</span><small>DC fast + Level 2 charging</small></label></fieldset>
           <label>Company website <span class="optional">optional</span><input name="website" type="text" placeholder="yourcompany.com" /></label>
-          <label class="company-document-field"><span>Company logo <em class="optional">optional</em></span><input name="companyLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" /><small class="company-upload-note">PNG, JPG, WebP, or SVG · up to 5 MB · no fixed dimensions required.</small></label>
+          <div class="company-document-grid"><label class="company-document-field"><span>Company logo <em class="optional">optional</em></span><input name="companyLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" /><small class="company-upload-note">PNG, JPG, WebP, or SVG · up to 5 MB · no fixed dimensions required.</small></label><label class="company-document-field"><span>Company project photo <em class="optional">optional</em></span><input name="companyPhoto" type="file" accept="image/png,image/jpeg,image/webp" /><small class="company-upload-note">A jobsite or building photo for the About page.</small></label></div>
           <div class="company-document-grid"><label class="company-document-field"><span>Proof of insurance <em class="optional">optional</em></span><input name="insuranceDocument" type="file" accept="application/pdf,image/png,image/jpeg" /><small>PDF or image · may be added now or later</small></label><label class="company-document-field"><span>Contractor certification <em class="optional">optional</em></span><input name="contractorCertification" type="file" accept="application/pdf,image/png,image/jpeg" /><small>PDF or image · may be added now or later</small></label></div>
           <label>Certifications to show on proposals <span class="optional">optional</span><textarea name="proposalCertifications" rows="4" placeholder="e.g. NABCEP PV Installation Professional · Tesla Certified Installer · Licensed electrical contractor"></textarea></label>
           <label class="company-document-field"><span>Additional certification documents <em class="optional">optional</em></span><input name="certificationDocuments" type="file" accept="application/pdf,image/png,image/jpeg" multiple /><small class="company-upload-note">Optional verification artifacts that may be shown on proposals after approval.</small></label>
           <p class="company-form-note" id="companyFormNote">You can update this profile later. Verification status starts as pending until your team is reviewed. Document uploads are recorded securely when Firebase Storage is enabled.</p>
-          <button class="secondary-button" id="companySignInButton" type="button">Continue with Google</button>
           <button class="primary-button" type="submit">Create company profile</button>
         </form>
       </div>
     </div>
-    <section class="access-gate" id="accessGate" aria-labelledby="accessGateTitle"><div class="access-gate-card"><div class="home-kicker">GetEV WORKSPACE</div><h1 id="accessGateTitle">Your proposals are inside.</h1><p>Sign in with Google to access the active bid workspace.</p><button class="primary-button" id="gateAuthButton" type="button">Sign in with Google</button><small>For service-installing companies offering solar, battery storage, or EV charging.</small></div></section>
+    <section class="access-gate" id="accessGate" aria-labelledby="accessGateTitle"><div class="access-gate-card"><div class="home-kicker">GetEV WORKSPACE</div><h1 id="accessGateTitle">Your proposals are inside.</h1><p>Sign in to access the active bid workspace.</p><button class="google-signin google-signin-prominent" id="gateGoogleSignInButton" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.6c3.9-3.6 6.1-8.9 6.1-15.1z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.2c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20.4 20.4 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.4a12.3 12.3 0 0 1 0-7.8v-5.3H5.8a20 20 0 0 0 0 18.4z"/><path fill="#EA4335" d="M24 11.2c3 0 5.7 1 7.8 3l5.8-5.8A19.7 19.7 0 0 0 24 3C16.1 3 9.3 7.5 5.8 14.3l6.8 5.3C14.2 14.8 18.7 11.2 24 11.2z"/></svg>Continue with Google</button><div class="auth-choice-divider" aria-hidden="true"><span></span>or<span></span></div><button class="secondary-button gate-email-signin" id="gateEmailSignInButton" type="button">Continue with email</button><small>Use Google or any business email address. No password required.</small></div></section>
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="./" aria-label="Go to GetEV dashboard"><span class="brand-mark">G</span><span>GetEV</span><span class="brand-dot">•</span></a>
@@ -74,12 +373,12 @@
       <main class="main-content">
         <header class="topbar">
           <div class="breadcrumb"><a class="back-home" id="backHome" href="./">← All bids</a><i>/</i><span>PROPOSAL</span><i>/</i><strong>OREM, UT</strong></div>
-          <div class="top-actions"><button class="copy-proposal-button" id="copyProposalButton" type="button" aria-label="Copy editable proposal link">Copy proposal</button><button class="print-button" type="button" aria-label="Print proposal" onclick="window.print()"><span aria-hidden="true">Print</span></button><button class="auth-button" id="authButton">Sign in with Google</button><button class="avatar" id="avatarInitials" aria-label="Open profile menu" hidden>?</button></div>
+      <div class="top-actions"><select class="presentation-menu" id="presentationMenu" aria-label="Presentation mode"><option value="view">View Only</option><option value="edit">Edit Mode</option><option value="definitions">Metrics</option><option value="print">Print View</option></select><button class="copy-proposal-button" id="copyProposalButton" type="button" aria-label="Copy editable proposal link">Copy proposal</button><button class="auth-button" id="authButton">Sign in</button><button class="avatar" id="avatarInitials" aria-label="Open profile menu" hidden>?</button></div>
         </header>
         <div class="report-wrap">
           <section class="hero section-anchor" id="overview">
-            <div class="hero-copy"><div class="eyebrow">COMMERCIAL ENERGY PROPOSAL <span>•</span> 17 AUG 2024</div><h1>More power.<br /><em>Less overhead.</em></h1><p class="hero-sub">A smarter energy system for <strong id="storeName">Walmart Supercenter #5179</strong> — designed to reduce operating costs, keep the store resilient, and make EV charging part of the customer experience.</p><div class="hero-meta"><span><b class="status-pill">Prepared</b> <span id="authorName">Proposal team</span> · GetEV Energy</span><span>American Fork, Utah</span></div></div>
-            <div class="hero-art proposal-visual" id="proposalVisual"><img class="proposal-photo" id="proposalPhoto" src="assets/tesla-v4-supercharger.webp" alt="Tesla V4 Superchargers" /><div class="proposal-photo-scrim"></div><div class="proposal-logo-card"><img id="proposalLogo" src="assets/kneaders-logo-placeholder.png" alt="Kneaders Bakery & Cafe" /></div></div>
+            <div class="hero-copy"><div class="eyebrow">COMMERCIAL ENERGY PROPOSAL <span>•</span> 17 AUG 2024</div><h1><span class="hero-pdf-title">Turn charging visits into</span> <span class="rotating-headline" aria-live="polite"><span class="rotating-headline-word">customer value.</span></span><span class="print-headline">Turn charging visits into customer value.</span></h1><p class="hero-sub">Our goal is to make EV charging a natural extension of the Kneaders guest experience—serving current guests, attracting new ones, and giving drivers a warm, welcoming place to spend their charging time. In doing so, the project can create measurable restaurant visits and sales while adding a valuable new amenity to the property.<span class="hero-project-id">Kneaders Bakery &amp; Cafe | 1960 N State Street, Orem, Utah | Proposed 8-port DC fast-charging station</span></p></div>
+            <div class="hero-art proposal-visual" id="proposalVisual"><img class="proposal-photo" id="proposalPhoto" src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=-111.715%2C40.331%2C-111.709%2C40.335&amp;bboxSR=4326&amp;size=1200%2C700&amp;imageSR=4326&amp;format=jpg&amp;f=image" alt="Esri aerial imagery of the Kneaders Bakery &amp; Cafe property" data-image-source="Esri World Imagery" /><div class="proposal-photo-scrim"></div><div class="proposal-logo-card"><img id="proposalLogo" src="assets/kneaders-logo-placeholder.png" alt="Kneaders Bakery & Cafe" /></div></div>
           </section>
 
           <section class="content-section section-anchor" id="layout"><div class="section-heading"><div><div class="section-kicker">03 / CHARGER LAYOUT</div><h2>Draw the build plan.</h2></div><div class="heading-note">Start from the site satellite view. Place equipment, then draw the trench, conduit, striping, and access routes the construction team should follow.</div></div><div class="layout-tool"><div class="layout-map-shell"><div id="layoutMap" role="application" aria-label="Interactive satellite site plan"></div><div class="layout-map-status" id="layoutMapStatus">Drag objects onto the map · click Line to draw</div></div><aside class="layout-sidebar"><div class="layout-tool-section"><span class="section-kicker">ADD TO PLAN</span><strong>Drag an object onto the map</strong><div class="layout-palette"><button type="button" class="layout-object" draggable="true" data-object="DC fast charger"><span class="layout-symbol charger-symbol">DC</span><b>DC fast charger</b></button><button type="button" class="layout-object" draggable="true" data-object="Level 2 charger"><span class="layout-symbol l2-symbol">L2</span><b>Level 2 charger</b></button><button type="button" class="layout-object" draggable="true" data-object="Power cabinet"><span class="layout-symbol cabinet-symbol">▦</span><b>Power cabinet</b></button><button type="button" class="layout-object" draggable="true" data-object="Accessible stall"><span class="layout-symbol stall-symbol">P</span><b>Accessible stall</b></button><button type="button" class="layout-object" draggable="true" data-object="Bollard"><span class="layout-symbol bollard-symbol">●</span><b>Bollard</b></button></div></div><div class="layout-tool-section"><span class="section-kicker">LINE TOOL</span><div class="layout-line-actions"><button type="button" id="layoutLineTool" class="layout-tool-button">+ Line</button><select id="layoutLineColor" aria-label="Line color"><option value="#ff5b68">Trench · red</option><option value="#ffd166">Conduit · yellow</option><option value="#62a8ff">Striping · blue</option><option value="#75d58a">Access · green</option></select></div><small id="layoutLineHint">Choose a color, activate Line, then click two points on the map.</small></div><div class="layout-tool-section"><span class="section-kicker">BUILD LEGEND</span><div class="layout-legend"><span><i class="legend-line red-line"></i> Trench / excavation</span><span><i class="legend-line yellow-line"></i> Electrical conduit</span><span><i class="legend-line blue-line"></i> Parking striping</span><span><i class="legend-line green-line"></i> Accessible route</span></div></div><div class="layout-tool-section layout-plan"><div><span class="section-kicker">PLAN SUMMARY</span><span class="layout-count" id="layoutPlanCount">0 objects · 0 lines</span></div><ol id="layoutPlanSummary"><li class="layout-empty">Your placed equipment will appear here.</li></ol></div></aside></div></section>
@@ -98,7 +397,7 @@
 
           <section class="content-section section-anchor" id="investment"><div class="section-heading"><div><div class="section-kicker">08 / INVESTMENT</div><h2>Every dollar, accounted for.</h2></div><div class="heading-note">A transparent turnkey view of the package, before incentives or financing structure.</div></div><div class="investment-layout"><div class="investment-table"><div class="investment-row header"><span>SCOPE</span><span>INVESTMENT</span></div><div class="investment-row"><span>410 kW rooftop solar array</span><strong>$820,000</strong></div><div class="investment-row"><span>1.2 MWh battery storage</span><strong>$235,000</strong></div><div class="investment-row"><span>EV charging infrastructure</span><strong>$125,000</strong></div><div class="investment-row"><span>Bundled site improvements</span><strong>$110,000</strong></div><div class="investment-row total"><span>FULL PROJECT TOTAL</span><strong>$1,290,000</strong></div></div><div class="incentive-card"><span class="detail-icon">%</span><span class="chart-label">INCENTIVE VIEW</span><strong>Up to 30%</strong><p>Illustrative federal clean-energy credit potential. Final eligibility depends on ownership, basis, timing, documentation, and tax review.</p><div class="incentive-bar"><i style="width:30%"></i></div><small>Professional tax review recommended before commitment.</small></div></div></section>
 
-          <section class="content-section section-anchor economics-section" id="economics"><div class="section-heading"><div><div class="section-kicker">05 / ECONOMICS</div><h2>The business case, at a glance.</h2></div><div class="heading-note">Conservative assumptions. Clear upside. Built to hold up in a finance review.</div></div><div class="economics-card"><div class="economics-summary"><span class="chart-label">20-YEAR NET VALUE</span><strong>$1.96M</strong><p>after incentives & operating costs</p><div class="roi-chip">18.2% IRR</div></div><div class="economics-bars"><div class="bar-labels"><span>Year 1</span><span>Year 5</span><span>Year 10</span><span>Year 15</span><span>Year 20</span></div><div class="roi-bars"><i style="height:17%"></i><i style="height:32%"></i><i style="height:52%"></i><i style="height:74%"></i><i style="height:100%"></i></div><div class="zero-line"></div></div></div><div class="closing-note"><span class="closing-mark">B</span><div><strong>Ready when you are.</strong><p>This proposal is valid for 30 days. We'll handle design, permitting, installation, and monitoring from here.</p></div><button class="primary-button" id="shareButton">Share view-only link ↗</button></div></section>
+          <section class="content-section section-anchor economics-section" id="economics"><div class="section-heading"><div><div class="section-kicker">05 / ECONOMICS</div><h2>The business case, at a glance.</h2></div><div class="heading-note">Conservative assumptions. Clear upside. Built to hold up in a finance review.</div></div><div class="economics-card"><div class="economics-summary"><span class="chart-label">20-YEAR NET VALUE</span><strong>$1.96M</strong><p>after incentives & operating costs</p><div class="roi-chip">18.2% IRR</div></div><div class="economics-bars"><div class="bar-labels"><span>Year 1</span><span>Year 5</span><span>Year 10</span><span>Year 15</span><span>Year 20</span></div><div class="roi-bars"><i style="height:17%"></i><i style="height:32%"></i><i style="height:52%"></i><i style="height:74%"></i><i style="height:100%"></i></div><div class="zero-line"></div></div></div><div class="closing-note"><span class="closing-mark">B</span><div><strong>Ready when you are.</strong><p>This proposal is valid for 30 days. We'll handle design, permitting, installation, and monitoring from here.</p></div></div></section>
           <section class="content-section proposal-summary" id="proposal-summary" aria-label="Proposal summary"><div class="metric-grid"><div class="metric-card primary"><div class="metric-label">Total project investment</div><div class="metric-value" id="totalInvestment">$1.18M</div></div><div class="metric-card"><div class="metric-label">Year 1 profits</div><div class="metric-value" id="year1Profit">$64.4K</div><div class="metric-foot">Forecast after operating costs</div></div><div class="metric-card"><div class="metric-label">Payback period</div><div class="metric-value" id="payback">8.7 <small>yrs</small></div><div class="metric-foot">After illustrative incentives</div></div><div class="metric-card"><div class="metric-label">CO₂ avoided</div><div class="metric-value">1,146 <small>t/yr</small></div><div class="metric-foot">Equivalent to 2,802,000 mi</div></div></div></section>
         </div>
       </main>
@@ -106,9 +405,14 @@
       <aside class="edit-panel" id="editPanel" aria-label="Edit proposal"><div class="edit-panel-head"><div><div class="section-kicker">EDIT PROPOSAL</div><h2>Project inputs</h2></div><button class="close-edit" id="closeEdit">×</button></div><div class="edit-section"><label>Customer site</label><input id="siteInput" value="Walmart Supercenter #5179" placeholder="e.g. Target Store #192" /><label>Location</label><input value="American Fork, Utah" /><label>Annual utility spend</label><div class="input-prefix"><span>$</span><input id="utilityInput" value="312800" inputmode="numeric" /></div></div><div class="edit-section"><label>Pricing posture</label><div class="segmented"><button class="selected">Balanced</button><button>Value</button><button>Premium</button></div></div><div class="edit-footer"><span class="save-state"><i class="live-dot"></i> All changes saved</span><button class="primary-button" id="doneEditing">Done editing</button></div></aside>
       <div class="config-backdrop" id="configBackdrop"></div><aside class="config-panel" id="configPanel" aria-label="Section configuration"><div class="config-panel-head"><div><div class="section-kicker">SECTION CONFIGURATION</div><h2 id="configTitle">Solar array</h2></div><button class="close-edit" id="closeConfig">×</button></div><div class="config-panel-body" id="configBody"></div><div class="config-footer"><button class="show-all-configs" id="showAllConfigs" type="button">Show all configs</button><div class="config-file-actions"><button type="button" id="exportConfigs">Export configs (.txt)</button><button type="button" id="importConfigs">Import configs (.txt)</button><input id="configImportFile" type="file" accept=".txt,text/plain" hidden /></div><span class="save-state"><i class="live-dot"></i> Updates apply instantly</span><button class="primary-button" id="applyConfig">Apply changes</button></div></aside>
     </div>
+    <section class="definitions-view" id="definitionsView" hidden aria-label="Metrics"><div class="definitions-head"><div><div class="section-kicker">METRIC PICKER</div><h1>Choose the proposal metrics.</h1><p>Pick from the predefined metrics available in each report section. Definitions, formulas, and dependent-variable bindings are fixed so every proposal uses a consistent, reliable model.</p></div><div class="definitions-actions"><button type="button" class="secondary-button" id="resetDefinitions">Reset defaults</button></div></div><div class="definitions-source-note">Search the catalog, add or remove metrics from each section, and review the calculation, example, and specific source shown on every card.</div><div class="definitions-grid" id="definitionsGrid"></div></section>
     <div class="toast" id="toast" aria-live="polite"></div>
-    <script src="app.js?v=site-snapshot-assumptions-20260815"></script>
+<script src="proposal-model.js?v=scorecard-lease-link-20260910"></script>
+<script src="proposal-review.js?v=slide-navigation-repair-20260910"></script>
+<script src="app.js?v=slide-navigation-fixed-20260910"></script>
+<script src="navigation-recovery.js?v=20260909-restore-nav"></script>
     <script src="firebase-config.js?v=auth-config-compliance-20260813b"></script>
-  <script type="module" src="firebase.js?v=signed-in-workspace-20260815"></script>
+  <script type="module" src="firebase.js?v=separate-auth-profile-20260910"></script>
+  <script src="admin.js?v=admin-source-monitor-20260826a"></script>
   </body>
 </html>
