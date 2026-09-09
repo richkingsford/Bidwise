@@ -444,3 +444,34 @@ img,svg,video,canvas{max-width:100%}
 
 .site-scenario-detail small .metric-help{display:inline-grid!important;vertical-align:middle;margin-left:4px}
 .brand-mark-image{width:75px;height:34px;object-fit:contain;display:block}.home-brand .brand-mark-image{width:95px;height:41px}
+
+/* Print rebuild: deliberately independent of the interactive proposal theme. */
+@media print{
+  @page{size:Letter landscape;margin:.38in}
+  html,body{background:#fff!important;color:#17202a!important}
+  body,.app-shell,.main-content,.report-wrap,#ev{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#17202a!important}
+  .sidebar,.topbar,.hero-actions,.section-controls,.presentation-menu,.view-link-button,.print-button,.copy-proposal-button,.auth-button,.avatar,.config-panel,.edit-panel,.ev-section-inputs,.inline-config-dials,.layout-sidebar,.layout-map-status,.location-map-layers,.leaflet-control-zoom{display:none!important}
+  .hero{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.35in!important;min-height:7.15in!important;height:7.15in!important;padding:0!important;margin:0!important;border:0!important;break-after:page!important;page-break-after:always!important;background:#fff!important}
+  .hero-copy{align-self:center!important;max-width:none!important}
+  .hero h1,.hero h2,.hero h3,.hero h4,.ev-report-section h1,.ev-report-section h2,.ev-report-section h3,.ev-report-section h4,.ev-report-section strong{color:#17202a!important}
+  .hero p,.hero span,.ev-report-section p,.ev-report-section small,.ev-report-section li,.ev-report-section td,.ev-report-section th{color:#445466!important}
+  .hero h1{font-size:44pt!important;line-height:1.02!important;letter-spacing:-1.5pt!important}
+  .hero h1>*{display:none!important}.hero h1:after{content:'Turn charging visits into customer value.';display:block!important;color:#17202a!important}
+  .hero-art{height:100%!important;min-height:0!important;background:#f1f3f5!important;border:0!important;box-shadow:none!important}
+  .ev-report-section{display:block!important;width:100%!important;height:7.15in!important;min-height:7.15in!important;max-height:7.15in!important;overflow:hidden!important;padding:0!important;margin:0!important;background:#fff!important;color:#17202a!important;border:0!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important;zoom:1!important}
+  .ev-report-section:last-child{break-after:auto!important;page-break-after:auto!important}
+  .ev-report-head{padding:0 0 .14in!important;margin:0 0 .18in!important;border-bottom:2px solid #1f6feb!important}
+  .ev-report-head h3{font-size:23pt!important;line-height:1.05!important;margin:0 0 .08in!important;color:#17202a!important}
+  .ev-report-head p{font-size:10pt!important;line-height:1.35!important;margin:0!important;max-width:9in!important}
+  .ev-report-section [class*="-card"],.ev-report-section [class*="-panel"],.ev-report-section [class*="-outlook"],.ev-report-section [class*="-scenario"],.ev-report-section [class*="-fleet"],.ev-report-section [class*="-fit"],.ev-report-section [class*="-meaning"],.ev-report-section [class*="-mission"],.ev-report-section [class*="-flow"],.ev-report-section [class*="-highlight"],.ev-report-section [class*="-ribbon"]{background:#f1f3f5!important;color:#17202a!important;border:0!important;border-radius:10px!important;box-shadow:none!important}
+  .ev-report-section [class*="-card"] p,.ev-report-section [class*="-panel"] p,.ev-report-section [class*="-outlook"] p,.ev-report-section [class*="-scenario"] p,.ev-report-section [class*="-fleet"] p,.ev-report-section [class*="-fit"] p,.ev-report-section [class*="-meaning"] p{color:#445466!important}
+  .ev-report-section [class*="-card"] strong,.ev-report-section [class*="-panel"] strong,.ev-report-section [class*="-outlook"] strong,.ev-report-section [class*="-scenario"] strong,.ev-report-section [class*="-fleet"] strong,.ev-report-section [class*="-fit"] strong,.ev-report-section [class*="-meaning"] strong{color:#17202a!important}
+  .ev-report-section .chart-label,.ev-report-section .section-kicker{color:#1f6feb!important}
+  .ev-report-section .ev-market-map,.ev-report-section .map-card{border:0!important;background:#e9eef3!important}
+  .ev-report-section .ev-section-outputs{display:block!important}
+  .ev-report-section .metric-help,.ev-report-section .formula-hint{display:none!important}
+  .ev-report-section table{border-collapse:collapse!important;width:100%!important;background:#f1f3f5!important}
+  .ev-report-section th,.ev-report-section td{padding:7px 9px!important;border-bottom:1px solid #d6dde5!important;font-size:9pt!important}
+  .ev-report-section th{background:#e3e8ee!important;color:#17202a!important}
+  .ev-only-proposal .ev-site-layout{display:none!important}
+}
