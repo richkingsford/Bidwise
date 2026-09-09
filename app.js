@@ -1001,7 +1001,8 @@ function evFaceValue(value, format) {
 function evFaceInputMarkup([key, label, source, format]) {
   const [min, max, step] = sliderRanges[key];
   const value = Number(state.ev[key]);
-  return `<label class="ev-face-field"><span><b>${esc(label)}</b><small>${esc(source)}</small></span><input class="ev-face-input" data-ev-key="${key}" data-ev-format="${format}" type="number" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(label)}" /></label>`;
+  const help = key === 'utilityEnergyCostPerKwh' ? `This rate is annual electricity cost ÷ annual kWh under the applicable utility tariff${state.ev.utilityEnergyCostSource ? ` (${state.ev.utilityEnergyCostSource})` : ''}. Confirm it against the prospect's latest utility bill before final pricing.` : '';
+  return `<label class="ev-face-field"><span><b>${esc(label)}${help ? formulaHint(help, `How ${label} is sourced`) : ''}</b><small>${esc(source)}</small></span><input class="ev-face-input" data-ev-key="${key}" data-ev-format="${format}" type="number" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(label)}" /></label>`;
 }
 
 const evSectionInputGroups = {
