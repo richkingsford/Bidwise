@@ -298,8 +298,21 @@ img,svg,video,canvas{max-width:100%}
   .ev-only-proposal .ev-report-section [class*="-flow"],
   .ev-only-proposal .ev-report-section [class*="-highlight"],
   .ev-only-proposal .ev-report-section [class*="-ribbon"]{
-    background:#f7f9fb!important;color:#17202a!important;border-color:#cbd5e1!important;box-shadow:none!important
+    background:#f1f3f5!important;color:#17202a!important;border:0!important;box-shadow:none!important
   }
+  .ev-only-proposal .ev-report-section [class*="-card"],
+  .ev-only-proposal .ev-report-section [class*="-panel"],
+  .ev-only-proposal .ev-report-section [class*="-outlook"],
+  .ev-only-proposal .ev-report-section [class*="-scenario"],
+  .ev-only-proposal .ev-report-section [class*="-fleet"],
+  .ev-only-proposal .ev-report-section [class*="-fit"],
+  .ev-only-proposal .ev-report-section [class*="-meaning"],
+  .ev-only-proposal .ev-report-section [class*="-mission"],
+  .ev-only-proposal .ev-report-section [class*="-flow"],
+  .ev-only-proposal .ev-report-section [class*="-highlight"],
+  .ev-only-proposal .ev-report-section [class*="-ribbon"]{background:#f1f3f5!important;border:0!important;border-color:transparent!important}
+  .ev-only-proposal #ev .ev-report-section{break-after:page!important;page-break-after:always!important}
+  .ev-only-proposal #ev .ev-report-section:last-child{break-after:auto!important;page-break-after:auto!important}
   .ev-only-proposal .ev-report-section [class*="-card"] strong,
   .ev-only-proposal .ev-report-section [class*="-panel"] strong,
   .ev-only-proposal .ev-report-section [class*="-outlook"] strong,
