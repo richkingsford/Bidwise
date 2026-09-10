@@ -734,7 +734,8 @@ function handleProposalVisualUpload(file, kind) {
   const reader = new FileReader(); reader.onload = () => { localStorage.setItem(proposalVisualStorageKey(kind), reader.result); applyProposalVisual(kind, reader.result); }; reader.readAsDataURL(file);
 }
 const readProposalImage = file => new Promise(resolve => { if (!file || !file.type?.startsWith('image/')) return resolve(''); const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || '')); reader.onerror = () => resolve(''); reader.readAsDataURL(file); });
-const overheadImageUrl = (latitude, longitude) => { const lat = Number(latitude), lon = Number(longitude); const delta = .003; return Number.isFinite(lat) && Number.isFinite(lon) ? `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${encodeURIComponent(`${lon - delta},${lat - delta},${lon + delta},${lat + delta}`)}&bboxSR=4326&size=1200,700&imageSR=4326&format=jpg&f=image` : ''; };
+// Match the construction-plan map's default zoom (19) and 520 × 330 framing.
+const overheadImageUrl = (latitude, longitude) => { const lat = Number(latitude), lon = Number(longitude); const lonDelta = .00072, latDelta = .00045; return Number.isFinite(lat) && Number.isFinite(lon) ? `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${encodeURIComponent(`${lon - lonDelta},${lat - latDelta},${lon + lonDelta},${lat + latDelta}`)}&bboxSR=4326&size=1040,660&imageSR=4326&format=jpg&f=image` : ''; };
 function handleAboutUsLogoUpload(file) {
   if (!file) return;
   const reader = new FileReader(); reader.onload = () => { state.brand.companyLogo = reader.result; saveState(); renderReport(); };
