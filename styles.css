@@ -504,3 +504,4 @@ img,svg,video,canvas{max-width:100%}
 
 /* Keep uploaded proposal logos free of the old white frame and padding. */
 .proposal-logo-card{padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.proposal-photo-custom{object-fit:contain!important;object-position:center!important;background:#101820}
