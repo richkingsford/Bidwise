@@ -505,6 +505,8 @@ img,svg,video,canvas{max-width:100%}
 /* Keep uploaded proposal logos free of the old white frame and padding. */
 .proposal-logo-card{padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
 .proposal-photo-custom{object-fit:contain!important;object-position:center top!important;background:#101820}
+.proposal-visual-construction{border:1px solid #36516a!important;background:#151d28!important;box-shadow:0 8px 24px #0005}
+.proposal-visual-construction .proposal-photo{object-position:center;}
 .proposal-visual:has(.proposal-photo-custom) .proposal-logo-card{bottom:auto;top:42%;}
 /* Keep the fallback overhead map compact and closer in, without changing uploaded photos. */
 @media(min-width:901px){
