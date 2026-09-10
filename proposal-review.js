@@ -64,7 +64,7 @@ function renderReviewedProposal(section) {
     reportUrl.hash='#view=report';
     const qr=document.createElement('aside');
     qr.className='tldr-report-qr';
-    qr.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(reportUrl.toString())}" alt="QR code linking to the full report"><div><strong>Share the full report</strong><span>Scan to open this proposal in view-only mode.</span></div>`;
+    qr.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(reportUrl.toString())}" alt="QR code linking to the full report"><div><strong>See the full report</strong><span>More revenue. Less risk.</span></div>`;
     (tldrSection.querySelector('.review-grid')||tldrSection).appendChild(qr);
   }
   const equipmentSection=section.querySelector('#ev-equipment');
