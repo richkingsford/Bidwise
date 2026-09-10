@@ -509,6 +509,7 @@ img,svg,video,canvas{max-width:100%}
 .proposal-visual-construction .proposal-photo{object-position:center;}
 .proposal-fallback-map{position:absolute;inset:0;z-index:-2;background:#101820}
 .proposal-fallback-map[hidden]{display:none}
+.proposal-fallback-map .leaflet-tile{width:256px!important;height:256px!important;max-width:none!important;max-height:none!important}
 .proposal-visual-construction .proposal-photo:not(.proposal-photo-custom){display:none}
 .proposal-visual-construction .proposal-photo-scrim{display:none}
 .proposal-visual:has(.proposal-photo-custom) .proposal-logo-card{bottom:auto;top:42%;}
