@@ -79,11 +79,11 @@ const activeBidId = bidProfiles[routeParams.get('bid')] ? routeParams.get('bid')
 const activeBid = bidProfiles[activeBidId || 'kneaders-orem'];
 const viewOnlyUrl = window.location.hash.startsWith('#view=');
 const canonicalProposalUrl = Boolean(routeParams.get('bid') && (!routeParams.has('copy') || viewOnlyUrl));
-if (canonicalProposalUrl || viewOnlyUrl) document.body.classList.add('canonical-proposal', 'view-only');
 const decodeCopyPayload = value => { if (!value) return null; try { const normalized = value.replace(/-/g, '+').replace(/_/g, '/'); const binary = atob(normalized); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); const payload = JSON.parse(new TextDecoder().decode(bytes)); return payload?.version === 1 && payload?.bidId === activeBidId && payload?.state && typeof payload.state === 'object' ? payload : null; } catch { return null; } };
 const copiedProposal = decodeCopyPayload(routeParams.get('copy'));
 const presentationModeStorageKey = `GetEV-presentation-mode:${activeBidId || 'home'}:${copiedProposal?.copyId || 'base'}`;
 const storedPresentationMode = (() => { try { return localStorage.getItem(presentationModeStorageKey); } catch { return null; } })();
+if (viewOnlyUrl || (canonicalProposalUrl && storedPresentationMode !== 'edit')) document.body.classList.add('canonical-proposal', 'view-only');
 const proposalScopes = { ...activeBid.scopes, ...(copiedProposal?.scopes || {}) };
 if (proposalScopes.lenderSupport == null) proposalScopes.lenderSupport = false;
 const inlineEditStorageKey = `GetEV-inline-edits:${activeBidId || 'home'}`;
@@ -1707,7 +1707,7 @@ function resetDefinitions() { if (!proposalCardCatalogDefaults?.ev) return; prop
 $('#resetDefinitions')?.addEventListener('click', resetDefinitions);
 $('#presentationMenu')?.addEventListener('change', event => {
   const mode = event.target.value;
-  if (mode !== 'print') { try { localStorage.setItem(presentationModeStorageKey, mode); } catch {} setPresentationMode(mode); return; }
+  if (mode !== 'print') { try { localStorage.setItem(presentationModeStorageKey, mode); } catch {} if (mode === 'edit' && window.location.hash) history.replaceState(null, '', `${window.location.pathname}${window.location.search}`); setPresentationMode(mode); return; }
   const previousMode = document.body.classList.contains('view-only') ? 'view' : 'edit';
   setPresentationMode('view');
   const restoreMode = () => { setPresentationMode(previousMode); window.removeEventListener('afterprint', restoreMode); };
