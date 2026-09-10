@@ -135,9 +135,9 @@
       "roi": {"title":"Two revenue streams can support a compelling ownership case.","subtitle":"A $1.2 million station investment could create charging income for Kneaders while also bringing new guests on-site. The model keeps station income and potential restaurant sales separate so each source of value is easy to understand.","investment":1200000,"chargingIncome":124100,"guestRevenue":255500,"combined":379600}
     },
     "spendingCases": [
-      {"key": "conservative", "label": "LOW SPEND", "receiptStateKey": "conservativeReceipt", "value": 18, "source": "Kneaders POS data — not connected", "receiptId": "evSalesConservativeReceipt", "dailyId": "evSalesConservativeDaily", "monthlyId": "evSalesConservativeMonthly", "annualId": "evSalesConservativeAnnual"},
-      {"key": "expected", "label": "MEDIUM SPEND", "receiptStateKey": "averageReceipt", "value": 25, "source": "Kneaders POS data — not connected", "receiptId": "evSalesExpectedReceipt", "dailyId": "evSalesExpectedDaily", "monthlyId": "evSalesExpectedMonthly", "annualId": "evSalesExpectedAnnualCard"},
-      {"key": "high", "label": "HIGH SPEND", "receiptStateKey": "highReceipt", "value": 32, "source": "Kneaders POS data — not connected", "receiptId": "evSalesHighReceipt", "dailyId": "evSalesHighDaily", "monthlyId": "evSalesHighMonthly", "annualId": "evSalesHighAnnual"}
+      {"key": "conservative", "label": "CONSERVATIVE", "receiptStateKey": "averageReceipt", "value": 25, "source": "Business assumption", "receiptId": "evSalesConservativeReceipt", "dailyId": "evSalesConservativeDaily", "monthlyId": "evSalesConservativeMonthly", "annualId": "evSalesConservativeAnnual"},
+      {"key": "expected", "label": "EXPECTED", "receiptStateKey": "averageReceipt", "value": 25, "source": "Business assumption", "receiptId": "evSalesExpectedReceipt", "dailyId": "evSalesExpectedDaily", "monthlyId": "evSalesExpectedMonthly", "annualId": "evSalesExpectedAnnualCard"},
+      {"key": "high", "label": "HIGH", "receiptStateKey": "averageReceipt", "value": 25, "source": "Business assumption", "receiptId": "evSalesHighReceipt", "dailyId": "evSalesHighDaily", "monthlyId": "evSalesHighMonthly", "annualId": "evSalesHighAnnual"}
     ],
     "financialCards": {
       "chargingRevenue": [

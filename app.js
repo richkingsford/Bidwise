@@ -320,38 +320,38 @@ function applyGuestSalesDefaults() {
 }
 function guestSalesCases() {
   const profile = guestSalesProfile();
-  const spends = [state.ev.conservativeReceipt, state.ev.averageReceipt, state.ev.highReceipt];
-  // Slide 4 isolates the spending sensitivity: every case uses the same expected
-  // party count, so only average party spend changes between cards.
-  const capture = Math.max(0, Math.min(100, Number(state.ev.restaurantCaptureRate ?? profile.capture?.[1] ?? 30)));
+  // This page isolates the guest-capture assumption. Each case keeps the same
+  // expected ticket, so the difference in sales is easy to trace to capture.
+  const captures = [
+    state.ev.lowGuestCaptureRate ?? profile.capture?.[0] ?? 20,
+    state.ev.restaurantCaptureRate ?? profile.capture?.[1] ?? 30,
+    state.ev.highGuestCaptureRate ?? profile.capture?.[2] ?? 40
+  ].map(value => Math.max(0, Math.min(100, Number(value))));
+  const spend = Math.max(0, Number(state.ev.averageReceipt ?? profile.spend?.[1] ?? 12));
+  const visits = Math.max(0, Number(calc.evForecastVisits(5)));
   return ['conservative', 'expected', 'high'].map((key, index) => {
-    const spend = Math.max(0, Number(spends[index] ?? profile.spend[index]));
-    const parties = Math.round(calc.evForecastVisits(5) * capture / 100);
+    const capture = captures[index];
+    const parties = visits * capture / 100;
     const daily = parties * spend;
-    return { key, label: ['LOW CASE', 'MEDIUM CASE', 'HIGH CASE'][index], capture, spend, parties, daily, monthly: daily * 30.42, annual: daily * state.ev.daysPerYear };
+    return { key, label: ['CONSERVATIVE', 'EXPECTED', 'HIGH'][index], capture, spend, parties, daily, monthly: daily * 30.42, annual: daily * state.ev.daysPerYear };
   });
 }
 function guestSalesCardMarkup(item) {
   const scenario = guestSalesCases().find(value => value.key === item.key);
   if (!scenario) return `<article class="visitor-spend-card" data-card-key="${esc(item.key)}"><div><span>${esc(item.label)}</span></div><strong>${esc(item.value || 'Add value')}</strong><em>${esc(item.description || 'Customize in Edit Mode')}</em></article>`;
-  return `<article class="visitor-spend-card ${scenario.key === 'expected' ? 'active' : ''} accent-${scenario.key === 'conservative' ? 'amber' : scenario.key === 'expected' ? 'lime' : 'blue'}" data-guest-sales-case="${scenario.key}" data-card-key="${esc(item.key)}"><div><span>${scenario.label}</span><small data-guest-case-field="parties"></small></div><strong data-guest-case-field="spend"></strong><em>AVERAGE PARTY SPEND</em><p data-guest-case-field="capture"></p><div class="visitor-spend-periods"><span><small>DAY</small><b data-guest-case-field="daily"></b></span><span><small>MONTH</small><b data-guest-case-field="monthly"></b></span><span><small>YEAR</small><b data-guest-case-field="annual"></b></span></div><b class="visitor-spend-foot">POTENTIAL GROSS SALES</b></article>`;
+  return `<article class="visitor-spend-card ${scenario.key === 'expected' ? 'active' : ''} accent-${scenario.key === 'conservative' ? 'amber' : scenario.key === 'expected' ? 'lime' : 'blue'}" data-guest-sales-case="${scenario.key}" data-card-key="${esc(item.key)}"><div class="visitor-spend-head"><span>${scenario.label}</span></div><div class="visitor-spend-assumption"><small>GUEST-CAPTURE ASSUMPTION</small><strong data-guest-case-field="capture"></strong><em><span data-guest-case-field="parties"></span> STORE TRANSACTIONS / DAY</em></div><div class="visitor-spend-revenue"><small>ADDITIONAL STORE SALES</small><strong data-guest-case-field="annual"></strong><em><span data-guest-case-field="daily"></span> / DAY · <span data-guest-case-field="spend"></span> TICKET</em></div></article>`;
 }
 function renderGuestSalesCases() {
   guestSalesCases().forEach(scenario => {
     document.querySelectorAll(`[data-guest-sales-case="${scenario.key}"]`).forEach(card => {
-      const values = { spend: money(scenario.spend), capture: `${number(scenario.capture)}% GUEST CAPTUREASSUMED`, parties: `~${number(scenario.parties)} PARTIES / DAY`, daily: money(scenario.daily), monthly: money(scenario.monthly), annual: money(scenario.annual) };
+      const values = { spend: money(scenario.spend), capture: `${number(scenario.capture)}%`, parties: number(scenario.parties, 1), daily: money(scenario.daily), monthly: money(scenario.monthly), annual: money(scenario.annual) };
       Object.entries(values).forEach(([key, value]) => { const node = card.querySelector(`[data-guest-case-field="${key}"]`); if (node) node.textContent = value; });
     });
   });
 }
 function visitorRevenueMarkup(spec = {}) {
   const cases = cardCatalog('ev.spendingCases', []);
-  const scenarioCases = [
-    ['Conservative', 'evRevenueScenarioConservativeParties', 'evRevenueScenarioConservativeMonthly', 'evRevenueScenarioConservativeAnnual', 'amber'],
-    ['Expected', 'evRevenueScenarioExpectedParties', 'evRevenueScenarioExpectedMonthly', 'evRevenueScenarioExpectedAnnual', 'lime'],
-    ['Optimistic', 'evRevenueScenarioOptimisticParties', 'evRevenueScenarioOptimisticMonthly', 'evRevenueScenarioOptimisticAnnual', 'blue']
-  ];
-  return `<div class="ev-visitor-revenue-mockup"><div class="visitor-revenue-top"><article class="visitor-calculation-card"><div><span class="chart-label">${esc(spec.calculationLabel || 'FROM CHARGING DEMAND TO RESTAURANT GUESTS')}</span></div><div class="visitor-calculation-flow"><span><small>${esc(spec.expectedLabel || 'EXPECTED CHARGING VISITS')}</small><strong id="evCaptureVisits"></strong><em>YEAR 5 FORECAST</em></span><i>×</i><span><small>${esc(spec.captureLabel || 'GUEST-CAPTURE ASSUMPTION')}</small><strong id="evCaptureRate"></strong><em>UC Davis Fast Charging Study: 35% of charging-led trips included a purchase.</em></span><i>≈</i><span><small>${esc(spec.partiesLabel || 'POTENTIAL GUEST PARTIES')}</small><strong id="evCaptureParties"></strong><em>Potential business visits from the local forecast.</em></span></div></article><article class="visitor-base-card"><span class="chart-label">${esc(spec.planningLabel || 'BASE PLANNING CASE')}</span><strong id="evSalesExpectedAnnual"></strong><small>${esc(spec.planningDescription || 'POTENTIAL ANNUAL RESTAURANT SALES')}</small><b><span id="evSalesExpectedDaily"></span> / DAY &nbsp;|&nbsp; <span id="evSalesExpectedMonthly"></span> / MONTH</b></article></div><div class="visitor-revenue-label"><span>GUEST CAPTURE × PARTY SPEND</span></div><div class="visitor-spend-grid">${cases.filter((item, index) => definitionIsEnabled('spendingCases', index)).map(guestSalesCardMarkup).join('')}</div><article class="visitor-meaning-card visitor-meaning-full"><span class="chart-label">${esc(spec.meaningLabel || 'WHAT THIS MEANS')}</span><h4>${esc(spec.meaningHeadline || 'Independent studies support a practical, measurable foot-traffic opportunity.')}</h4><small>${esc(spec.meaningNote || 'The forecast is a planning case, not a guarantee.')} Monthly figures use 30.42 days per month.</small></article></div>`;
+  return `<div class="ev-visitor-revenue-mockup"><div class="visitor-revenue-top"><article class="visitor-calculation-card"><div><span class="chart-label">${esc(spec.calculationLabel || 'FROM CHARGING VISITS TO STORE TRANSACTIONS')}</span></div><div class="visitor-calculation-flow"><span><small>${esc(spec.expectedLabel || 'CHARGING VISITS / DAY')}</small><strong id="evCaptureVisits"></strong><em>YEAR 5 FORECAST</em></span><i>×</i><span><small>${esc(spec.captureLabel || 'GUEST-CAPTURE ASSUMPTION')}</small><strong id="evCaptureRate"></strong><em>Expected case; intentionally below the 44.5% UC Davis purchase finding.</em></span><i>=</i><span><small>${esc(spec.partiesLabel || 'STORE TRANSACTIONS / DAY')}</small><strong id="evCaptureParties"></strong><em>Potential purchasing visits from charging guests.</em></span></div></article><article class="visitor-base-card"><span class="chart-label">${esc(spec.planningLabel || 'EXPECTED GUEST-VALUE CASE')}</span><strong id="evSalesExpectedAnnual"></strong><small>${esc(spec.planningDescription || 'ADDITIONAL STORE SALES / YEAR')}</small><b><span id="evSalesExpectedDaily"></span> / DAY &nbsp;|&nbsp; <span id="evSalesExpectedTicket"></span> TICKET</b></article></div><div class="visitor-revenue-label"><span>GUEST-CAPTURE ASSUMPTION → ADDITIONAL STORE SALES</span></div><div class="visitor-spend-grid">${cases.filter((item, index) => definitionIsEnabled('spendingCases', index)).map(guestSalesCardMarkup).join('')}</div><article class="visitor-meaning-card visitor-meaning-full"><span class="chart-label">${esc(spec.meaningLabel || 'WHAT THIS MEANS')}</span><h4>${esc(spec.meaningHeadline || 'The expected case applies a deliberately conservative capture rate to charging visits.')}</h4><small>UC Davis found 44.5% of surveyed BEV drivers bought something while fast charging. Store sales are gross revenue—not profit—and exclude charging revenue. Monthly figures use 30.42 days.</small></article></div>`;
 }
 function renderDashboardCardsFromJson(showArchived = false) {
   const grid = $('.bid-grid'); if (!grid || !proposalCardCatalog?.dashboard) return;
@@ -959,13 +959,18 @@ function renderEvCustomerValues() {
   if (siteSnapshotSpec?.scenarios) siteSnapshotSpec.scenarios.forEach(scenario => { const utilization = Number(state.ev.forecastYear5Utilization) + Number(scenario.utilizationOffset || 0); const visits = state.ev.ports * 24 * (utilization / 100) / Math.max(0.01, state.ev.averageSessionMinutes / 60); const parties = Math.round(visits * state.ev.restaurantCaptureRate / 100); setText(`#evSnapshot${scenario.key}Util`, `${number(utilization, 1)}%`); setText(`#evSnapshot${scenario.key}Visits`, `~${number(visits, 0)}`); setText(`#evSnapshot${scenario.key}Parties`, `~${number(parties, 0)}`); });
   setText('#evFutureGrowthScore', `${number(futureGrowthScore)} / 100`); setText('#evCurrentBevPopulation', number(state.ev.currentBevPopulation)); setText('#evHistoricalBevGrowth', `${number(state.ev.historicalBevGrowthPct)}%`); setText('#evProjectedBevFleet', number(state.ev.projectedBevFleet)); setText('#evTeslaMix', `${number(state.ev.teslaMixPct)}%`); setText('#evTrafficGrowth', `${number(state.ev.trafficGrowthPct, 1)}%`); setText('#evFutureConstruction', number(state.ev.futureChargerConstruction)); setText('#evPublicFastCharging', `${number(state.ev.publicFastChargingBehaviorPct)}%`);
   [[1, y1], [3, y3], [5, y5]].forEach(([year, visits]) => { setText(`#evY${year}Util`, `${number(state.ev[`forecastYear${year}Utilization`], 1)}%`); setText(`#evY${year}Visits`, number(visits)); });
-  setText('#evCaptureVisits', `~${number(y5)} / DAY`); setText('#evCaptureRate', `${number(state.ev.restaurantCaptureRate)}%`); setText('#evCaptureParties', `~${number(parties)} / DAY`); setText('#evCaptureMonthly', number(monthlyParties)); setText('#evCaptureAnnual', number(annualParties));
+  const guestCases = guestSalesCases();
+  const expectedGuestCase = guestCases.find(item => item.key === 'expected') || guestCases[1];
+  setText('#evCaptureVisits', `${number(y5, 1)}`); setText('#evCaptureRate', `${number(expectedGuestCase.capture)}%`); setText('#evCaptureParties', `${number(expectedGuestCase.parties, 1)}`); setText('#evCaptureMonthly', number(monthlyParties)); setText('#evCaptureAnnual', number(annualParties));
   [['Conservative', state.ev.conservativeReceipt], ['Expected', state.ev.averageReceipt], ['High', state.ev.highReceipt]].forEach(([key, receipt]) => { const daily = calc.evRestaurantSales(receipt), prefix = `#evSales${key}`; setText(`${prefix}Receipt`, money(receipt)); setText(`${prefix}Daily`, money(daily)); setText(`${prefix}Monthly`, money(calc.evRestaurantSalesMonthly(receipt))); setText(`${prefix}Annual`, money(calc.evRestaurantSalesAnnual(receipt))); });
   renderGuestSalesCases();
-  setText('#evSalesExpectedAnnualCard', money(calc.evRestaurantSalesAnnual(state.ev.averageReceipt)));
-  setText('#evSalesExpectedCardDaily', money(calc.evRestaurantSales(state.ev.averageReceipt)));
-  setText('#evSalesExpectedCardMonthly', money(calc.evRestaurantSalesMonthly(state.ev.averageReceipt)));
-  setText('#evSalesQuote', `Approximately ${number(parties)} additional customer parties per day could produce roughly ${approximateMoney(calc.evRestaurantSalesAnnual(state.ev.averageReceipt))} in incremental annual restaurant sales.`);
+  setText('#evSalesExpectedAnnual', money(expectedGuestCase.annual));
+  setText('#evSalesExpectedDaily', money(expectedGuestCase.daily));
+  setText('#evSalesExpectedTicket', money(expectedGuestCase.spend));
+  setText('#evSalesExpectedAnnualCard', money(expectedGuestCase.annual));
+  setText('#evSalesExpectedCardDaily', money(expectedGuestCase.daily));
+  setText('#evSalesExpectedCardMonthly', money(expectedGuestCase.monthly));
+  setText('#evSalesQuote', `Approximately ${number(expectedGuestCase.parties, 1)} additional customer transactions per day could produce roughly ${approximateMoney(expectedGuestCase.annual)} in annual store sales.`);
   const sensitivityParties = [Math.max(1, Math.round(parties * 23 / 28)), parties, Math.max(1, Math.round(parties * 39 / 28))];
   ['Conservative', 'Expected', 'Optimistic'].forEach((label, index) => {
     const sensitivityDaily = sensitivityParties[index] * 25;
@@ -1173,8 +1178,9 @@ function renderStructuredEvCustomerStory() {
     visitorRevenueReport.replaceChildren(visitorRevenueHead);
     visitorRevenueReport.classList.add('revenue-guests-section');
     visitorRevenueReport.insertAdjacentHTML('beforeend', visitorRevenueMarkup(visitorRevenueSpec));
-    visitorRevenueReport.querySelector('.ev-report-head h3').textContent = visitorRevenueSpec.title;
-    visitorRevenueReport.querySelector('.ev-report-head p').textContent = visitorRevenueSpec.subtitle;
+    const expectedGuestCase = guestSalesCases().find(item => item.key === 'expected');
+    visitorRevenueReport.querySelector('.ev-report-head h3').textContent = `Charging guests could add about ${money(expectedGuestCase?.annual || 0)} in annual store sales.`;
+    visitorRevenueReport.querySelector('.ev-report-head p').textContent = `The expected case converts ${number(calc.evForecastVisits(5), 1)} charging visits per day into ${number(expectedGuestCase?.parties || 0, 1)} daily store transactions at the stated guest-capture assumption and ticket.`;
   }
   const evProjectInvestment = state.investment.ev;
   const model = state.ev.investmentModel;
