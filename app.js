@@ -670,7 +670,8 @@ function toggleInlineConfig(section, sectionId) {
   if (current) { current.remove(); return; }
   const schema = configSchemas[sectionId];
   if (!schema) return;
-  const fields = schema.fields.filter(field => field[2] === 'number').slice(0, 12);
+  const slideOneFields = ['dailyTraffic', 'travelRouteDistance', 'marketProofVisitsPerDay', 'marketProofPorts', 'marketProofAverageSessionMinutes'];
+  const fields = schema.fields.filter(field => field[2] === 'number' && (section.id !== 'ev-report-1' || slideOneFields.includes(field[0]))).slice(0, 12);
   const tray = document.createElement('div');
   tray.className = 'inline-config-dials';
   const fieldHelp = key => key === 'utilityEnergyCostPerKwh' ? `This rate is the annual electricity cost ÷ annual kWh under the applicable utility tariff${state.ev.utilityEnergyCostSource ? ` (${state.ev.utilityEnergyCostSource})` : ''}. Confirm it against the prospect's latest utility bill before final pricing.` : '';
