@@ -250,6 +250,17 @@ img,svg,video,canvas{max-width:100%}
   table{display:block;max-width:100%;overflow-x:auto}
 }
 
+.tldr-report-qr{display:flex;align-items:center;gap:14px;margin-top:16px;padding:10px 14px;background:#f1f3f5;border:1px solid #d5dde6;border-radius:10px;width:max-content;max-width:100%;color:#17202a}
+.tldr-report-qr img{display:block;width:84px;height:84px;background:#fff;border-radius:5px}
+.tldr-report-qr div{display:grid;gap:5px;max-width:170px}
+.tldr-report-qr strong{font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.tldr-report-qr span{font-size:12px;line-height:1.35;color:#526477}
+@media print{
+  .tldr-report-qr{background:#f1f3f5!important;border:0!important;color:#17202a!important;break-inside:avoid}
+  .tldr-report-qr img{width:84px!important;height:84px!important}
+  .tldr-report-qr span{color:#526477!important}
+}
+
 /* Print presentation: a clean, light proposal document without app chrome. */
 @media print{
   html,body{background:#fff!important;color:#17202a!important}
