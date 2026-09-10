@@ -116,3 +116,18 @@ export const regionalTraffic = onRequest({ region: 'us-central1', cors: false, t
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return response.status(400).json({ error: 'Valid latitude and longitude are required.' });
   try { const result = await fetchRegionalTraffic({ state, latitude, longitude, radiusMiles: 1 }); response.set('Cache-Control', 'public, max-age=3600, s-maxage=3600'); return response.status(200).json(result); } catch (error) { console.error('Regional traffic lookup error', error); return response.status(502).json({ error: 'Regional traffic data unavailable.' }); }
 });
+
+export const businessLogo = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 12 }, async (request, response) => {
+  allowCors(request, response);
+  if (request.method === 'OPTIONS') return response.status(204).send('');
+  if (request.method !== 'GET') return response.status(405).send('Method not allowed');
+  let site;
+  try { site = new URL(String(request.query.url || '')); if (!/^https?:$/.test(site.protocol)) throw new Error('Invalid URL'); } catch { return response.status(400).send('A public website URL is required'); }
+  try {
+    const page = await fetch(site, { headers: { 'user-agent': 'GetEV logo resolver/1.0', accept: 'text/html,application/xhtml+xml' }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
+    const html = await page.text();
+    const match = html.match(/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/i) || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/i) || html.match(/<link[^>]+rel=["'][^"']*(?:apple-touch-icon|icon)[^"']*["'][^>]+href=["']([^"']+)["']/i);
+    if (match?.[1]) return response.redirect(302, new URL(match[1], site).toString());
+  } catch { /* Use the deterministic icon fallback below. */ }
+  return response.redirect(302, `https://www.google.com/s2/favicons?domain=${encodeURIComponent(site.hostname)}&sz=256`);
+});
