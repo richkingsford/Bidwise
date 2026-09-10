@@ -117,7 +117,7 @@ export const regionalTraffic = onRequest({ region: 'us-central1', cors: false, t
   try { const result = await fetchRegionalTraffic({ state, latitude, longitude, radiusMiles: 1 }); response.set('Cache-Control', 'public, max-age=3600, s-maxage=3600'); return response.status(200).json(result); } catch (error) { console.error('Regional traffic lookup error', error); return response.status(502).json({ error: 'Regional traffic data unavailable.' }); }
 });
 
-export const businessLogo = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 12 }, async (request, response) => {
+export const businessLogo = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 12, invoker: 'public' }, async (request, response) => {
   allowCors(request, response);
   if (request.method === 'OPTIONS') return response.status(204).send('');
   if (request.method !== 'GET') return response.status(405).send('Method not allowed');
