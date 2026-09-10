@@ -745,6 +745,7 @@ document.addEventListener('change', event => { const input = event.target.closes
 ['photo', 'logo'].forEach(kind => { const saved = localStorage.getItem(proposalVisualStorageKey(kind)); if (saved) applyProposalVisual(kind, saved); else applyProposalVisualSettings(kind); });
 function visualTarget(sectionId) { return { overview: $('.hero-art'), site: $('.map-card'), layout: $('#layoutMap'), solar: $('.chart-panel'), storage: $('.battery-visual'), ev: $('.ev-illustration'), bundles: $('#bundles .bundle-card'), vpp: $('.vpp-flow'), investment: $('.incentive-card'), economics: $('.economics-card') }[sectionId]; }
 let leafletPromise;
+let proposalFallbackMap;
 function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L);
   if (leafletPromise) return leafletPromise;
@@ -753,6 +754,21 @@ function loadLeaflet() {
     const script = document.createElement('script'); script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; script.onload = () => resolve(window.L); script.onerror = reject; document.head.appendChild(script);
   });
   return leafletPromise;
+}
+function mountProposalFallbackMap() {
+  const visual = $('#proposalVisual'); if (!visual) return;
+  let mapElement = $('#proposalFallbackMap');
+  if (!mapElement) { mapElement = document.createElement('div'); mapElement.id = 'proposalFallbackMap'; mapElement.className = 'proposal-fallback-map'; mapElement.setAttribute('aria-label', 'Satellite construction site plan'); visual.prepend(mapElement); }
+  mapElement.hidden = false;
+  loadLeaflet().then(L => {
+    const center = [state.site.latitude, state.site.longitude];
+    if (!proposalFallbackMap) {
+      proposalFallbackMap = L.map(mapElement, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false }).setView(center, Number(state.layout.mapZoom) || 19);
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 23 }).addTo(proposalFallbackMap);
+      L.marker(center, { interactive: false, icon: L.divIcon({ className: 'layout-site-pin', html: '<span aria-hidden="true"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(proposalFallbackMap);
+    } else proposalFallbackMap.setView(center, Number(state.layout.mapZoom) || 19);
+    setTimeout(() => proposalFallbackMap.invalidateSize(), 0);
+  }).catch(() => { mapElement.hidden = true; });
 }
 function mountInteractiveDemandMap() {
   const mapCard = $('#evMarketMap'); if (!mapCard) return;
@@ -1293,7 +1309,8 @@ function renderReport() {
   setText('#sidebarBidStatus', state.overview.status); setText('#proposalNameEyebrow', proposalName);
   const proposalEyebrow = $('.hero .eyebrow'); if (proposalEyebrow) proposalEyebrow.innerHTML = `${esc(proposalName)} <span>•</span> ${state.overview.proposalDate}`;
   renderSolarChart(); mountLayoutMap(); const visualPhoto = state.overview.sitePhoto || localStorage.getItem(proposalVisualStorageKey('photo')); const visualLogo = state.overview.siteLogo || localStorage.getItem(proposalVisualStorageKey('logo')); const proposalVisual = $('#proposalVisual'); proposalVisual?.classList.toggle('proposal-visual-construction', !visualPhoto); const logoCard = $('#proposalLogo')?.closest('.proposal-logo-card'); if (visualPhoto) applyProposalVisual('photo', visualPhoto); else applyProposalVisual('photo', overheadImageUrl(state.site.latitude, state.site.longitude)); if (visualLogo) { applyProposalVisual('logo', visualLogo); if (logoCard) logoCard.style.display = ''; } else if (copiedProposal && logoCard) logoCard.style.display = 'none'; setText('.status-pill', state.overview.status);
-  setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroLocation = $('.hero .hero-meta span:last-child'); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); const breadcrumb = $('.breadcrumb strong'); if (breadcrumb) breadcrumb.textContent = state.overview.location.split(',').slice(-2).join(',').trim().toUpperCase(); setText('#year1Profit', compactMoney(calc.year1Profit())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); const paybackText = calc.payback() == null ? 'Not reached' : `${number(calc.payback(), 1)} yrs`; setText('#payback', paybackText); const co2Metric = $('#proposal-summary .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
+  const fallbackMap = $('#proposalFallbackMap'); if (visualPhoto) { if (fallbackMap) fallbackMap.hidden = true; } else mountProposalFallbackMap();
+  setText('#storeName', state.overview.siteName); setText('.hero .store-roof', state.overview.siteName.toUpperCase()); const heroLocation = $('.hero .hero-meta span:last-child); if (heroLocation) heroLocation.textContent = state.overview.location; const mapLabel = $('#site .map-label'); if (mapLabel) mapLabel.innerHTML = `${state.overview.location.toUpperCase()}<span>${state.site.latitude.toFixed(4)}° N${Math.abs(state.site.longitude).toFixed(4)}° W</span>`; setText('#site .map-tag', state.overview.siteName); const breadcrumb = $('.breadcrumb strong'); if (breadcrumb) breadcrumb.textContent = state.overview.location.split(',').slice(-2).join(',').trim().toUpperCase(); setText('#year1Profit', compactMoney(calc.year1Profit())); setText('#totalInvestment', compactMoney(calc.totalInvestment())); const paybackText = calc.payback() == null ? 'Not reached' : `${number(calc.payback(), 1)} yrs`; setText('#payback', paybackText); const co2Metric = $('#proposal-summary .metric-card:nth-child(4) .metric-value'); if (co2Metric) co2Metric.innerHTML = `${number(calc.co2AvoidedSolar(), 0)} <small>t/yr</small>`;
   const footprint = $('#site .fact-row:nth-child(1) strong'); if (footprint) footprint.innerHTML = `${number(state.site.footprint)} <small>sq ft</small>`;
   const spend = $('#site .fact-row:nth-child(2) strong'); if (spend) spend.innerHTML = `${money(state.site.utilitySpend)} <small>/ yr</small>`;
   const peak = $('#site .fact-row:nth-child(3) strong'); if (peak) peak.innerHTML = `${number(state.site.peakDemand)} <small>kW</small>`;

@@ -507,6 +507,10 @@ img,svg,video,canvas{max-width:100%}
 .proposal-photo-custom{object-fit:contain!important;object-position:center top!important;background:#101820}
 .proposal-visual-construction{border:1px solid #36516a!important;background:#151d28!important;box-shadow:0 8px 24px #0005}
 .proposal-visual-construction .proposal-photo{object-position:center;}
+.proposal-fallback-map{position:absolute;inset:0;z-index:-2;background:#101820}
+.proposal-fallback-map[hidden]{display:none}
+.proposal-visual-construction .proposal-photo:not(.proposal-photo-custom){display:none}
+.proposal-visual-construction .proposal-photo-scrim{display:none}
 .proposal-visual:has(.proposal-photo-custom) .proposal-logo-card{bottom:auto;top:42%;}
 /* Keep the fallback overhead map compact and closer in, without changing uploaded photos. */
 @media(min-width:901px){
