@@ -46,9 +46,10 @@
     const ev=state.ev, visits=ev.ports*1440*ev.forecastYear5Utilization/100/Math.max(1,ev.averageSessionMinutes);
     return ['conservative','expected','high'].map((key,i)=>{
       const capture=[ev.lowGuestCaptureRate,ev.restaurantCaptureRate,ev.highGuestCaptureRate][i];
-      const spend=[ev.conservativeReceipt,ev.averageReceipt,ev.highReceipt][i];
-      const cs=(config.captureSpread||[5,5,5])[i], ss=(config.spendSpread||[5,5,5])[i];
-      const captures=[clamp(capture-cs,0,100),clamp(capture+cs,0,100)], spends=[Math.max(0,spend-ss),spend+ss];
+      // Slide 4 defines the capture cases; Slide 8 uses the same assumptions
+      // and the same expected ticket so the two slides reconcile exactly.
+      const spend=ev.averageReceipt;
+      const captures=[clamp(capture,0,100),clamp(capture,0,100)], spends=[Math.max(0,spend),Math.max(0,spend)];
       const parties=captures.map(c=>visits*c/100), daily=parties.map((p,j)=>p*spends[j]);
       return {key,captures,spends,parties,daily,monthly:daily.map(v=>v*30.42),annual:daily.map(v=>v*ev.daysPerYear)};
     });

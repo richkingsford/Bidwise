@@ -65,12 +65,12 @@
       "equipment":{"title":"Tesla V4 brings up to 500 kW hardware capability to this site.","image":"assets/tesla-v4-supercharger.webp","source":"https://www.tesla.com/supercharger-for-business/get","description":"Next-generation DC fast charging with network discovery for Tesla and compatible non-Tesla drivers.","level2":"7.6–19.2 kW","dcFast":"50–350 kW","v4":"UP TO 500 kW"}
     },
     "guestSalesProfiles": {
-      "Restaurant": {"spend": [15, 25, 35], "capture": [15, 30, 40]},
-      "Retail store": {"spend": [15, 35, 60], "capture": [10, 20, 30]},
-      "Gas station": {"spend": [5, 10, 18], "capture": [20, 35, 50]},
+      "Restaurant": {"spend": [15, 25, 35], "capture": [15, 30, 45]},
+      "Retail store": {"spend": [15, 35, 60], "capture": [15, 30, 45]},
+      "Gas station": {"spend": [5, 10, 18], "capture": [15, 30, 45]},
       "Car dealership": {"spend": [0, 0, 0], "capture": [0, 0, 0]},
       "Apartment complex": {"spend": [0, 0, 0], "capture": [0, 0, 0]},
-      "Commercial property": {"spend": [10, 20, 30], "capture": [10, 20, 30]}
+      "Commercial property": {"spend": [10, 20, 30], "capture": [15, 30, 45]}
     },
     "locationMetrics": [
       {"key": "marketTraffic", "label": "MARKET TRAFFIC", "action": "VIEW DETAILS ›", "valueId": "evLocationSessions", "descriptionId": "evCurrentDemandVerdict", "active": true, "source": "Independent observed charging-session data", "derivedFrom": "observed sessions ÷ observation days", "scale": {"low": "LOW <64", "typical": "TYPICAL 64–80", "high": "HIGH >80"}},
