@@ -91,6 +91,8 @@ const setIdentity = (user, profile = currentProfile) => {
   const forceViewOnly = publicVisitor || (canonicalProposal && !user);
   document.body.classList.toggle('view-only', forceViewOnly);
   if (forceViewOnly) document.body.classList.remove('edit-mode');
+  if (forceViewOnly) { const menu=document.querySelector('#presentationMenu'); if (menu) menu.value='view'; }
+  else if (document.querySelector('#presentationMenu')?.value === 'edit') window.GetEVSetPresentationMode?.('edit');
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const contactName = profile?.contactName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const firstName = contactName.split(' ')[0];

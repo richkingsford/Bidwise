@@ -47,6 +47,7 @@ function setPresentationMode(mode) {
   }
   syncInlineEditing();
 }
+window.GetEVSetPresentationMode = setPresentationMode;
 
 const defaults = {
   overview: { siteName: 'Kneaders Bakery & Cafe', proposalName: 'Kneaders Bakery & Cafe Orem, Utah', location: '1960 State Street, Orem, Utah 84057', proposalDate: '2026-08-07', status: 'Prepared', savingsRate: 90, co2Factor: 0.72 },
