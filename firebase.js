@@ -88,8 +88,9 @@ const setIdentity = (user, profile = currentProfile) => {
   const publicVisitor = isPublicProposalUrl && !user;
   const canonicalProposal = document.body.classList.contains('canonical-proposal') || (isPublicProposalUrl && !new URLSearchParams(window.location.search).has('copy'));
   document.body.classList.toggle('public-proposal', publicVisitor);
-  document.body.classList.toggle('view-only', publicVisitor || canonicalProposal);
-  if (publicVisitor || canonicalProposal) document.body.classList.remove('edit-mode');
+  const forceViewOnly = publicVisitor || (canonicalProposal && !user);
+  document.body.classList.toggle('view-only', forceViewOnly);
+  if (forceViewOnly) document.body.classList.remove('edit-mode');
   const displayName = profile?.companyName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const contactName = profile?.contactName || user?.displayName || user?.email?.split('@')[0] || 'Proposal team';
   const firstName = contactName.split(' ')[0];
