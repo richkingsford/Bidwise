@@ -508,3 +508,4 @@ img,svg,video,canvas{max-width:100%}
 .proposal-visual:has(.proposal-photo-custom) .proposal-logo-card{bottom:auto;top:42%;}
 .location-overview-page .ev-section-inputs{height:fit-content;align-self:start}
 .location-overview-page .ev-section-input-scroll{height:auto;max-height:none;overflow:visible}
+body.edit-mode .ev-section-inputs{display:block!important}
