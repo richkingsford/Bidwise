@@ -71,7 +71,7 @@ const bidProfiles = {
   'target-lehi-solar-battery': { label: 'TargetLehi solar + battery', locationLabel: 'LEHI, UT', scopes: { solar: true, storage: true, ev: false }, overrides: { overview: { proposalName: 'Target Store #2234 Lehi, Utah', siteName: 'Target Store #2234', location: '1250 E Timpanogos Highway, Lehi, Utah 84043', proposalDate: '2026-08-10', savingsRate: 25.7 }, site: { footprint: 128000, utilitySpend: 98000, annualKwh: 650000, peakDemand: 310, latitude: 40.416170, longitude: -111.848840, mapRadius: 4 }, solar: { arrayKw: 210, productionRatio: 2463, moduleW: 545, installation: 'Fixed-tilt rooftop', manufacturer: 'Bifacial Solar Co.', model: 'BH-545-M10' }, storage: { capacityMwh: 0.8, powerKw: 400, shavePct: 22, dispatchHours: 2, investment: 168000 }, ev: { dcFast: 0, level2: 0 }, investment: { solar: 472000, battery: 168000, ev: 0, siteImprovements: 65000 } } }
 };
 const proposalTemplateBidId = 'kneaders-orem';
-const cloneProposalTemplateState = () => Object.fromEntries(Object.entries(defaults).map(([section, values]) => [section, { ...values, ...(bidProfiles[proposalTemplateBidId]?.overrides?.[section] || {}) }]));
+const cloneProposalTemplateState = () => Object.fromEntries(Object.entries(bidDefaults).map(([section, values]) => [section, { ...values }]));
 const localBidStorageKey = 'GetEV-local-bids';
 const archivedBidStorageKey = 'GetEV-archived-bids';
 const readLocalBids = () => { try { return JSON.parse(localStorage.getItem(localBidStorageKey) || '{}'); } catch { return {}; } };
