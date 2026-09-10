@@ -1510,7 +1510,7 @@ function enhanceNewProposalModal() {
   const nameLabel = form.querySelector('input[name="siteName"]')?.closest('label');
   if (!nameLabel) return;
   nameLabel.classList.add('new-proposal-search-label');
-  nameLabel.childNodes[0].textContent = 'Find an organization (or enter in whatever name) ';
+  nameLabel.childNodes[0].textContent = 'Find a location ';
   const queryInput = nameLabel.querySelector('input[name="siteName"]');
   queryInput.type = 'search'; queryInput.autocomplete = 'off'; queryInput.placeholder = 'e.g. Chubby’s Express in Lehi, UT';
   nameLabel.insertAdjacentHTML('beforeend', '<span class="optional">Optional — you can start with a name, an address, or neither.</span><div class="new-proposal-suggestions" role="listbox" hidden></div>');
