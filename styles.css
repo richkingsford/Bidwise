@@ -509,3 +509,4 @@ img,svg,video,canvas{max-width:100%}
 .location-overview-page .ev-section-inputs{height:fit-content;align-self:start}
 .location-overview-page .ev-section-input-scroll{height:auto;max-height:none;overflow:visible}
 body.edit-mode .ev-section-inputs{display:block!important}
+.hero-copy>.inline-config-dials{flex:0 0 auto;align-self:stretch;height:fit-content}
