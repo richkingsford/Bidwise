@@ -501,3 +501,6 @@ img,svg,video,canvas{max-width:100%}
 .bulk-business-row b{display:flex!important;align-items:center;gap:7px}
 .bulk-business-logo{position:static;display:inline-block;vertical-align:middle;width:34px;height:34px;object-fit:contain;object-position:center;border-radius:6px;background:#fff;padding:4px;margin-right:7px;image-rendering:auto}
 .bulk-business-logo-url{width:100%;margin-top:5px;padding:5px 7px;border:1px solid #416477;border-radius:4px;background:#0b2130;color:#fff;font-size:11px}
+
+/* Keep uploaded proposal logos free of the old white frame and padding. */
+.proposal-logo-card{padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
