@@ -82,6 +82,8 @@ const canonicalProposalUrl = Boolean(routeParams.get('bid') && (!routeParams.has
 if (canonicalProposalUrl || viewOnlyUrl) document.body.classList.add('canonical-proposal', 'view-only');
 const decodeCopyPayload = value => { if (!value) return null; try { const normalized = value.replace(/-/g, '+').replace(/_/g, '/'); const binary = atob(normalized); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); const payload = JSON.parse(new TextDecoder().decode(bytes)); return payload?.version === 1 && payload?.bidId === activeBidId && payload?.state && typeof payload.state === 'object' ? payload : null; } catch { return null; } };
 const copiedProposal = decodeCopyPayload(routeParams.get('copy'));
+const presentationModeStorageKey = `GetEV-presentation-mode:${activeBidId || 'home'}:${copiedProposal?.copyId || 'base'}`;
+const storedPresentationMode = (() => { try { return localStorage.getItem(presentationModeStorageKey); } catch { return null; } })();
 const proposalScopes = { ...activeBid.scopes, ...(copiedProposal?.scopes || {}) };
 if (proposalScopes.lenderSupport == null) proposalScopes.lenderSupport = false;
 const inlineEditStorageKey = `GetEV-inline-edits:${activeBidId || 'home'}`;
@@ -1705,14 +1707,14 @@ function resetDefinitions() { if (!proposalCardCatalogDefaults?.ev) return; prop
 $('#resetDefinitions')?.addEventListener('click', resetDefinitions);
 $('#presentationMenu')?.addEventListener('change', event => {
   const mode = event.target.value;
-  if (mode !== 'print') { setPresentationMode(mode); return; }
+  if (mode !== 'print') { try { localStorage.setItem(presentationModeStorageKey, mode); } catch {} setPresentationMode(mode); return; }
   const previousMode = document.body.classList.contains('view-only') ? 'view' : 'edit';
   setPresentationMode('view');
   const restoreMode = () => { setPresentationMode(previousMode); window.removeEventListener('afterprint', restoreMode); };
   window.addEventListener('afterprint', restoreMode, { once: true });
   window.print();
 });
-setPresentationMode(document.body.classList.contains('view-only') ? 'view' : 'edit');
+setPresentationMode(document.body.classList.contains('view-only') ? 'view' : storedPresentationMode === 'view' ? 'view' : 'edit');
 
 updateScopeUI();
 if (activeBidId) { renderReport(); observeProposalSections(); if (isEvOnlyBid) renderEvOnlyOverview(); setText('.breadcrumb strong', activeBid.locationLabel); document.title = `GetEV — ${state.overview.siteName} Proposal`; } else { document.title = 'GetEV — Sales Workspace'; }
