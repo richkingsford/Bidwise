@@ -71,13 +71,6 @@ function renderReviewedProposal(section) {
     qr.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(reportUrl.toString())}" alt="QR code linking to the full report"><div><strong>See the full report</strong><span>More revenue. Less risk.</span></div>`;
     (tldrSection.querySelector('.review-grid')||tldrSection).appendChild(qr);
   }
-  const equipmentSection=section.querySelector('#ev-equipment');
-  if(equipmentSection){
-    const head=equipmentSection.querySelector('.ev-report-head');
-    if(head){const title=head.querySelector('h3'); const subtitle=head.querySelector('p'); if(title)title.textContent='Tesla V4 brings up to 500 kW hardware capability to this site.'; if(subtitle)subtitle.textContent='The proposed four-post first phase combines next-generation DC fast charging with network discovery for Tesla and compatible non-Tesla drivers.';}
-    const panels=equipmentSection.querySelectorAll('.review-equipment>.review-panel');
-    const strategy=panels[panels.length-1]; if(strategy){const title=strategy.querySelector('h4'); const detail=strategy.querySelector('p'); if(title)title.textContent='Four posts now. Plan for eight.'; if(detail)detail.textContent='Focused first-post opening configuration with a clear path to future expansion.';}
-  }
   // Keep the established report anchors intact for navigation and configuration.
   // Add the host-owned option after the ownership-value page so it remains Slide 9
   // without displacing the revenue forecast or breaking downstream references.
