@@ -4,7 +4,12 @@
   },
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "artifacts/**", "tmp/**", "tests/**", "qa-*/**", "functions/**", "*.md", "todos.txt", "*.log"]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "artifacts/**", "tmp/**", "tests/**", "qa-*/**", "functions/**", "*.md", "todos.txt", "*.log"],
+    "headers": [
+      { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**/*.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"
