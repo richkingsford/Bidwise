@@ -62,6 +62,47 @@ export const submitFeedback = onRequest({ region: 'us-central1', cors: false, ti
   }
 });
 
+const profileText = (value, length = 500) => String(value || '').trim().slice(0, length);
+const profileMedia = value => {
+  if (!value || typeof value !== 'object' || typeof value.url !== 'string') return null;
+  const url = value.url.trim();
+  if (!/^https?:\/\//i.test(url)) return null;
+  return { name: profileText(value.name, 180) || 'Company image', type: profileText(value.type, 80) || 'image', size: Number(value.size) || 0, url, storageStatus: profileText(value.storageStatus, 80) || 'stored' };
+};
+
+export const saveCompanyProfile = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 15 }, async (request, response) => {
+  allowCors(request, response);
+  if (request.method === 'OPTIONS') return response.status(204).send('');
+  if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed' });
+  try {
+    const authorization = String(request.get('authorization') || '');
+    if (!authorization.startsWith('Bearer ')) return response.status(401).json({ error: 'Sign-in required.' });
+    const user = await getAdminAuth().verifyIdToken(authorization.slice(7));
+    const input = request.body?.profile;
+    if (!input || typeof input !== 'object') return response.status(400).json({ error: 'A company profile is required.' });
+    const db = getAdminFirestore();
+    const reference = db.collection('profiles').doc(user.uid);
+    const existing = (await reference.get()).data() || {};
+    const admin = user.email === 'richkingsford@gmail.com' || user.email === 'mckselph@gmail.com';
+    const profile = {
+      companyName: profileText(input.companyName, 160) || 'Your company',
+      tagline: profileText(input.tagline, 100), proposalSlogan: profileText(input.proposalSlogan, 140),
+      proposalCertifications: profileText(input.proposalCertifications, 2000), contactName: profileText(input.contactName, 160),
+      businessEmail: profileText(input.businessEmail, 254) || user.email || '', territory: profileText(input.territory, 240),
+      website: profileText(input.website, 500), services: typeof input.services === 'object' && input.services ? { solar: Boolean(input.services.solar), storage: Boolean(input.services.storage), ev: Boolean(input.services.ev) } : { ev: true },
+      companyLogo: profileMedia(input.companyLogo) || profileMedia(existing.companyLogo),
+      companyPhoto: profileMedia(input.companyPhoto) || profileMedia(existing.companyPhoto),
+      email: user.email || '', role: admin ? 'admin' : existing.role || 'member',
+      verificationStatus: admin ? 'approved' : existing.verificationStatus || 'pending', updatedAt: new Date().toISOString()
+    };
+    await reference.set(profile, { merge: true });
+    return response.status(200).json({ profile });
+  } catch (error) {
+    console.error('Company profile save error', error?.message || error, error?.stack || '');
+    return response.status(error?.code?.startsWith('auth/') ? 401 : 500).json({ error: 'Company profile could not be saved.' });
+  }
+});
+
 export const altchaVerify = onRequest({ region: 'us-central1', secrets: [ALTCHA_SECRET], cors: false }, async (request, response) => {
   allowCors(request, response);
   if (request.method === 'OPTIONS') return response.status(204).send('');

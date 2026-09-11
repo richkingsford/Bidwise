@@ -246,9 +246,11 @@ if (firebaseConfig && !isLocalFile) {
 
   saveCompanyProfile = async profile => {
     if (!currentUser) return;
-    const verificationStatus = isAdminUser(currentUser) ? 'approved' : currentProfile?.verificationStatus || 'pending';
-    await setDoc(doc(db, 'profiles', currentUser.uid), { ...profile, email: currentUser.email, role: isAdminUser(currentUser) ? 'admin' : currentProfile?.role || 'member', verificationStatus, updatedAt: serverTimestamp() }, { merge: true });
-    currentProfile = { ...currentProfile, ...profile, email: currentUser.email, role: isAdminUser(currentUser) ? 'admin' : currentProfile?.role || 'member', verificationStatus };
+    const token = await currentUser.getIdToken();
+    const response = await fetch('https://us-central1-bidwise-production.cloudfunctions.net/saveCompanyProfile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ profile }) });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Company profile could not be saved.');
+    currentProfile = { ...currentProfile, ...profile, ...(result.profile || {}) };
     setIdentity(currentUser, currentProfile);
     return currentProfile;
   };

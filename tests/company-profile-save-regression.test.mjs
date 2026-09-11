@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const firebase = fs.readFileSync(new URL('../firebase.js', import.meta.url), 'utf8');
 const review = fs.readFileSync(new URL('../proposal-review.js', import.meta.url), 'utf8');
 const firestoreRules = fs.readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+const functions = fs.readFileSync(new URL('../functions/index.js', import.meta.url), 'utf8');
 
 assert.match(firebase, /removeAttribute\('required'\)/, 'Company profile Save must not be blocked by incomplete optional fields');
 assert.match(firebase, /Saved\. Your profile branding is now applied to Slide 5\./, 'Save must visibly confirm success before the modal closes');
@@ -11,6 +12,9 @@ assert.match(firebase, /hideCompanyModal\(\); toast\(/, 'Save must close the mod
 assert.match(firebase, /const usableMedia = \(media, existing\) => media\?\.url \? media : existing \|\| null/, 'A failed upload must not overwrite usable saved media');
 assert.match(firebase, /companyLogo: mediaUrl\(profile\.companyLogo\)/, 'Saved logo must be broadcast to proposals');
 assert.match(firebase, /companyPhoto: mediaUrl\(profile\.companyPhoto\)/, 'Saved project image must be broadcast to proposals');
+assert.match(firebase, /cloudfunctions\.net\/saveCompanyProfile/, 'Profile saving must use the authenticated server endpoint');
+assert.match(functions, /export const saveCompanyProfile = onRequest/, 'The authenticated profile-save endpoint must exist');
+assert.match(functions, /verifyIdToken/, 'The profile-save endpoint must verify the signed-in user');
 assert.match(firebase, /if \(companyFormNote\) companyFormNote\.textContent = saveError/, 'A rejected save must remain visibly explained in the modal');
 assert.match(firestoreRules, /!resource\.data\.keys\(\)\.hasAll\(\['verificationStatus'\]\) && request\.resource\.data\.verificationStatus == 'pending'/, 'Legacy profiles must be able to establish their first pending review status without reading a missing field');
 assert.match(firestoreRules, /allow create: if isAdmin\(\) \|\| \(signedIn\(\) && request\.auth\.uid == userId/, 'Signed-in users must be able to create their own profile');
