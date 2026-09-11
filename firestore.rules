@@ -18,16 +18,18 @@ service cloud.firestore {
     }
 
     match /profiles/{userId} {
-      allow read: if isAdmin() || (verified() && request.auth.uid == userId);
-      allow create: if isAdmin() || (verified() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending');
+      // Account sign-in proves ownership here; email verification is not required to
+      // finish the user's private profile or attach profile media.
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow create: if isAdmin() || (signedIn() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending');
       // Legacy profiles predate verificationStatus. Their first profile save establishes
       // the pending state; later saves must preserve the existing review status.
-      allow update: if isAdmin() || (verified() && request.auth.uid == userId && ((resource.data.verificationStatus == null && request.resource.data.verificationStatus == 'pending') || request.resource.data.verificationStatus == resource.data.verificationStatus));
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && ((resource.data.verificationStatus == null && request.resource.data.verificationStatus == 'pending') || request.resource.data.verificationStatus == resource.data.verificationStatus));
       allow delete: if isAdmin();
     }
 
     match /company-documents/{userId}/{documentId} {
-      allow read, write: if verified() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
     }
 
     match /proposals/{userId} {

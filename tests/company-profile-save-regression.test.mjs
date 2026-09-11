@@ -13,6 +13,9 @@ assert.match(firebase, /companyLogo: mediaUrl\(profile\.companyLogo\)/, 'Saved l
 assert.match(firebase, /companyPhoto: mediaUrl\(profile\.companyPhoto\)/, 'Saved project image must be broadcast to proposals');
 assert.match(firebase, /if \(companyFormNote\) companyFormNote\.textContent = saveError/, 'A rejected save must remain visibly explained in the modal');
 assert.match(firestoreRules, /resource\.data\.verificationStatus == null && request\.resource\.data\.verificationStatus == 'pending'/, 'Legacy profiles must be able to establish their first pending review status');
+assert.match(firestoreRules, /allow create: if isAdmin\(\) \|\| \(signedIn\(\) && request\.auth\.uid == userId/, 'Signed-in users must be able to create their own profile');
+assert.match(firestoreRules, /allow update: if isAdmin\(\) \|\| \(signedIn\(\) && request\.auth\.uid == userId/, 'Signed-in users must be able to update their own profile');
+assert.match(firestoreRules, /allow read, write: if signedIn\(\) && \(request\.auth\.uid == userId \|\| isAdmin\(\)\)/, 'Signed-in users must be able to upload their own company media');
 assert.match(review, /state\.brand\.companyLogo \? `<img class="review-company-logo"/, 'Slide 5 must render the saved company logo');
 assert.match(review, /state\.brand\.companyPhoto\?`<img src="\$\{esc\(state\.brand\.companyPhoto\)\}"/, 'Slide 5 must render the saved project image on the right');
 
