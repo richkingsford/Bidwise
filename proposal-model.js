@@ -37,10 +37,14 @@
     const variableCostPerSession = costs.filter(c=>c.key!=='power').reduce((sum,c)=>sum+c.annual,0)/(sessions*days || 1)+energy*ev.utilityEnergyCostPerKwh;
     const leaseIncome = leaseSessions*days*(energy*price-variableCostPerSession)-demandCost;
     const leaseCapacity = Math.max(0,leaseIncome-capital*(config.targetReturn ?? .12));
-    const leasePerPortMonth = Math.floor(leaseCapacity/ports/12/25)*25;
+    // Keep the commercial default explicit and location-independent. A configured
+    // proposal/catalog value wins; the calculated capacity remains available for
+    // analysis but must not silently replace the customer-facing default.
+    const calculatedLeasePerPortMonth = Math.floor(leaseCapacity/ports/12/25)*25;
+    const leasePerPortMonth = Math.max(0, finite(config.leasePerPortMonth, 200));
     const leaseAnnual = leasePerPortMonth*ports*12;
     const paybackYears = income > 0 ? capital/income : null;
-    return {ports,days,sessions,energy,price,capital,revenue,costs,expenses,income,energyCost,demandCost,score,getevScore,components,leaseUtilization,leaseCapacity,leasePerPortMonth,leaseAnnual,paybackYears};
+    return {ports,days,sessions,energy,price,capital,revenue,costs,expenses,income,energyCost,demandCost,score,getevScore,components,leaseUtilization,leaseCapacity,calculatedLeasePerPortMonth,leasePerPortMonth,leaseAnnual,paybackYears};
   }
   function ranges(state, config={}) {
     const ev=state.ev, visits=ev.ports*1440*ev.forecastYear5Utilization/100/Math.max(1,ev.averageSessionMinutes);
