@@ -247,11 +247,19 @@ if (firebaseConfig && !isLocalFile) {
 
   saveCompanyProfile = async profile => {
     if (!currentUser) return;
-    const token = await currentUser.getIdToken();
-    const response = await fetch('/api/save-company-profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ profile }) });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || 'Company profile could not be saved.');
-    currentProfile = { ...currentProfile, ...profile, ...(result.profile || {}) };
+    // Profile reads and the admin bootstrap already use this authenticated Firestore
+    // session. Saving through the same path keeps the result immediate and avoids a
+    // second network hop that can fail independently of the signed-in user.
+    const existing = currentProfile || {};
+    const savedProfile = {
+      ...profile,
+      email: currentUser.email || existing.email || '',
+      role: isAdminUser(currentUser) ? 'admin' : existing.role || 'member',
+      verificationStatus: isAdminUser(currentUser) ? 'approved' : existing.verificationStatus || 'pending',
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(doc(db, 'profiles', currentUser.uid), savedProfile, { merge: true });
+    currentProfile = { ...existing, ...savedProfile };
     setIdentity(currentUser, currentProfile);
     return currentProfile;
   };
