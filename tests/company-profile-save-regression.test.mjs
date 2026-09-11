@@ -7,6 +7,8 @@ const firestoreRules = fs.readFileSync(new URL('../firestore.rules', import.meta
 const functions = fs.readFileSync(new URL('../functions/index.js', import.meta.url), 'utf8');
 
 assert.match(firebase, /removeAttribute\('required'\)/, 'Company profile Save must not be blocked by incomplete optional fields');
+assert.match(firebase, /let uploadCompanyDocument = null;/, 'The profile form must share the upload helper with Firebase initialization');
+assert.match(firebase, /uploadCompanyDocument = async \(file, folder = 'company-documents'\)/, 'Firebase initialization must assign the profile upload helper without block scoping it');
 assert.match(firebase, /Saved\. Your profile branding is now applied to Slide 5\./, 'Save must visibly confirm success before the modal closes');
 assert.match(firebase, /hideCompanyModal\(\); toast\(/, 'Save must close the modal and then confirm success');
 assert.match(firebase, /const usableMedia = \(media, existing\) => media\?\.url \? media : existing \|\| null/, 'A failed upload must not overwrite usable saved media');

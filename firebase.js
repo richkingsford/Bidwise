@@ -75,6 +75,7 @@ const toast = message => { const node = document.querySelector('#toast'); if (!n
 let currentUser = null;
 let currentProfile = null;
 let saveCompanyProfile = null;
+let uploadCompanyDocument = null;
 let loadAdminProfiles = null;
 
 const isAdminUser = user => ADMIN_EMAILS.has(user?.email?.toLowerCase());
@@ -163,7 +164,7 @@ if (firebaseConfig && !isLocalFile) {
   const db = getFirestore(app);
   const storage = getStorage(app);
   const provider = new GoogleAuthProvider();
-  const uploadCompanyDocument = async (file, folder = 'company-documents') => { if (!file) return null; if (typeof file === 'string') { const url = file.trim(); if (!/^https?:\/\//i.test(url)) throw new Error('Image URLs must begin with http:// or https://.'); return { name: 'External image', type: 'image/url', size: 0, url, storageStatus: 'external-url' }; } const metadata = { name: file.name, type: file.type, size: file.size }; try { const safeName = file.name.replace(/[^a-z0-9._-]+/gi, '-'); const target = ref(storage, `${folder}/${currentUser.uid}/${Date.now()}-${safeName}`); const uploaded = await uploadBytes(target, file, { contentType: file.type }); return { ...metadata, url: await getDownloadURL(uploaded.ref), storageStatus: 'stored' }; } catch (error) { console.warn('GetEV document storage pending', error); return { ...metadata, storageStatus: 'pending-storage-setup' }; } };
+  uploadCompanyDocument = async (file, folder = 'company-documents') => { if (!file) return null; if (typeof file === 'string') { const url = file.trim(); if (!/^https?:\/\//i.test(url)) throw new Error('Image URLs must begin with http:// or https://.'); return { name: 'External image', type: 'image/url', size: 0, url, storageStatus: 'external-url' }; } const metadata = { name: file.name, type: file.type, size: file.size }; try { const safeName = file.name.replace(/[^a-z0-9._-]+/gi, '-'); const target = ref(storage, `${folder}/${currentUser.uid}/${Date.now()}-${safeName}`); const uploaded = await uploadBytes(target, file, { contentType: file.type }); return { ...metadata, url: await getDownloadURL(uploaded.ref), storageStatus: 'stored' }; } catch (error) { console.warn('GetEV document storage pending', error); return { ...metadata, storageStatus: 'pending-storage-setup' }; } };
   try { await setPersistence(auth, browserLocalPersistence); } catch (error) { console.warn('GetEV auth persistence fallback', error); }
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
