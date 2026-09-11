@@ -248,7 +248,7 @@ if (firebaseConfig && !isLocalFile) {
   saveCompanyProfile = async profile => {
     if (!currentUser) return;
     const token = await currentUser.getIdToken();
-    const response = await fetch('https://us-central1-bidwise-production.cloudfunctions.net/saveCompanyProfile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ profile }) });
+    const response = await fetch('/api/save-company-profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ profile }) });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || 'Company profile could not be saved.');
     currentProfile = { ...currentProfile, ...profile, ...(result.profile || {}) };

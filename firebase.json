@@ -9,6 +9,9 @@
       { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
       { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
       { "source": "**/*.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ],
+    "rewrites": [
+      { "source": "/api/save-company-profile", "function": { "functionId": "saveCompanyProfile", "region": "us-central1" } }
     ]
   },
   "firestore": {
