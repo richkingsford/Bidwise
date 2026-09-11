@@ -70,7 +70,7 @@ const profileMedia = value => {
   return { name: profileText(value.name, 180) || 'Company image', type: profileText(value.type, 80) || 'image', size: Number(value.size) || 0, url, storageStatus: profileText(value.storageStatus, 80) || 'stored' };
 };
 
-export const saveCompanyProfile = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 15 }, async (request, response) => {
+export const saveCompanyProfile = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 15, invoker: 'public' }, async (request, response) => {
   allowCors(request, response);
   if (request.method === 'OPTIONS') return response.status(204).send('');
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed' });
