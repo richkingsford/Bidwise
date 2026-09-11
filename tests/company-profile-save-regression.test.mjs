@@ -3,6 +3,7 @@ import fs from 'node:fs';
 
 const firebase = fs.readFileSync(new URL('../firebase.js', import.meta.url), 'utf8');
 const review = fs.readFileSync(new URL('../proposal-review.js', import.meta.url), 'utf8');
+const firestoreRules = fs.readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
 
 assert.match(firebase, /removeAttribute\('required'\)/, 'Company profile Save must not be blocked by incomplete optional fields');
 assert.match(firebase, /Saved\. Your profile branding is now applied to Slide 5\./, 'Save must visibly confirm success before the modal closes');
@@ -10,6 +11,8 @@ assert.match(firebase, /hideCompanyModal\(\); toast\(/, 'Save must close the mod
 assert.match(firebase, /const usableMedia = \(media, existing\) => media\?\.url \? media : existing \|\| null/, 'A failed upload must not overwrite usable saved media');
 assert.match(firebase, /companyLogo: mediaUrl\(profile\.companyLogo\)/, 'Saved logo must be broadcast to proposals');
 assert.match(firebase, /companyPhoto: mediaUrl\(profile\.companyPhoto\)/, 'Saved project image must be broadcast to proposals');
+assert.match(firebase, /if \(companyFormNote\) companyFormNote\.textContent = saveError/, 'A rejected save must remain visibly explained in the modal');
+assert.match(firestoreRules, /resource\.data\.verificationStatus == null && request\.resource\.data\.verificationStatus == 'pending'/, 'Legacy profiles must be able to establish their first pending review status');
 assert.match(review, /state\.brand\.companyLogo \? `<img class="review-company-logo"/, 'Slide 5 must render the saved company logo');
 assert.match(review, /state\.brand\.companyPhoto\?`<img src="\$\{esc\(state\.brand\.companyPhoto\)\}"/, 'Slide 5 must render the saved project image on the right');
 

@@ -20,7 +20,9 @@ service cloud.firestore {
     match /profiles/{userId} {
       allow read: if isAdmin() || (verified() && request.auth.uid == userId);
       allow create: if isAdmin() || (verified() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending');
-      allow update: if isAdmin() || (verified() && request.auth.uid == userId && request.resource.data.verificationStatus == resource.data.verificationStatus);
+      // Legacy profiles predate verificationStatus. Their first profile save establishes
+      // the pending state; later saves must preserve the existing review status.
+      allow update: if isAdmin() || (verified() && request.auth.uid == userId && ((resource.data.verificationStatus == null && request.resource.data.verificationStatus == 'pending') || request.resource.data.verificationStatus == resource.data.verificationStatus));
       allow delete: if isAdmin();
     }
 
