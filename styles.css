@@ -513,6 +513,7 @@ img,svg,video,canvas{max-width:100%}
 .proposal-visual-construction .proposal-photo:not(.proposal-photo-custom){display:none}
 .proposal-visual-construction .proposal-photo-scrim{display:none}
 .location-overview-page .ev-location-support{display:none!important}
+.topbar{z-index:2000!important}
 .proposal-visual:has(.proposal-photo-custom) .proposal-logo-card{bottom:auto;top:42%;}
 /* Keep the fallback overhead map compact and closer in, without changing uploaded photos. */
 @media(min-width:901px){
