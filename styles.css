@@ -530,3 +530,6 @@ img,svg,video,canvas{max-width:100%}
 .location-overview-page .ev-section-input-scroll{height:auto;max-height:none;overflow:visible}
 body.edit-mode .ev-section-inputs{display:block!important}
 .hero-copy>.inline-config-dials{flex:0 0 auto;align-self:stretch;height:fit-content}
+/* Keep Slide 6 comparison copy blue; reserve logo green for the core hardware emphasis. */
+.equipment-section .equipment-fit>.chart-label,.equipment-section .equipment-compare-grid b,.equipment-section .equipment-network .review-panel>b,.equipment-section .equipment-deployment>.chart-label{color:#9fc4ff!important}
+@media(min-width:901px){.equipment-section .equipment-layout{grid-template-columns:minmax(280px,.92fr) minmax(0,1.7fr)!important;grid-template-areas:"proposed fit" "network network"!important}.equipment-section .equipment-network{grid-template-columns:minmax(0,1.7fr) minmax(280px,.88fr)!important}.equipment-section .equipment-network>.chart-label{grid-column:1/-1!important}.equipment-section .equipment-deployment{grid-column:2!important;grid-row:2!important}.equipment-section .equipment-network>.review-panel{grid-column:1!important;grid-row:2!important}}
