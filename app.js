@@ -131,7 +131,7 @@ if (isEvOnlyBid && !reusableState?.meta?.spendCasesVersion) {
 }
 if (isEvOnlyBid && !reusableState?.meta?.guestRevenueVersion && Number(state.ev.forecastYear5Utilization) <= 17.1) state.ev.forecastYear5Utilization = 19.1;
 const storedCompanyBranding = (() => { try { return JSON.parse(localStorage.getItem('GetEV-company-branding') || '{}'); } catch { return {}; } })();
-state.brand = { companyName: 'GetEV Energy', tagline: 'Commercial energy projects, made decision-ready.', proposalSlogan: 'One accountable installation team.', companyLogo: 'assets/getev-placeholder-logo.svg', companyPhoto: '', ...(storedCompanyBranding || {}), ...(reusableState?.brand || {}) };
+state.brand = { companyName: 'GetEV Energy', tagline: 'Commercial energy projects, made decision-ready.', proposalSlogan: 'One accountable installation team.', companyLogo: 'assets/getev-placeholder-logo.svg', companyPhoto: '', ...(reusableState?.brand || {}), ...(storedCompanyBranding || {}) };
 state.brand.companyLogo ||= 'assets/getev-placeholder-logo.svg';
 const evInvestmentModels = ['Lease parking space', '50/50', 'Full ownership'];
 if (proposalScopes.ev && !evInvestmentModels.includes(state.ev.investmentModel)) state.ev.investmentModel = 'Lease parking space';
@@ -1757,7 +1757,7 @@ Promise.all([proposalCardsReady, udotAadtReady, utahEvRegistrationsReady, overtu
   if (activeBidId && (trafficChanged || registrationsChanged || placesChanged || nlrChanged || regionalChanged || regionalTrafficChanged || rockyMountainPowerChanged)) { saveState(); renderReport(); refreshRegionalSourceLabels(); }
 });
 window.addEventListener('getev:company-branding', event => {
-  if (!activeBidId || copiedProposal || !event.detail?.companyName) return;
+  if (!activeBidId || !event.detail?.companyName) return;
   state.brand = { ...state.brand, ...event.detail };
   renderReport();
 });
