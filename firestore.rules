@@ -22,9 +22,9 @@ service cloud.firestore {
       // finish the user's private profile or attach profile media.
       allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
       allow create: if isAdmin() || (signedIn() && request.auth.uid == userId && request.resource.data.verificationStatus == 'pending');
-      // Legacy profiles predate verificationStatus. Their first profile save establishes
-      // the pending state; later saves must preserve the existing review status.
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && ((resource.data.verificationStatus == null && request.resource.data.verificationStatus == 'pending') || request.resource.data.verificationStatus == resource.data.verificationStatus));
+      // Legacy profiles predate verificationStatus. Test field existence before reading
+      // it; a missing-map-field read rejects a Firestore rule evaluation.
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && ((!resource.data.keys().hasAll(['verificationStatus']) && request.resource.data.verificationStatus == 'pending') || (resource.data.keys().hasAll(['verificationStatus']) && request.resource.data.verificationStatus == resource.data.verificationStatus)));
       allow delete: if isAdmin();
     }
 

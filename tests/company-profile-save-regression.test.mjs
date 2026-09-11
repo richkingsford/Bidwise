@@ -12,7 +12,7 @@ assert.match(firebase, /const usableMedia = \(media, existing\) => media\?\.url 
 assert.match(firebase, /companyLogo: mediaUrl\(profile\.companyLogo\)/, 'Saved logo must be broadcast to proposals');
 assert.match(firebase, /companyPhoto: mediaUrl\(profile\.companyPhoto\)/, 'Saved project image must be broadcast to proposals');
 assert.match(firebase, /if \(companyFormNote\) companyFormNote\.textContent = saveError/, 'A rejected save must remain visibly explained in the modal');
-assert.match(firestoreRules, /resource\.data\.verificationStatus == null && request\.resource\.data\.verificationStatus == 'pending'/, 'Legacy profiles must be able to establish their first pending review status');
+assert.match(firestoreRules, /!resource\.data\.keys\(\)\.hasAll\(\['verificationStatus'\]\) && request\.resource\.data\.verificationStatus == 'pending'/, 'Legacy profiles must be able to establish their first pending review status without reading a missing field');
 assert.match(firestoreRules, /allow create: if isAdmin\(\) \|\| \(signedIn\(\) && request\.auth\.uid == userId/, 'Signed-in users must be able to create their own profile');
 assert.match(firestoreRules, /allow update: if isAdmin\(\) \|\| \(signedIn\(\) && request\.auth\.uid == userId/, 'Signed-in users must be able to update their own profile');
 assert.match(firestoreRules, /allow read, write: if signedIn\(\) && \(request\.auth\.uid == userId \|\| isAdmin\(\)\)/, 'Signed-in users must be able to upload their own company media');
