@@ -97,7 +97,7 @@
     "siteSnapshotMockup": {
       "title": "How much charging demand could this site capture?",
       "subtitle": "Page 2 established the market. Fleet growth, charging behavior and restaurant fit show what this location could capture.",
-      "outlook": {"label": "ROADWAY EXPOSURE", "value": "20% OF STATE PEAK", "description": "MID-RANGE ROADWAY EXPOSURE · 43,000 / DAY HERE", "note": "PEAK REFERENCE: I-15 AT 500/600 SOUTH, SALT LAKE CITY, UTAH · UDOT 2024"},
+      "outlook": {"label": "VEHICLES / DAY", "value": "43,000", "description": "WAY ABOVE AVERAGE", "note": "UDOT AADT · Utah average 12,749 vehicles / day"},
       "fleet": {"label": "UTAH COUNTY'S BEV FLEET HAS NEARLY DOUBLED IN TWO YEARS", "source": "UTAH STATE TAX COMMISSION  |  FEB 2026", "stats": [{"label": "2024 BEV REGISTRATIONS", "value": "8,414", "note": "STARTING POINT"}, {"label": "2025 BEV REGISTRATIONS", "value": "12,153", "note": "+44% IN ONE YEAR"}, {"label": "2026 BEV REGISTRATIONS", "value": "16,437", "note": "+35% IN ONE YEAR"}, {"label": "TWO-YEAR GROWTH", "value": "+95%", "note": "CUSTOMER BASE NEARLY DOUBLED"}]},
       "scenarioLabel": "YEAR 5 PLANNING SCENARIOS",
       "scenarioMeta": "8 PORTS  |  24-MINUTE AVERAGE SESSION  |  30% GUEST-CAPTURE ASSUMPTION",
