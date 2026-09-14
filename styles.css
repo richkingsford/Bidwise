@@ -537,3 +537,5 @@ body.edit-mode .ev-section-inputs{display:block!important}
 @media(min-width:901px){.equipment-section .equipment-network>.review-panel{height:calc(100% + 16px);transform:translateY(-16px)}}
  .partnership-bottom-space{height:4rem;}
  .review-source-footer{margin-top:1.25rem;line-height:1.55;}
+body.tldr-only .ev-report-section:not(#ev-report-9),body.tldr-only .report-nav{display:none!important}
+body.tldr-only .tldr-standalone{display:block!important;min-height:calc(100vh - 72px);padding-top:4rem}
