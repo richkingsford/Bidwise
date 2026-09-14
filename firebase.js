@@ -252,6 +252,7 @@ if (firebaseConfig && !isLocalFile) {
     // session. Saving through the same path keeps the result immediate and avoids a
     // second network hop that can fail independently of the signed-in user.
     const existing = currentProfile || {};
+    profile = { ...profile, calendlyUrl: String(profile.calendlyUrl || document.querySelector('#companyForm [name="calendlyUrl"]')?.value || existing.calendlyUrl || '').trim() };
     const savedProfile = {
       ...profile,
       email: currentUser.email || existing.email || '',
