@@ -1,6 +1,6 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-if(new URLSearchParams(window.location.search).get('version')==='tldr'){ const style=document.createElement('style'); style.textContent='body.tldr-only .hero,body.tldr-only .report-nav{display:none!important} body.tldr-only .ev-report-section:not(#ev-report-9){display:none!important}'; document.head.appendChild(style); document.body.classList.add('tldr-only'); }
+if(new URLSearchParams(window.location.search).get('version')==='tldr'){ const style=document.createElement('style'); style.textContent='body.tldr-only .hero,body.tldr-only .report-nav{display:none!important} body.tldr-only .ev-report-section:not(#ev-report-9){display:none!important} body.tldr-only .report-wrap > *:not(#ev){display:none!important} body.tldr-only #ev{display:block!important}'; document.head.appendChild(style); document.body.classList.add('tldr-only'); }
 let proposalCardCatalog = null;
 let proposalCardCatalogDefaults = null;
 let proposalCardDefaultsApplied = false;
