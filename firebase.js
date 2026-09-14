@@ -120,7 +120,7 @@ const setIdentity = (user, profile = currentProfile) => {
   }
   if (profile?.companyName) {
     const mediaUrl = media => typeof media === 'string' ? media : media?.url || '';
-    const branding = { companyName: profile.companyName, tagline: profile.tagline || '', proposalSlogan: profile.proposalSlogan || '', proposalCertifications: profile.proposalCertifications || '', companyLogo: mediaUrl(profile.companyLogo), companyPhoto: mediaUrl(profile.companyPhoto) };
+    const branding = { companyName: profile.companyName, tagline: profile.tagline || '', proposalSlogan: profile.proposalSlogan || '', proposalCertifications: profile.proposalCertifications || '', contactName: profile.contactName || '', businessEmail: profile.businessEmail || '', website: profile.website || '', calendlyUrl: profile.calendlyUrl || '', companyLogo: mediaUrl(profile.companyLogo), companyPhoto: mediaUrl(profile.companyPhoto) };
     try { localStorage.setItem('GetEV-company-branding', JSON.stringify(branding)); } catch { /* Storage can be unavailable in privacy-restricted sessions. */ }
     window.dispatchEvent(new CustomEvent('getev:company-branding', { detail: branding }));
   }
@@ -136,6 +136,7 @@ const showCompanyModal = (user, profile = {}) => {
   if (emailAuthAddress) emailAuthAddress.value = user?.email || '';
   companyForm.elements.territory.value = profile.territory || '';
   companyForm.elements.website.value = profile.website || '';
+  companyForm.elements.calendlyUrl.value = profile.calendlyUrl || '';
   companyForm.elements.tagline.value = profile.tagline || '';
   companyForm.elements.proposalSlogan.value = profile.proposalSlogan || '';
   companyForm.elements.proposalCertifications.value = profile.proposalCertifications || '';
