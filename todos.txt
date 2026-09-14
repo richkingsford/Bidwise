@@ -192,9 +192,9 @@ IMPLEMENTATION STATUS - 2026-08-20
 - Overpass fixture and injectable-transport tests added at tests/osm-overpass.test.mjs; all 3 tests pass. OSM data is kept separate from Overture until a deduplication and source-precedence rule is approved.
 - Added osm-overpass-data.json as the verified production contingency snapshot for Kneaders: 197 OSM POIs in the bounded box, 138 within 1 km, and 15 food-and-drink POIs within 1 km. The proposal uses Overture first and falls back to this OSM snapshot only if Overture is unavailable; counts are never combined.
 2026-09-11 — Proposal slide revision checklist
-[ ] Slide 7: Add prospect-specific available-charging-revenue caption below the Option 2 100% value.
-[ ] Slide 7: Add four blank-line-equivalent space below the option cards.
-[ ] Slide 8: Replace Medium guest-capture wording with Expected; remove gross-sales disclaimer; align scenario names to Slide 4.
-[ ] Slide 9: Remove per-port/month rows; make primary figures daily; rename remain to profit; personalize installer-support heading; add J.D. Power footer.
-[ ] Slide 10: Use a single expected guest-sales value; rename to Annual ownership view; remove medium-midpoint wording.
-[ ] Slide 12: Make TLDR a standalone contact-and-booking summary with the hook metrics.
+[x] Slide 7: Add prospect-specific available-charging-revenue caption below the Option 2 100% value.
+[x] Slide 7: Add four blank-line-equivalent space below the option cards.
+[x] Slide 8: Replace Medium guest-capture wording with Expected; remove gross-sales disclaimer; align scenario names to Slide 4.
+[x] Slide 9: Remove per-port/month rows; make primary figures daily; rename remain to profit; personalize installer-support heading; add J.D. Power footer.
+[x] Slide 10: Use a single expected guest-sales value; rename to Annual ownership view; remove medium-midpoint wording.
+[x] Slide 12: Make TLDR a standalone contact-and-booking summary with the hook metrics.
