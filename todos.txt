@@ -1,0 +1,200 @@
+GetEV integrations backlog - triaged from "GetEV integrations - Aug 2026.pdf"
+Captured: 2026-08-20
+
+PRIVATE PROJECT METADATA
+- EIN for bank-account setup: 42-4542129
+- Keep the EIN out of proposals, customer-facing UI, browser logs, source labels, and reminder text.
+
+NEXT 3 DATA INTEGRATIONS - RECOMMENDED ORDER
+1. NLR/AFDC charging-station inventory
+   - Source: developer.nlr.gov Alternative Fuel Stations API.
+   - Why first: documented REST endpoints, clear station/port/network/power/connector/status fields, and direct fit with the existing map.
+   - Store: station ID, location, network, port count, connector, power, public access, operating status, source URL, retrieval date.
+   - Important boundary: infrastructure only; do not store utilization or session counts on this record.
+   - Access note: obtain and protect the NLR API key; cache responses and record the raw response/source version.
+
+2. Utah DOT AADT traffic data
+   - Source: UDOT Traffic Statistics / AADT history and map data.
+   - Why second: the proposal needs a single road-segment traffic fact, and UDOT publishes the relevant AADT history rather than requiring a complex live-data pipeline.
+   - Store: UDOT segment ID, road name, AADT, data year, direction/segment metadata, source URL, retrieval date, reviewer.
+   - Implementation shape: start with a controlled import for the road segment serving the property; automate refresh after the annual UDOT update.
+   - Caveat: the official source is published through reports/maps/Sheets, so ingestion is more likely an import pipeline than a simple REST call.
+
+3. Utah EV-registration import
+   - Source: Utah State Tax Commission Vehicle Registrations - Recent Data.
+   - Why third: official files are linked by year, require no vendor contract, and directly support Utah County BEV-growth inputs.
+   - Store: geography, registration year, vehicle/fuel category, count, source file URL, retrieval date, and any transformation/version metadata.
+   - Implementation shape: download and normalize the annual files, with a review step for format changes.
+   - Caveat: this is a file-ingestion workflow, not a low-latency API.
+
+INTEGRATION TRIAGE - 2026-08-21
+- REGIONAL EXPANSION PRIORITY: Add official roadway and EV-market sources for CO first, NV second, then AZ, OR, and ID. The registry is in regional-data-sources.json.
+- REGIONAL TRAFFIC STATUS - 2026-08-27: Live roadway AADT imports are connected for CO, NV, AZ, OR, and ID through the regionalTraffic function. Production smoke tests returned real source records for all five states. DOE AFDC remains the shared EV-market context source; state-specific EV-registration imports are still a separate follow-up.
+- KEEP / PRIMARY: NLR/AFDC. It is the national charger inventory used by the proposal map for location, brand/network, charger type, capacity, ports, access, and status. It is not redundant with performance data.
+- KEEP / PRIMARY: UDOT AADT. It supplies the roadway-volume fact used in the proposal and is distinct from charger inventory.
+- KEEP / PRIMARY: Utah EV registrations. It supplies local BEV-population and growth evidence and is distinct from charger inventory and traffic.
+- KEEP / PRIMARY: Overture Places. It supplies the nearby-amenity count used by the proposal. It is the preferred POI source.
+- KEEP / NEXT: OCPI/network status. It supplies current station/EVSE/connector availability that NLR does not provide and can create a time series for utilization inference. It requires a participating network's OCPI Locations endpoint and token; do not invent or scrape one.
+- CONTINGENCY ONLY: OpenStreetMap Overpass. It overlaps Overture for POIs, so use only when Overture is unavailable or for a specifically missing place category. Do not merge counts by default.
+- DEFER: OSRM/routing. Useful for route distance/time and a future access analysis, but the current customer-facing proposal does not need another location-score source until the destination/route definition is made explicit.
+- DEFER: Rocky Mountain Power tariffs. Relevant to utility/solar economics, but not the current EV-only proposal front end; revisit when tariff-aware utility economics are in scope.
+- RMP TARIFF STATUS - 2026-08-27: Connected a verified Schedule 6 Utah rate snapshot. The EV electricity expense now uses a four-summer/eight-winter weighted energy-rate blend from Rocky Mountain Power's official 2026 price summary. Demand, facilities, taxes, riders, and customer charges remain separate until interval load and account-specific tariff details are available.
+- DEFER: satellite imagery. Keep isolated as a visual asset, not a proposal metric source.
+- DEFER: licensed Paren/EVpin imports. Important for the utilization model, but requires a licensed feed and must not be scraped.
+- NEXT ACTION: finish OCPI integration only after an authorized network endpoint and token are available. Until then, do not add another redundant public-station dataset.
+
+UTILIZATION SOURCE OUTREACH - 2026-08-26
+- Paren Real-Time API/private-beta access request submitted by Rich Kingsford.
+- Paren is the preferred next utilization source because it provides licensed station-level utilization, session behavior, reliability, availability, pricing, and historical performance across U.S. DC fast-charging infrastructure.
+- Implementation gate: wait for Paren's approved API/flat-file access, schema, coverage terms, rate limits, attribution rules, and credentials. Do not scrape the site or use report-level averages as site-level observations.
+- When access arrives: map Paren records into charging_performance_observation and port_status_event, join to NLR/AFDC infrastructure by stable station identity/coordinates, preserve observation windows and retrieval timestamps, then replace only utilization-related manual inputs after validation.
+- EVpin performance data remains deferred because it would be redundant with Paren and also requires licensed access. Reconsider only if Paren cannot provide the required U.S. coverage or commercial terms.
+- Tesla Fleet API evaluated 2026-08-26: not a fit for this use case. Official endpoints are authenticated and vehicle/fleet-scoped; they expose an owner's or fleet's charging history, not public nationwide station pricing and utilization. Do not add Tesla credentials or claim Tesla API coverage for nearby-station proposal metrics.
+
+WHY NOT OVERTURE/OSM/OSRM IN THE FIRST 3
+- These are good fourth-wave sources for amenities and routing, but geospatial extraction, licensing/attribution, bounded downloads, and routing-hosting decisions add more implementation surface than the three imports above.
+- Use Overture Places for amenity inventory, Overpass for supplementary POIs, and OSRM for drive-time/access calculations after the basic location facts are stable.
+
+PRODUCT FOUNDATION
+- Classify every proposal value as OBSERVED, DERIVED, ASSUMPTION, or COMMERCIAL TERM.
+- Add a View calculation experience for every value showing formula, raw inputs, source, observation period, retrieval date, rounding rule, formula version, manual override, and override reason.
+- Build source, assumption, and formula-version structures before adding more model outputs.
+- Preserve raw responses, source labels, retrieval dates, observation periods, rounding rules, and reviewer/override metadata.
+- Keep infrastructure records separate from performance observations.
+
+UTILIZATION MODEL - GET-EV TESLA PERFORMANCE CAPTURE MODEL - VERSION 1
+- Replace the mixed-charger forecast and three-percentage-point adjustment.
+- Use Tesla-only performance for 100% of the starting utilization anchor.
+- Anchor inputs: closest same-configuration Tesla station (50%), matched regional Tesla peers (30%), Tesla network within 25 miles (20%).
+- Maintain the current Kneaders reference observations: Orem 8-port/250-kW/40%, matched regional set, and 25-mile Tesla network observation.
+- Implement final utilization: Tesla anchor x site-capture factor x net-demand growth x maturity factor x non-Tesla competition factor.
+- Implement site attractiveness: route convenience, amenities/dwell fit, host quality/operations/parking, traffic exposure, reliability/congestion relief.
+- Keep route/access calculation behind the scenes; do not show an ease-of-access score on the customer-facing site-capture page.
+- Limit relevant non-Tesla competition to a maximum 5% penalty; do not use non-Tesla utilization as a positive forecast input.
+- Implement net demand growth from EV demand growth divided by competing charging-capacity growth.
+- Maintain conservative, expected, and optimistic scenarios driven by Tesla performance, site capture, and market growth.
+- Calculate reference sessions, target sessions, target utilization, session minutes, kWh/session, and charging price at full precision; round only customer-facing displays.
+
+DATA COLLECTION AND INTEGRATIONS
+- Begin real-time public-station port-status collection as soon as possible; history cannot be recreated later.
+- Collect station ID, port ID, network, port status, status-change timestamp, maximum power, connector, price, station operational status, uptime observations, raw response, and API source.
+- Infer sessions and charging minutes from AVAILABLE-to-CHARGING and CHARGING-to-AVAILABLE transitions, with clear uncertainty/quality rules.
+- Integrate NLR/AFDC charging-station inventory for infrastructure facts only.
+- Integrate UDOT road-segment traffic data using the actual road serving the property.
+- Import Utah County/Utah BEV registrations and historical EV growth.
+- Add Overture Places for amenities and POIs.
+- Add OpenStreetMap Overpass for supplementary POI queries.
+- Add OSRM or another routing service for drive-time decay and choice-score calculations; decide whether to self-host before production use.
+- Add licensed Paren/EVpin performance import later; do not scrape EVpin, Paren, PlugShare, or Google.
+- Add Rocky Mountain Power tariff data and tariff-aware monthly utility calculation.
+- Add server-side Google satellite proposal imagery with a restricted API key; keep it as the proposal-image layer, not market data.
+
+UTILITY COSTS
+- Retain the current $368/day utility cost temporarily as an ASSUMPTION for reproducing the Kneaders proposal.
+- Replace it with a tariff-aware monthly calculation using tariff schedule, energy by time period, 15-minute peak kW, facilities peak, demand rate, customer charge, riders/adjustments, Orem municipal tax, power factor, and voltage adjustments.
+- Do not calculate demand charges from sessions or kWh alone.
+
+GUEST REVENUE AND CHARGING ECONOMICS
+- Guest parties = target sessions x guest capture rate.
+- Guest sales = guest parties x average party spend x period days.
+- Keep planning inputs: guest capture 30%; low/expected/high party spend $18/$25/$32.
+- Energy/day = target sessions x 30 kWh.
+- Charging revenue = energy kWh x $0.45/kWh.
+- Separate Tesla fee ($0.10/kWh) from 1Solar operations fee ($0.06/kWh).
+- Include repair reserve ($0.02/kWh), processing (approximately 3%), utility cost, and charging income calculation.
+- Keep guest sales as gross sales unless a restaurant contribution-margin input is added.
+- Label payback outputs as simple and undiscounted; do not call them NPV or IRR.
+
+COMMERCIAL TERMS
+- Annual lease = ports x monthly lease per port x 12.
+- Current lease input: 8 ports x $200/port/month = $19,200 annually.
+- Combined customer-site revenue = annual lease + annual guest sales.
+- Charging simple payback = project cost / annual charging income.
+- Combined-value equivalent = project cost / (annual charging income + annual guest sales).
+
+PROPOSAL CONTENT AND ORDER
+- Cover and brief company introduction.
+- Site opportunity and Tesla-market proof.
+- Tesla Performance Capture Model and three scenarios.
+- Revenue from additional guests.
+- Why 1Solar.
+- Lease/payment structure.
+- Combined customer-site revenue.
+- Charging economics and operating costs.
+- Annual charging income.
+- Project cost, payback, and long-term value.
+- Construction/site plan later in the proposal.
+- Testimonials and company proof.
+- Tell the business and revenue story before construction details.
+- Keep the existing drawing widget, image widgets, and configuration sections.
+
+MINIMUM DATABASE OBJECTS
+- site
+- source_observation
+- charging_station
+- charging_performance_observation
+- port_status_event
+- traffic_segment
+- ev_registration
+- point_of_interest
+- tariff_version
+- model_assumption
+- commercial_term
+- scenario
+- proposal_output
+- formula_version
+
+QUALITY AND ACCEPTANCE
+- Add automated acceptance tests for source classification, formulas, rounding, scenario outputs, and source/calculation explanations.
+- Definitions acceptance criteria: every card belongs to a named proposal section; any card can be inspected from Definitions; card label, variables, dependent output, source, and description are populated from the current catalog; edits persist and update the rendered section; cards can be added, moved, removed, and reset to Kneaders defaults; new proposal copies start with complete defaults and no blank definition fields; view-only and print modes hide editing controls; source suggestions appear for #, $ and %; card order is preserved after reload; moving a card preserves its value/output binding; duplicate card IDs are rejected or prevented; a source change does not fabricate a value; definitions remain scoped to the proposal rather than leaking across copies; responsive layouts keep cards usable on phone and wide screens; proposal rendering remains stable when a section has zero custom cards.
+- First acceptance test: reproduce the Kneaders proposal while allowing every number to be opened and understood from its source and formula.
+- Test that Tesla performance establishes the complete utilization baseline.
+- Test that non-Tesla competition is capped at a 5% effect.
+- Test that EVpin mixed-charger utilization and the old three-point adjustment are absent.
+
+EXPLICITLY NOT BUILDING YET
+- Lead-generation map.
+- Business-owner/contact prospecting.
+- Lending marketplace.
+- Full engineering stack.
+- Scraping EVpin, Paren, PlugShare, or Google.
+- Mixed-network utilization benchmark.
+- Black-box site score.
+- Automatic three-percentage-point utilization adjustment.
+
+SOURCE DOCUMENT
+- C:\Users\rking\Downloads\GetEV integrations - Aug 2026.pdf
+
+IMPLEMENTATION STATUS - 2026-08-20
+- NLR/AFDC adapter added at integrations/nlr-afdc.mjs.
+- Fixture and injectable-transport tests added at tests/nlr-afdc.test.mjs; all 3 pass.
+- Live request reached NLR but rejected the supplied credential as API_KEY_INVALID; do not store the pasted key.
+- Production wiring is waiting on a newly issued NLR developer API key and a server-side deployment target.
+- Priority requirement: use NLR/AFDC as the primary 10-mile EV charger inventory source for each proposal. Include location, distance, station name, brand/network, status, access, facility, connector types, port counts, maximum power, charging class, pricing, hours, and source timestamps. The live verification around Kneaders returned 114 stations: 8 high-capacity DC-fast, 21 DC-fast, and 85 Level 2.
+- NLR does not provide utilization. Keep utilization explicitly null and use OCPI/network or licensed utilization data for actual utilization; never infer utilization from station status.
+- Added the server-side Firebase `nlrStations` function and wired the proposal to call it with the active proposal coordinates. The browser receives normalized inventory only; it never receives the NLR credential.
+- Updated the demand map to enrich matched observed pins with NLR inventory details and add separate smaller NLR inventory pins for unmatched stations. Added subtle official-source links to source notes and the NLR map inventory note.
+- Remaining deployment action: set the new server secret with `firebase functions:secrets:set NLR_API_KEY`, then deploy `firebase deploy --only functions:nlrStations`. A valid newly issued NLR key is still required; no secret is stored in this repository.
+- Smoke check on 2026-08-21: the production function URL currently returns HTTP 404, confirming the code is not deployed yet.
+- UDOT AADT adapter added at integrations/udot-aadt.mjs. It uses UDOT's published annual AADT workbook/CSV shape and records segment ID, route, road name, AADT, data year, reviewer, retrieval time, and source URL.
+- UDOT fixture and injectable-transport tests added at tests/udot-aadt.test.mjs; all 3 UDOT tests pass. The Orem fixture is UDOT segment 049-0285 (SR 89 Orem, 43,000 AADT in the 2024 rounded workbook).
+- The verified UDOT snapshot is now wired into the Kneaders proposal through udot-aadt-data.json; the Location Overview and Site Snapshot traffic values use 43,000 vehicles/day and identify SR 89 Orem / 2024. No forecast formula was changed.
+- Automatic annual refresh from the UDOT workbook remains pending; UDOT AADT is an annual measure, not a real-time traffic feed.
+- Utah EV-registration adapter added at integrations/utah-ev-registrations.mjs. It normalizes annual Tax Commission Table 5 rows and aggregates Utah County electric registrations while excluding plug-in hybrids.
+- Utah EV-registration fixture tests added at tests/utah-ev-registrations.test.mjs; all 3 tests pass. The verified 2026 Utah County electric count is 16,437 from the February 16, 2026 snapshot.
+- The Kneaders current-BEV-population card now loads that observed count from utah-ev-registrations-data.json. Automatic annual workbook refresh remains pending; this is an annual file import, not a real-time feed.
+- OCPI 2.2.1 port-status adapter added at integrations/ocpi-status.mjs. It normalizes station, EVSE, connector, status, status-change time, power, connector type, network, and source provenance without creating utilization fields.
+- OCPI fixture and injectable-transport tests added at tests/ocpi-status.test.mjs; all 3 tests pass. Live collection is waiting for a participating network's OCPI Locations endpoint and server-side token.
+- Overture Places adapter added at integrations/overture-places.mjs. It normalizes bounded GeoJSON extracts and builds bounded DuckDB queries for place data, retaining IDs, categories, addresses, coordinates, release, and source provenance.
+- Overture fixture/query tests added at tests/overture-places.test.mjs; all 3 tests pass. No global Overture download is used and no forecast metric is changed.
+- Verified a bounded Overture Places extract for Kneaders: release 2026-08-19.0, 430 places in the requested box, 306 within 1 km, and 36 food-and-drink places within 1 km. Wired the 36-place subset into the proposal's nearby-amenities metric through overture-places-data.json.
+- OpenStreetMap Overpass adapter added at integrations/osm-overpass.mjs. It creates bounded read-only POI queries and normalizes node/way/relation records with OSM IDs, tags, coordinates, and retrieval metadata.
+- Overpass fixture and injectable-transport tests added at tests/osm-overpass.test.mjs; all 3 tests pass. OSM data is kept separate from Overture until a deduplication and source-precedence rule is approved.
+- Added osm-overpass-data.json as the verified production contingency snapshot for Kneaders: 197 OSM POIs in the bounded box, 138 within 1 km, and 15 food-and-drink POIs within 1 km. The proposal uses Overture first and falls back to this OSM snapshot only if Overture is unavailable; counts are never combined.
+2026-09-11 — Proposal slide revision checklist
+[ ] Slide 7: Add prospect-specific available-charging-revenue caption below the Option 2 100% value.
+[ ] Slide 7: Add four blank-line-equivalent space below the option cards.
+[ ] Slide 8: Replace Medium guest-capture wording with Expected; remove gross-sales disclaimer; align scenario names to Slide 4.
+[ ] Slide 9: Remove per-port/month rows; make primary figures daily; rename remain to profit; personalize installer-support heading; add J.D. Power footer.
+[ ] Slide 10: Use a single expected guest-sales value; rename to Annual ownership view; remove medium-midpoint wording.
+[ ] Slide 12: Make TLDR a standalone contact-and-booking summary with the hook metrics.
