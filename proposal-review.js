@@ -49,7 +49,7 @@ function renderReviewedProposal(section) {
   // Apply the current slide wording and remove retired presentation rows after
   // rendering so every proposal, including saved copies, receives the same update.
   const partnership=section.querySelector('#ev-report-5');
-  if(partnership){ const optionTwo=partnership.querySelectorAll('.reference-option')[1]; if(optionTwo){ const label=optionTwo.querySelector('b'); if(label) label.textContent=`AVAILABLE CHARGING REVENUE TO ${host.toUpperCase()}`; } }
+  if(partnership){ const optionTwo=partnership.querySelectorAll('.reference-option')[1]; if(optionTwo) optionTwo.classList.add('option-two-revenue-caption'); }
   const optionOne=section.querySelector('#ev-report-6');
   if(optionOne){ optionOne.querySelectorAll('*').forEach(node=>{ if(node.childElementCount===0 && node.textContent.includes('Medium guest-capture range from the guest-revenue page.')) node.textContent='Expected guest-capture range.'; if(node.childElementCount===0 && node.textContent.includes('Gross guest sales are not restaurant profit.')) node.remove(); }); optionOne.querySelectorAll('.chart-label').forEach(node=>{ if(node.textContent.includes('MEDIUM GUEST-VALUE CASE')) node.textContent='EXPECTED GUEST-VALUE CASE'; }); optionOne.querySelectorAll('.review-metric').forEach(node=>{ const label=node.querySelector('span'); if(label) label.textContent=label.textContent.replace(/\bLOW\b/,'CONSERVATIVE').replace(/\bMEDIUM\b/,'EXPECTED'); }); }
   const daily=section.querySelector('#ev-report-7');
